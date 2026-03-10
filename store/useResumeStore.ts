@@ -353,9 +353,11 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 education: data.education || [],
                 skills: data.skills || [],
                 projects: data.projects || [],
+                summary: data.summary || '',
                 sectionsConfig: mergedSections,
                 aiAnalysis: data.aiAnalysis || data.ai_analysis || undefined,
                 jdAnalysis: data.jdAnalysis || undefined,
+                jobDescription: data.jobDescription || '',
                 language: data.language || 'pt',
             };
 
