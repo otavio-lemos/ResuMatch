@@ -1,6 +1,24 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 
+function normalizeApiResponse(data: any): any {
+  if (!data) return data;
+  
+  const normalized = { ...data };
+  
+  if (normalized.scores) {
+    if (normalized.scores.estrutura === undefined && normalized.scores.structure !== undefined) {
+      normalized.scores.estrutura = normalized.scores.structure;
+    }
+  }
+  
+  if (normalized.estruturaChecks === undefined && normalized.structureChecks !== undefined) {
+    normalized.estruturaChecks = normalized.structureChecks;
+  }
+  
+  return normalized;
+}
+
 export type Experience = {
     id: string;
     position: string;
@@ -168,6 +186,7 @@ type ResumeStore = {
     syncStatus: 'idle' | 'loading' | 'saving' | 'saved' | 'error';
     needsNewAnalysis: boolean;
     isAnalyzing: boolean;
+    streamProgress: string[];
     error: string | null;
     debugInfo: {
         lastPayload?: any;
@@ -273,6 +292,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     syncStatus: 'idle',
     needsNewAnalysis: true,
     isAnalyzing: false,
+    streamProgress: [],
     error: null,
     debugInfo: null,
 
@@ -370,7 +390,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     },
 
     analyzeResume: async (atsPrompt, jobDescription, aiSettings, language = 'pt') => {
-        set({ isAnalyzing: true, error: null });
+        set({ isAnalyzing: true, error: null, streamProgress: [] });
         const payload = {
             resumeData: get().data,
             atsPrompt,
@@ -378,39 +398,86 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             aiSettings,
             language
         };
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        
         try {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
+                signal: controller.signal
             });
 
-            const result = await response.json();
-
-            set({ debugInfo: { lastPayload: payload, lastResponse: result } });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
+                const result = await response.json();
                 const errorMessage = result.error || (response.status === 503 ? "AI service overloaded. Please try again." : "Erro ao processar análise.");
                 throw new Error(errorMessage);
             }
+
+            // Handle streaming response
+            const reader = response.body?.getReader();
+            if (!reader) throw new Error('Erro ao ler resposta');
+
+            const decoder = new TextDecoder();
+            let fullResult = '';
+            const progressMessages: string[] = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'progress') {
+                                progressMessages.push(data.message);
+                                set({ streamProgress: [...progressMessages] });
+                            } else if (data.type === 'chunk') {
+                                fullResult += data.content;
+                            } else if (data.type === 'complete') {
+                                fullResult = JSON.stringify(data.data);
+                            } else if (data.type === 'error') {
+                                throw new Error(data.message);
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                }
+            }
+
+            const result = normalizeApiResponse(JSON.parse(fullResult));
+
+            set({ debugInfo: { lastPayload: payload, lastResponse: result } });
 
             if (jobDescription) {
                 set((state) => ({
                     data: { ...state.data, jdAnalysis: result },
                     isAnalyzing: false,
-                    needsNewAnalysis: false
+                    needsNewAnalysis: false,
+                    streamProgress: []
                 }));
             } else {
                 set((state) => ({
                     data: { ...state.data, aiAnalysis: result },
                     isAnalyzing: false,
-                    needsNewAnalysis: false
+                    needsNewAnalysis: false,
+                    streamProgress: []
                 }));
             }
 
             get().saveLocalResume();
         } catch (err: any) {
-            set({ error: err.message, isAnalyzing: false });
+            set({ error: err.message, isAnalyzing: false, streamProgress: [] });
         }
     },
 
