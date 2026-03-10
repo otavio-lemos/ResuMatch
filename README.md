@@ -1,4 +1,4 @@
-# ResuMatch - Construtor de Currículos com IA 🇧🇷 🇺🇸
+# ResuMatch - 
 
 <div align="center">
 
