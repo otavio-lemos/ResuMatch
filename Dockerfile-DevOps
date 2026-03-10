@@ -1,0 +1,58 @@
+# ==========================================
+# STAGE 1: BASE (Dependências de Sistema e Node)
+# ==========================================
+FROM node:20-alpine AS base
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# 🚨 CRÍTICO: libc6-compat adicionado de volta (Vital para o SWC do Next.js no Alpine)
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 py3-pip make g++ git bash curl jq \
+    chromium nss freetype harfbuzz ttf-freefont fontconfig
+
+# Instala bibliotecas Python (sem o playwright que quebra no Mac M1/M2/M3)
+RUN pip3 install --break-system-packages \
+    colorama requests pyyaml rich python-dotenv \
+    ruff mypy pytest
+
+WORKDIR /app
+
+# Instalação de dependências do Node
+COPY package.json package-lock.json* ./
+RUN npm install --legacy-peer-deps
+
+# Copia o código fonte e dá permissão aos scripts
+COPY . .
+RUN chmod +x .agent/scripts/*.py || true
+RUN chmod +x .agent/skills/*/scripts/*.py || true
+
+# ==========================================
+# STAGE 2: AUDITORIA (O Guardião do CI/CD)
+# ==========================================
+FROM base AS auditoria
+
+# Se o código estiver sujo, o build morre aqui.
+RUN python3 .agent/scripts/checklist.py .
+
+# ==========================================
+# STAGE 3: FINAL (Runner de Desenvolvimento)
+# ==========================================
+FROM auditoria AS final
+
+# Mantém a estrutura de segurança do seu Dockerfile original
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    mkdir -p /app/data && \
+    chown -R nextjs:nodejs /app/data && \
+    chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["npm", "run", "dev"]

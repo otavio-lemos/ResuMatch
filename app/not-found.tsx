@@ -1,0 +1,17 @@
+import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Página não encontrada - ResuMatch',
+  description: 'A página que você está procurando não existe.'
+}
+ 
+export default function NotFound() {
+  return (
+    <div>
+      <h2>Not Found</h2>
+      <p>Could not find requested resource</p>
+      <Link href="/">Return Home</Link>
+    </div>
+  )
+}

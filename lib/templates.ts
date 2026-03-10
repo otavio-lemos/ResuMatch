@@ -1,0 +1,120 @@
+export type Template = {
+    id: string;
+    name: string;
+    style: string;
+    description: string;
+    ats: number;
+    imageSrc: string;
+    sector: string[];
+    experience: string[];
+    popularity: number;
+    dateAdded: string;
+    recommended: boolean;
+};
+
+export const TEMPLATES: Template[] = [
+    {
+        id: 'classic',
+        name: 'Standard Ivy League',
+        style: 'Clássico',
+        description: 'O padrão ouro de Harvard e Yale. Coluna única, fonte serifada e legibilidade 100% garantida em qualquer sistema ATS antigo ou moderno.',
+        ats: 100,
+        imageSrc: '/templates/classic.svg',
+        sector: ['Executivo', 'Consultoria', 'Finanças', 'Jurídico'],
+        experience: ['Qualquer'],
+        popularity: 98,
+        dateAdded: '2025-01-10',
+        recommended: true,
+    },
+    {
+        id: 'modern',
+        name: 'Sleek Tech',
+        style: 'Moderno',
+        description: 'Design limpo com fontes sans-serif contemporâneas. Perfeito para empresas de tecnologia, startups e cargos de design de produto.',
+        ats: 99,
+        imageSrc: '/templates/modern.svg',
+        sector: ['TI & Tecnologia', 'Produto', 'Design'],
+        experience: ['Júnior', 'Pleno', 'Sênior'],
+        popularity: 145,
+        dateAdded: '2025-02-20',
+        recommended: true,
+    },
+    {
+        id: 'minimalist',
+        name: 'Clean White Pro',
+        style: 'Minimalista',
+        description: 'Foco total no conteúdo com aproveitamento inteligente de espaços em branco. Elimina qualquer ruído visual para o recrutador.',
+        ats: 100,
+        imageSrc: '/templates/minimalist.svg',
+        sector: ['Administrativo', 'Engenharia', 'Saúde'],
+        experience: ['Qualquer'],
+        popularity: 120,
+        dateAdded: '2025-02-15',
+        recommended: true,
+    },
+    {
+        id: 'executive',
+        name: 'Global Executive',
+        style: 'Profissional',
+        description: 'Layout sofisticado com cabeçalho de destaque para informações de contato. Transmite autoridade e senioridade imediata.',
+        ats: 98,
+        imageSrc: '/templates/executive.svg',
+        sector: ['Vendas', 'Marketing', 'RH', 'Diretoria'],
+        experience: ['Sênior', 'Executivo'],
+        popularity: 110,
+        dateAdded: '2025-03-01',
+        recommended: true,
+    },
+    {
+        id: 'tech',
+        name: 'Developer Core',
+        style: 'Técnico',
+        description: 'Otimizado para currículos técnicos com seções de habilidades e tecnologias em destaque no topo da página.',
+        ats: 99,
+        imageSrc: '/templates/tech.svg',
+        sector: ['Desenvolvimento', 'Data Science', 'DevOps'],
+        experience: ['Estágio', 'Júnior', 'Pleno'],
+        popularity: 160,
+        dateAdded: '2025-02-28',
+        recommended: true,
+    },
+    {
+        id: 'compact',
+        name: 'One-Page Power',
+        style: 'Compacto',
+        description: 'Máxima densidade de informação sem perder a elegância. Ideal para quem tem muita experiência e precisa condensar em uma página.',
+        ats: 100,
+        imageSrc: '/templates/compact.svg',
+        sector: ['Geral'],
+        experience: ['Sênior', 'Especialista'],
+        popularity: 155,
+        dateAdded: '2025-03-01',
+        recommended: false,
+    },
+    {
+        id: 'harvard',
+        name: 'Harvard Strict ATS',
+        style: 'Acadêmico',
+        description: 'Padrão ouro de formatação. O modelo mais seguro do mundo para passar em qualquer software de recrutamento.',
+        ats: 100,
+        imageSrc: '/templates/harvard.svg',
+        sector: ['Todos'],
+        experience: ['Qualquer'],
+        popularity: 200,
+        dateAdded: '2025-03-09',
+        recommended: true,
+    },
+    {
+        id: 'corporate',
+        name: 'Corporate Standard',
+        style: 'Corporativo',
+        description: 'Elegante, focado e estruturado. O formato preferido por recrutadores de empresas tradicionais e multinacionais.',
+        ats: 100,
+        imageSrc: '/templates/corporate.svg',
+        sector: ['Gestão', 'Finanças', 'Operações'],
+        experience: ['Pleno', 'Sênior', 'Especialista'],
+        popularity: 180,
+        dateAdded: '2025-03-09',
+        recommended: true,
+    },
+];

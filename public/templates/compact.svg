@@ -1,0 +1,25 @@
+<svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="560" fill="white"/>
+  <rect x="20" y="20" width="360" height="30" fill="#F8FAFC" rx="4"/>
+  <text x="35" y="40" font-family="Arial" font-size="14" font-weight="900" fill="#1E293B">SEU NOME</text>
+  <text x="365" y="40" font-family="Arial" font-size="6.5" text-anchor="end" fill="#64748B">seu.email@exemplo.com | in/seulinkedin</text>
+  
+  <text x="20" y="65" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">RESUMO</text>
+  <text x="20" y="78" font-family="Arial" font-size="7" fill="#475569">Designer de Produto com 8 anos de experiência em interfaces e estratégia.</text>
+  
+  <text x="20" y="100" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">EXPERIÊNCIA</text>
+  <text x="20" y="115" font-family="Arial" font-size="7.5" font-weight="700" fill="#1E293B">Senior Product Designer — TechFlow | 2021-Pres.</text>
+  <text x="20" y="130" font-family="Arial" font-size="7.5" font-weight="700" fill="#1E293B">Product Designer Pleno — Agency | 2018-2021</text>
+  
+  <text x="20" y="155" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">FORMAÇÃO</text>
+  <text x="20" y="170" font-family="Arial" font-size="7.5" font-weight="700" fill="#1E293B">Mestrado IHC @ USP | Bacharelado Design @ UFRJ</text>
+  
+  <text x="20" y="195" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">SKILLS</text>
+  <text x="20" y="210" font-family="Arial" font-size="7" fill="#475569">Figma, React, UX Research, Agile, Design Thinking.</text>
+  
+  <text x="20" y="235" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">PROJETOS</text>
+  <text x="20" y="250" font-family="Arial" font-size="7" fill="#475569">App Telemedicina: Redesign de interface e UX.</text>
+  
+  <text x="20" y="275" font-family="Arial" font-size="8" font-weight="900" fill="#1E293B">CERTIFICAÇÕES</text>
+  <text x="20" y="290" font-family="Arial" font-size="7" fill="#475569">Google UX (2023), NNG UX Certification (2022).</text>
+</svg>

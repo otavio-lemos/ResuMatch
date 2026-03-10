@@ -1,0 +1,18 @@
+node_modules/
+.next/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+# SSL Certificates
+certs/
+
+# Worktrees
+.worktrees/
+worktrees/
+# K8s secrets — never commit real credentials
+k8s/secret.yaml
+
+.odo
+.aider*

@@ -1,0 +1,1273 @@
+'use client';
+
+// export const metadata = {}; // SEO bypass
+import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
+import { useResumeStore } from '@/store/useResumeStore';
+import { ResumeData, AppearanceSettings } from '@/store/useResumeStore';
+
+const LABELS = { pt: 'Atual', en: 'Current' };
+
+function getCurrentLabel(lang: string = 'pt'): string {
+    return LABELS[lang as keyof typeof LABELS] || LABELS.pt;
+}
+
+// ─── ATS-SAFE FONT MAP ─────────────────────────────────────────────────────────
+const FONT_MAP: Record<string, string> = {
+    'Inter': "'Inter', Arial, sans-serif",
+    'Arial': "Arial, sans-serif",
+    'Calibri': "'Calibri', 'Gill Sans', sans-serif",
+    'Georgia': "Georgia, 'Times New Roman', serif",
+    'Times New Roman': "'Times New Roman', Times, serif",
+    'Roboto': "'Roboto', Arial, sans-serif",
+};
+
+const PAGE_SIZES = {
+    'A4': { width: '210mm', minHeight: '297mm' },
+    'LETTER': { width: '215.9mm', minHeight: '279.4mm' },
+    'LEGAL': { width: '215.9mm', minHeight: '355.6mm' },
+    'EXECUTIVE': { width: '184.1mm', minHeight: '266.7mm' },
+};
+
+function getStyles(appearance: AppearanceSettings): React.CSSProperties {
+    const size = PAGE_SIZES[appearance.pageSize] || PAGE_SIZES['A4'];
+    return {
+        fontFamily: FONT_MAP[appearance.fontFamily] || FONT_MAP['Inter'],
+        fontSize: `${appearance.fontSize}pt`,
+        lineHeight: appearance.lineSpacing,
+        width: size.width,
+        minHeight: size.minHeight,
+    };
+}
+
+// ─── HELPER: Photo Component ──────────────────────────────────────────────────
+function ResumePhoto({ url, size = '80px' }: { url?: string, size?: string }) {
+    if (!url) return null;
+    return (
+        <div style={{
+            flexShrink: 0,
+            width: size,
+            height: size,
+            borderRadius: '0px',
+            overflow: 'hidden',
+            border: '2px solid #e2e8f0',
+            marginBottom: '10px'
+        }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+    );
+}
+
+// ─── TEMPLATE 1: Classic Executive ─────────────────────────────────────────────
+function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#1e293b', padding: '15mm', boxSizing: 'border-box' }}>
+            <header style={{ borderBottom: '2px solid #1e293b', paddingBottom: '20px', marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <ResumePhoto url={personalInfo.photoUrl} size="90px" />
+                <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: '2em', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a', marginBottom: '4px' }}>
+                        {personalInfo.fullName || 'SEU NOME'}
+                    </h2>
+                    <p style={{ fontSize: '1.1em', fontWeight: 500, color: '#475569', textTransform: 'uppercase', marginBottom: '12px' }}>
+                        {personalInfo.title || 'SEU CARGO'}
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.78em', color: '#64748b' }}>
+                        {personalInfo.email && <span>{personalInfo.email}</span>}
+                        {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+                        {personalInfo.location && <span>• {personalInfo.location}</span>}
+                        {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                        {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                    </div>
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                                {section.title}
+                            </h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', textAlign: 'justify' }}>{summary}</p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '14px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                        <strong style={{ color: '#0f172a' }}>{exp.position}</strong>
+                                        <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
+                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                        </span>
+                                    </div>
+                                    <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
+                                        {exp.company}{exp.location && `, ${exp.location}`}
+                                    </p>
+                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                        <strong style={{ color: '#0f172a' }}>{edu.degree}</strong>
+                                        <span style={{ fontSize: '0.78em', color: '#64748b' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.85em', color: '#475569' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                                {section.title}
+                            </h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 20px', fontSize: '0.88em', color: '#374151' }}>
+                                {skills.map(g => (
+                                    <div key={g.id}><strong style={{ color: '#0f172a' }}>{g.category}:</strong> {g.skills.join(', ')}</div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                // Render Custom Sections
+                if (section.type === 'TEXT') {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                                {section.title}
+                            </h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', whiteSpace: 'pre-line' }}>{section.content}</p>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST') {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                                {section.title}
+                            </h2>
+                            <ul style={{ fontSize: '0.9em', color: '#374151', paddingLeft: '18px', listStyleType: 'disc' }}>
+                                {(section.items as string[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST') {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {(section.items as any[] || []).map(item => (
+                                <div key={item.id} style={{ marginBottom: '14px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                        <strong style={{ color: '#0f172a' }}>{item.title}</strong>
+                                        <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
+                                            {item.startDate}{item.endDate && ` — ${item.endDate}`}
+                                        </span>
+                                    </div>
+                                    <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
+                                        {item.subtitle}{item.location && `, ${item.location}`}
+                                    </p>
+                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
+// ─── TEMPLATE 2: Modern Two-Column ─────────────────────────────────────────────
+function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', display: 'flex', boxSizing: 'border-box' }}>
+            {/* Left Sidebar */}
+            <div style={{ width: '190px', background: '#1e293b', color: 'white', padding: '36px 20px', flexShrink: 0 }}>
+                <ResumePhoto url={personalInfo.photoUrl} size="120px" />
+
+                <div style={{ marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '1.2em', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: '6px' }}>
+                        {personalInfo.fullName || 'SEU NOME'}
+                    </h2>
+                    <p style={{ fontSize: '0.75em', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        {personalInfo.title || ''}
+                    </p>
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>Contato</h3>
+                    {[
+                        { label: personalInfo.email },
+                        { label: personalInfo.phone },
+                        { label: personalInfo.location },
+                        { label: personalInfo.linkedin },
+                        { label: personalInfo.portfolio },
+                    ].filter(i => i.label).map((item, idx) => (
+                        <p key={idx} style={{ fontSize: '0.75em', color: '#cbd5e1', marginBottom: '4px', wordBreak: 'break-all' }}>{item.label}</p>
+                    ))}
+                </div>
+
+                {skills.length > 0 && (
+                    <div>
+                        <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>Competências</h3>
+                        {skills.map(g => (
+                            <div key={g.id} style={{ marginBottom: '10px' }}>
+                                <p style={{ fontSize: '0.7em', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px' }}>{g.category}</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                    {g.skills.map(s => (
+                                        <span key={s} style={{ fontSize: '0.65em', background: '#334155', color: '#94a3b8', padding: '1px 6px', borderRadius: '3px' }}>{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Right Main Content */}
+            <div style={{ flex: 1, padding: '36px 28px', overflow: 'hidden' }}>
+                {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                    const sectionStyle = { marginBottom: '20px' };
+                    const headingStyle = { fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: '#1e40af', borderBottom: '2px solid #1e40af', paddingBottom: '4px', marginBottom: '12px' };
+
+                    if (section.id === 'summary' && summary) {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                <p style={{ fontSize: '0.88em', color: '#374151', textAlign: 'justify' }}>{summary}</p>
+                            </section>
+                        );
+                    }
+
+                    if (section.id === 'experience' && experiences.length > 0) {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                {experiences.map(exp => (
+                                    <div key={exp.id} style={{ marginBottom: '14px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                            <strong style={{ color: '#0f172a', fontSize: '0.95em' }}>{exp.position}</strong>
+                                            <span style={{ fontSize: '0.75em', color: '#64748b' }}>                                            {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}</span>
+                                        </div>
+                                        <p style={{ fontSize: '0.82em', color: '#1e40af', marginBottom: '4px' }}>{exp.company}{exp.location && `, ${exp.location}`}</p>
+                                        <p style={{ fontSize: '0.85em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    }
+
+                    if (section.id === 'education' && education.length > 0) {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                {education.map(edu => (
+                                    <div key={edu.id} style={{ marginBottom: '10px' }}>
+                                        <strong style={{ fontSize: '0.9em', color: '#0f172a' }}>{edu.degree}</strong>
+                                        <p style={{ fontSize: '0.82em', color: '#374151' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
+                                        <p style={{ fontSize: '0.75em', color: '#64748b' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</p>
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    }
+
+                    if (section.id === 'skills' && skills.length > 0) {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                {skills.map(g => (
+                                    <div key={g.id} style={{ marginBottom: '10px' }}>
+                                        <p style={{ fontSize: '0.75em', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>{g.category}</p>
+                                        <p style={{ fontSize: '0.82em', color: '#374151' }}>{g.skills.join(', ')}</p>
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    }
+
+                    if (section.type === 'TEXT') {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{section.content}</p>
+                            </section>
+                        );
+                    }
+
+                    if (section.type === 'SIMPLE_LIST') {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                <ul style={{ fontSize: '0.85em', color: '#374151', paddingLeft: '16px', listStyleType: 'square' }}>
+                                    {(section.items as string[] || []).map((item, idx) => (
+                                        <li key={idx} style={{ marginBottom: '3px' }}>{item}</li>
+                                    ))}
+                                </ul>
+                            </section>
+                        );
+                    }
+
+                    if (section.type === 'DATED_LIST') {
+                        return (
+                            <section key={section.id} style={sectionStyle}>
+                                <h2 style={headingStyle}>{section.title}</h2>
+                                {(section.items as any[] || []).map(item => (
+                                    <div key={item.id} style={{ marginBottom: '12px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                            <strong style={{ color: '#0f172a', fontSize: '0.9em' }}>{item.title}</strong>
+                                            <span style={{ fontSize: '0.7em', color: '#64748b' }}>{item.startDate}{item.endDate && ` — ${item.endDate}`}</span>
+                                        </div>
+                                        <p style={{ fontSize: '0.8em', color: '#1e40af' }}>{item.subtitle}{item.location && `, ${item.location}`}</p>
+                                        <p style={{ fontSize: '0.82em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
+                                    </div>
+                                ))}
+                            </section>
+                        );
+                    }
+
+                    return null;
+                })}
+            </div>
+        </div>
+    );
+}
+
+// ─── TEMPLATE 3: Vienna (With Photo) ──────────────────────────────────────────
+function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+            <header style={{ display: 'flex', alignItems: 'center', gap: '24px', borderBottom: '2px solid #3b82f6', paddingBottom: '20px', marginBottom: '24px' }}>
+                <ResumePhoto url={personalInfo.photoUrl} size="100px" />
+                <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: '2.4em', fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em', marginBottom: '4px', lineHeight: 1.1 }}>
+                        {personalInfo.fullName || 'SEU NOME'}
+                    </h2>
+                    <p style={{ fontSize: '1.1em', color: '#3b82f6', fontWeight: 600, paddingBottom: '8px', marginBottom: '8px' }}>
+                        {personalInfo.title || 'Seu Cargo Desejado'}
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: '4px', columnGap: '16px', fontSize: '0.85em', color: '#475569' }}>
+                        {personalInfo.location && <span>• {personalInfo.location}</span>}
+                        {personalInfo.email && <span>• {personalInfo.email}</span>}
+                        {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+                        {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                        {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                    </div>
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                const sectionStyle = { marginBottom: '24px' };
+                const headingStyle = { fontSize: '0.9em', fontWeight: 700, textTransform: 'uppercase' as const, color: '#1e3a8a', borderBottom: '1px solid #bfdbfe', paddingBottom: '4px', marginBottom: '12px', letterSpacing: '0.05em' };
+
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.95em', textAlign: 'justify', lineHeight: 1.6, color: '#334155' }}>{summary}</p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '18px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                        <h3 style={{ fontSize: '1.05em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{exp.position}</h3>
+                                        <span style={{ fontSize: '0.85em', color: '#3b82f6', fontWeight: 600 }}>{exp.startDate} – {exp.current ? 'Present' : exp.endDate}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.95em', fontWeight: 500, color: '#475569', marginBottom: '6px' }}>
+                                        {exp.company}{exp.location && ` | ${exp.location}`}
+                                    </div>
+                                    <p style={{ fontSize: '0.9em', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.5, margin: 0 }}>{exp.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{edu.degree}</h3>
+                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{edu.startDate} – {edu.endDate}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.95em', color: '#475569' }}>
+                                        {edu.institution}{edu.location && ` | ${edu.location}`}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 24px' }}>
+                                {skills.map(g => (
+                                    <div key={g.id} style={{ fontSize: '0.9em', color: '#334155' }}>
+                                        <strong style={{ color: '#0f172a' }}>{g.category}:</strong> {g.skills.join(', ')}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'TEXT') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.6, margin: 0 }}>{section.content}</p>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <ul style={{ fontSize: '0.9em', color: '#334155', paddingLeft: '20px', listStyleType: 'square', margin: 0 }}>
+                                {(section.items as string[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '6px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {(section.items as any[] || []).map(item => (
+                                <div key={item.id} style={{ marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{item.title}</h3>
+                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{item.startDate} – {item.endDate}</span>
+                                    </div>
+                                    {item.subtitle && <div style={{ fontSize: '0.95em', color: '#475569', marginBottom: '4px' }}>{item.subtitle}{item.location && ` | ${item.location}`}</div>}
+                                    <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.5, margin: 0 }}>{item.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+// ─── TEMPLATE 3: Minimalist Clean ──────────────────────────────────────────────
+function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+            {/* Centered header */}
+            <header style={{ textAlign: 'center', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #d1d5db' }}>
+                <ResumePhoto url={personalInfo.photoUrl} size="100px" />
+                <h2 style={{ fontSize: '2.2em', fontWeight: 300, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#111827', marginBottom: '4px' }}>
+                    {personalInfo.fullName || 'SEU NOME'}
+                </h2>
+                {personalInfo.title && (
+                    <p style={{ fontSize: '0.9em', color: '#6b7280', letterSpacing: '0.1em', marginBottom: '10px' }}>{personalInfo.title}</p>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.75em', color: '#6b7280' }}>
+                    {personalInfo.email && <span>{personalInfo.email}</span>}
+                    {personalInfo.phone && <span>|</span>}
+                    {personalInfo.phone && <span>{personalInfo.phone}</span>}
+                    {personalInfo.location && <span>|</span>}
+                    {personalInfo.location && <span>{personalInfo.location}</span>}
+                    {personalInfo.linkedin && <span>|</span>}
+                    {personalInfo.linkedin && <span>{personalInfo.linkedin}</span>}
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                const sectionStyle = { marginBottom: '18px' };
+                const headingStyle = { fontSize: '0.65em', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: '#6b7280', marginBottom: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '12px' };
+
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={{ ...headingStyle, borderTop: 'none', paddingTop: 0, marginBottom: '6px' }}>{section.title}</h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: 1.7 }}>{summary}</p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.9em' }}>{exp.position} — {exp.company}</strong>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{exp.startDate} – {exp.current ? 'Atual' : exp.endDate}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.82em', color: '#6b7280', marginBottom: '3px' }}>{exp.location}</p>
+                                    <p style={{ fontSize: '0.85em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.88em' }}>{edu.degree}</strong>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.8em', color: '#6b7280' }}>{edu.institution}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                {skills.map(g => (
+                                    <div key={g.id}>
+                                        <p style={{ fontSize: '0.8em', fontWeight: 600, color: '#374151' }}>{g.category}</p>
+                                        <p style={{ fontSize: '0.78em', color: '#6b7280' }}>{g.skills.join(' · ')}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'TEXT') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: 1.7 }}>{section.content}</p>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <ul style={{ fontSize: '0.88em', color: '#374151', paddingLeft: '14px', listStyleType: 'circle' }}>
+                                {(section.items as string[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST') {
+                    return (
+                        <section key={section.id} style={sectionStyle}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {(section.items as any[] || []).map(item => (
+                                <div key={item.id} style={{ marginBottom: '12px', paddingLeft: '12px', borderLeft: '2px solid #f3f4f6' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.88em' }}>{item.title}</strong>
+                                        <span style={{ fontSize: '0.7em', color: '#9ca3af' }}>{item.startDate}{item.endDate && ` – ${item.endDate}`}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.8em', color: '#6b7280' }}>{item.subtitle}</p>
+                                    <p style={{ fontSize: '0.82em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
+
+
+// ─── TEMPLATE 5: Tech Dark Mode ──────────────────────────────────────────────
+function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    const containerStyle = { ...style, backgroundColor: '#0F172A', color: '#94A3B8', padding: '40px', boxSizing: 'border-box' as const, fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace" };
+    const headingStyle = { fontSize: '0.9em', fontWeight: 900, color: '#F8FAFC', marginBottom: '8px', marginTop: '16px' };
+    const blueText = { color: '#3B82F6' };
+
+    return (
+        <div className="resume-container" style={containerStyle}>
+            <div style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '1.4em', fontWeight: 900, ...blueText, marginBottom: '4px' }}>{personalInfo.fullName || 'SEU NOME'}</h1>
+                <p style={{ fontSize: '0.7em', color: '#94A3B8' }}>
+                    {[
+                        personalInfo.email,
+                        personalInfo.linkedin && `in/${personalInfo.linkedin.replace('https://linkedin.com/in/', '')}`,
+                        personalInfo.phone,
+                        personalInfo.portfolio
+                    ].filter(Boolean).join(' // ')}
+                </p>
+            </div>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            <p style={{ fontSize: '0.75em', lineHeight: 1.6 }}>{summary}</p>
+                        </div>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '12px' }}>
+                                    <strong style={{ fontSize: '0.85em', fontWeight: 700, ...blueText }}>
+                                        {exp.position} @ {exp.company}
+                                    </strong>
+                                    <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
+                                        &gt; {exp.location ? `${exp.location} // ` : ''}{exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                                    </p>
+                                    <p style={{ fontSize: '0.75em', whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '8px' }}>
+                                    <strong style={{ fontSize: '0.85em', fontWeight: 700, ...blueText }}>
+                                        {edu.degree} @ {edu.institution}
+                                    </strong>
+                                    <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px' }}>
+                                        &gt; {edu.location ? `${edu.location} // ` : ''}{edu.startDate} - {edu.endDate}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            {skills.map(g => (
+                                <div key={g.id} style={{ marginBottom: '6px' }}>
+                                    <strong style={{ fontSize: '0.8em', ...blueText }}>{g.category}: </strong>
+                                    <span style={{ fontSize: '0.75em' }}>{g.skills.join(', ')}</span>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.75em' }}>
+                                {(section.items as string[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '2px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            {(section.items as any[]).map(item => (
+                                <div key={item.id} style={{ marginBottom: '12px' }}>
+                                    <strong style={{ fontSize: '0.85em', fontWeight: 700, ...blueText }}>
+                                        {item.title} {item.subtitle ? `@ ${item.subtitle}` : ''}
+                                    </strong>
+                                    <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
+                                        &gt; {item.location ? `${item.location} // ` : ''}{item.startDate}{item.endDate ? ` - ${item.endDate}` : ''}
+                                    </p>
+                                    <p style={{ fontSize: '0.75em', whiteSpace: 'pre-line' }}>{item.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.type === 'TEXT' && section.content) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={headingStyle}>~/{section.id}</h2>
+                            <p style={{ fontSize: '0.75em', whiteSpace: 'pre-wrap' }}>{section.content}</p>
+                        </div>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
+// ─── TEMPLATE 6: Compact High-Density ─────────────────────────────────────────
+function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    const containerStyle = { ...style, padding: '30px', backgroundColor: 'white', boxSizing: 'border-box' as const };
+    const headerBox = { backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' };
+    const headingStyle = { fontSize: '0.8em', fontWeight: 900, color: '#1E293B', textTransform: 'uppercase' as const, marginBottom: '6px', marginTop: '12px', borderBottom: '1px solid #E2E8F0', paddingBottom: '2px' };
+
+    return (
+        <div className="resume-container" style={containerStyle}>
+            <div style={headerBox}>
+                <div>
+                    <h1 style={{ fontSize: '1.2em', fontWeight: 900, color: '#1E293B', margin: 0 }}>{personalInfo.fullName || 'SEU NOME'}</h1>
+                    {personalInfo.title && <p style={{ fontSize: '0.75em', color: '#475569', margin: '2px 0 0 0', fontWeight: 600 }}>{personalInfo.title}</p>}
+                </div>
+                <div style={{ textAlign: 'right', fontSize: '0.65em', color: '#64748B' }}>
+                    {[
+                        personalInfo.email,
+                        personalInfo.phone,
+                        personalInfo.linkedin,
+                        personalInfo.portfolio,
+                        personalInfo.location
+                    ].filter(Boolean).map((text, i) => (
+                        <div key={i}>{text}</div>
+                    ))}
+                </div>
+            </div>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.75em', color: '#475569', textAlign: 'justify' }}>{summary}</p>
+                        </div>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{exp.position} — {exp.company}</strong>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{exp.startDate} - {exp.current ? 'Present' : exp.endDate}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px' }}>{exp.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '6px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{edu.degree} @ {edu.institution}</strong>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{edu.startDate} - {edu.endDate}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {skills.map(g => (
+                                <div key={g.id} style={{ marginBottom: '4px', fontSize: '0.75em' }}>
+                                    <strong style={{ color: '#1E293B' }}>{g.category}: </strong>
+                                    <span style={{ color: '#475569' }}>{g.skills.join(', ')}</span>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.75em', color: '#475569' }}>{(section.items as string[]).join(' • ')}</p>
+                        </div>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            {(section.items as any[]).map(item => (
+                                <div key={item.id} style={{ marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{item.title} {item.subtitle ? `— ${item.subtitle}` : ''}</strong>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{item.startDate}{item.endDate ? ` - ${item.endDate}` : ''}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px' }}>{item.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+
+                if (section.type === 'TEXT' && section.content) {
+                    return (
+                        <div key={section.id}>
+                            <h2 style={headingStyle}>{section.title}</h2>
+                            <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-wrap' }}>{section.content}</p>
+                        </div>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+// ─── TEMPLATE 7: Harvard Strict ATS ─────────────────────────────────────────────
+function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '1in', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
+            <header style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <h1 style={{ fontSize: '1.8em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    {personalInfo.fullName || 'SEU NOME'}
+                </h1>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: '0.85em', color: '#000000' }}>
+                    {personalInfo.location && <span>{personalInfo.location}</span>}
+                    {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+                    {personalInfo.email && <span>• {personalInfo.email}</span>}
+                    {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                    {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>
+                                {section.title}
+                            </h2>
+                            <p style={{ fontSize: '0.9em', textAlign: 'justify' }}>{summary}</p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: 'bold' }}>
+                                        <span>{exp.position}</span>
+                                        <span style={{ fontSize: '0.9em', fontWeight: 'normal' }}>
+                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontStyle: 'italic', marginBottom: '4px' }}>
+                                        <span>{exp.company}</span>
+                                        <span style={{ fontSize: '0.9em' }}>{exp.location}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.9em', whiteSpace: 'pre-line', paddingLeft: '12px' }}>
+                                        {exp.description.split('\n').map((line, i) => {
+                                            const trimmed = line.trim();
+                                            if (!trimmed) return null;
+                                            return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
+                                                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
+                                                    <span>•</span>
+                                                    <span>{trimmed.substring(1).trim()}</span>
+                                                </div>
+                                            ) : (
+                                                <div key={i} style={{ marginBottom: '2px' }}>{trimmed}</div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: 'bold' }}>
+                                        <span>{edu.institution}</span>
+                                        <span style={{ fontSize: '0.9em', fontWeight: 'normal' }}>{edu.location}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                        <span style={{ fontStyle: 'italic' }}>{edu.degree}</span>
+                                        <span style={{ fontSize: '0.9em' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>
+                                {section.title}
+                            </h2>
+                            <div style={{ fontSize: '0.9em' }}>
+                                {skills.map(g => (
+                                    <div key={g.id} style={{ marginBottom: '4px' }}>
+                                        <strong>{g.category}:</strong> {g.skills.join(', ')}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                // Generic text/lists for ATS strict parsing
+                if (section.type === 'TEXT' && section.content) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>{section.title}</h2>
+                            <div style={{ fontSize: '0.9em', whiteSpace: 'pre-line' }}>{section.content}</div>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>{section.title}</h2>
+                            <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px' }}>
+                                {(section.items as string[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
+// ─── TEMPLATE 8: Corporate Standard ─────────────────────────────────────────────
+function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+            <header style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '2.2em', fontWeight: 800, color: '#111827', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                    {personalInfo.fullName || 'SEU NOME'}
+                </h1>
+                <p style={{ fontSize: '1.2em', color: '#4b5563', margin: '0 0 12px 0', fontWeight: 500 }}>
+                    {personalInfo.title || 'SEU CARGO'}
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.85em', color: '#4b5563' }}>
+                    {personalInfo.location && <span>{personalInfo.location}</span>}
+                    {personalInfo.email && <span>• {personalInfo.email}</span>}
+                    {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+                    {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                    {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
+                                {section.title}
+                            </h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: '1.6' }}>{summary}</p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
+                                        <div>
+                                            <strong style={{ color: '#111827', fontSize: '1em' }}>{exp.position}</strong>
+                                            <span style={{ margin: '0 8px', color: '#9ca3af' }}>|</span>
+                                            <span style={{ color: '#4b5563', fontWeight: 500 }}>{exp.company}</span>
+                                        </div>
+                                        <span style={{ fontSize: '0.85em', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.9em', color: '#4b5563', whiteSpace: 'pre-line', marginTop: '6px' }}>
+                                        {exp.description.split('\n').map((line, i) => {
+                                            const trimmed = line.trim();
+                                            if (!trimmed) return null;
+                                            return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
+                                                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+                                                    <span style={{ color: '#9ca3af' }}>•</span>
+                                                    <span>{trimmed.substring(1).trim()}</span>
+                                                </div>
+                                            ) : (
+                                                <div key={i} style={{ marginBottom: '4px' }}>{trimmed}</div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '12px' }}>
+                                {section.title}
+                            </h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <strong style={{ color: '#111827', fontSize: '1em' }}>{edu.degree}</strong>
+                                            <div style={{ color: '#4b5563', fontSize: '0.9em', marginTop: '2px' }}>{edu.institution}{edu.location && `, ${edu.location}`}</div>
+                                        </div>
+                                        <span style={{ fontSize: '0.85em', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                            {edu.startDate}{edu.endDate && ` — ${edu.endDate}`}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
+                                {section.title}
+                            </h2>
+                            <div style={{ fontSize: '0.9em', color: '#374151', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {skills.map(g => (
+                                    <div key={g.id}>
+                                        <strong style={{ color: '#111827' }}>{g.category}:</strong> {g.skills.join(', ')}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                // Default renders
+                if (section.type === 'TEXT' && section.content) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>{section.title}</h2>
+                            <p style={{ fontSize: '0.9em', color: '#374151', whiteSpace: 'pre-line' }}>{section.content}</p>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '20px' }}>
+                            <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>{section.title}</h2>
+                            <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px', color: '#374151' }}>
+                                {(section.items as string[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
+export function ResumePreview({ data: explicitData, showPageBreaks = false }: { data?: any, showPageBreaks?: boolean }) {
+    const storeData = useResumeStore(state => state.data);
+    const data = explicitData || storeData;
+    const size = PAGE_SIZES[(data?.appearance?.pageSize as keyof typeof PAGE_SIZES) || 'A4'] || PAGE_SIZES['A4'];
+    const language = data?.language || 'pt';
+
+    const renderTemplate = () => {
+        switch (data.templateId) {
+            case 'classic':
+                return <TemplateClassic data={data} currentLabel={getCurrentLabel(language)} />;
+
+            case 'modern':
+                return <TemplateModern data={data} currentLabel={getCurrentLabel(language)} />;
+            case 'tech':
+                return <TemplateTech data={data} currentLabel={getCurrentLabel(language)} />;
+
+            case 'minimalist':
+                return <TemplateMinimalist data={data} currentLabel={getCurrentLabel(language)} />;
+            case 'compact':
+                return <TemplateCompact data={data} currentLabel={getCurrentLabel(language)} />;
+
+            case 'executive':
+                return <TemplateVienna data={data} currentLabel={getCurrentLabel(language)} />;
+
+            case 'harvard':
+                return <TemplateHarvard data={data} currentLabel={getCurrentLabel(language)} />;
+
+            case 'corporate':
+                return <TemplateCorporate data={data} currentLabel={getCurrentLabel(language)} />;
+
+            default:
+                return <TemplateClassic data={data} currentLabel={getCurrentLabel(language)} />;
+        }
+    };
+
+    return (
+        <div className="relative overflow-hidden">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media print {
+                    @page { 
+                        size: ${size.width} ${size.minHeight}; 
+                        margin: 0; 
+                    }
+                    .page-break-indicator { display: none !important; }
+                }
+                .page-break-indicator {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    border-top: 2px dashed #3b82f6;
+                    opacity: 0.4;
+                    z-index: 50;
+                    pointer-events: none;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .page-break-label {
+                    background: #3b82f6;
+                    color: white;
+                    font-size: 8px;
+                    font-weight: 900;
+                    padding: 2px 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                }
+            `}} />
+            
+            {showPageBreaks && (
+                <>
+                    <div className="page-break-indicator" style={{ top: size.minHeight }}>
+                        <span className="page-break-label">Fim da Página 1</span>
+                    </div>
+                    <div className="page-break-indicator" style={{ top: `calc(${size.minHeight} * 2)` }}>
+                        <span className="page-break-label">Fim da Página 2</span>
+                    </div>
+                    <div className="page-break-indicator" style={{ top: `calc(${size.minHeight} * 3)` }}>
+                        <span className="page-break-label">Fim da Página 3</span>
+                    </div>
+                </>
+            )}
+
+            {renderTemplate()}
+        </div>
+    );
+}

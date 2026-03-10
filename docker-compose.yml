@@ -1,0 +1,23 @@
+services:
+  oliacv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    # Re-enabling volumes with caution: ensure server.js is not overwritten
+    # If running production mode (node server.js), we only need these for assets/data
+    volumes:
+      - ./public:/app/public
+      - ./data:/app/data
+      - ./.agent:/app/.agent
+    environment:
+      - "NODE_ENV=production"
+      - "PORT=3000"
+      - "HOSTNAME=0.0.0.0"
+      - "APP_URL=http://localhost:3000"
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
