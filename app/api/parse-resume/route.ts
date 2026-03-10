@@ -111,19 +111,16 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Parse resume error:', error);
-    const encoder = new TextEncoder();
-    const errorStream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(encoder.encode(`data: {"type": "error", "message": ${JSON.stringify(error.message || "Erro no parsing.")}}\n\n`));
-        controller.close();
-      }
-    });
-    return new Response(errorStream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-      },
-      status: 500
-    });
+    let errorMessage = "Erro no parsing.";
+    let statusCode = 500;
+
+    if (error.status === 429 || (error.message && error.message.includes('429'))) {
+      statusCode = 429;
+      errorMessage = "Limite de requisições excedido. Tente novamente em alguns minutos.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }
