@@ -3,14 +3,21 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import mammoth from 'mammoth';
 import { getAtsParserSkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
-
-// TODO: Add proper authentication before production
-// Current: Using hardcoded 'local-user' for MVP
-// Plan: Implement NextAuth.js or similar for production
+import { checkRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: NextRequest) {
+  const rateLimitResult = checkRateLimit('global', { windowMs: 60000, maxRequests: 10 });
+  
+  if (!rateLimitResult.allowed) {
+      const response = NextResponse.json(
+          { error: "Limite de uso atingido. Tente novamente em 60 segundos." },
+          { status: 429 }
+      );
+      return addRateLimitHeaders(response, rateLimitResult.remaining, rateLimitResult.resetIn);
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -44,20 +51,75 @@ export async function POST(req: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({
-      model: aiSettings?.model || "gemini-3.0-flash-preview",
+      model: aiSettings?.model || "gemini-2.0-flash",
       systemInstruction: getAtsParserSkill(),
       generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
     });
 
-    const instruction = `Execute a Fase 1 (Importação/Parsing).`;
-    const result = await model.generateContent([customPrompt ? `${customPrompt}\n${instruction}` : instruction, contentToAnalyze]);
-    return NextResponse.json(robustJsonParse(result.response.text()));
+    const instruction = `Execute a Fase 1 (Importação/Parsing). Responda em português.`;
+    const prompt = customPrompt ? `${customPrompt}\n${instruction}` : instruction;
+
+    const stream = await model.generateContentStream([prompt, contentToAnalyze]);
+    
+    const encoder = new TextEncoder();
+    let fullText = '';
+    
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Send initial progress message
+          controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "upload", "message": "Arquivo carregado. Iniciando análise..."}\n\n`));
+          
+          controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "extracting", "message": "Extraindo texto do documento..."}\n\n`));
+          
+          // Stream the AI response
+          for await (const chunk of stream.stream) {
+            const text = chunk.text();
+            fullText += text;
+            controller.enqueue(encoder.encode(`data: {"type": "chunk", "content": ${JSON.stringify(text)}}\n\n`));
+          }
+          
+          controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "processing", "message": "Processando dados extraídos..."}\n\n`));
+          
+          // Parse and send final result
+          try {
+            const parsed = robustJsonParse(fullText);
+            controller.enqueue(encoder.encode(`data: {"type": "complete", "data": ${JSON.stringify(parsed)}}\n\n`));
+          } catch (parseError) {
+            controller.enqueue(encoder.encode(`data: {"type": "error", "message": "Erro ao processar dados extraídos."}\n\n`));
+          }
+          
+          controller.close();
+        } catch (error: any) {
+          controller.enqueue(encoder.encode(`data: {"type": "error", "message": ${JSON.stringify(error.message || "Erro desconhecido")}}\n\n`));
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(readableStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
 
   } catch (error: any) {
     console.error('Parse resume error:', error);
-    if (error.name === 'SyntaxError') {
-      return NextResponse.json({ error: "Formato de dados inválido." }, { status: 400 });
-    }
-    return NextResponse.json({ error: error.message || "Erro no parsing." }, { status: 500 });
+    const encoder = new TextEncoder();
+    const errorStream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`data: {"type": "error", "message": ${JSON.stringify(error.message || "Erro no parsing.")}}\n\n`));
+        controller.close();
+      }
+    });
+    return new Response(errorStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
+      status: 500
+    });
   }
 }

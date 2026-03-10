@@ -9,6 +9,21 @@ type RateLimitStore = Map<string, { count: number; resetTime: number }>;
 
 const store: RateLimitStore = new Map();
 
+const CLEANUP_INTERVAL_MS = 60 * 1000;
+let lastCleanup = Date.now();
+
+function cleanupExpiredEntries(): void {
+    const now = Date.now();
+    if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+    
+    for (const [key, record] of store.entries()) {
+        if (now > record.resetTime) {
+            store.delete(key);
+        }
+    }
+    lastCleanup = now;
+}
+
 function getClientIdentifier(request: NextRequest, userId?: string): string {
     if (userId) return `user:${userId}`;
     const forwarded = request.headers.get('x-forwarded-for');
@@ -31,7 +46,13 @@ export function rateLimitById(id: string, config: RateLimitConfig) {
     return checkRateLimit(`id:${id}`, config);
 }
 
-function checkRateLimit(identifier: string, config: RateLimitConfig) {
+/**
+ * Check rate limit directly by identifier string.
+ * Useful for API routes where you want more control.
+ */
+export function checkRateLimit(identifier: string, config: RateLimitConfig): { allowed: boolean; remaining: number; resetIn: number } {
+    cleanupExpiredEntries();
+    cleanupExpiredEntries();
     const now = Date.now();
     
     const record = store.get(identifier);
