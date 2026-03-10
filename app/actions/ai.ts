@@ -39,7 +39,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
     }
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) return { type: 'gemini' as const, apiKey: geminiKey, endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, temperature: 0.1, maxTokens: 16384 };
-    throw new Error('Configuração de IA não encontrada.');
+    throw new Error('Configuração de IA não encontrada. Defina a chave API nas configurações (ícone de engrenagem) ou configure GEMINI_API_KEY no arquivo .env');
 };
 
 async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
