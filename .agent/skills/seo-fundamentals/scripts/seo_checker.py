@@ -111,14 +111,19 @@ def find_pages(project_path: Path) -> list:
 
     files = []
     for pattern in patterns:
-        for f in project_path.glob(pattern):
-            # Skip excluded directories
-            if any(skip in f.parts for skip in SKIP_DIRS):
-                continue
+        try:
+            print(f"[DEBUG] Searching for {pattern}...", file=sys.stderr)
+            for f in project_path.glob(pattern):
+                # Skip excluded directories
+                if any(skip in f.parts for skip in SKIP_DIRS):
+                    continue
 
-            # Check if it's likely a page
-            if is_page_file(f):
-                files.append(f)
+                # Check if it's likely a page
+                if is_page_file(f):
+                    print(f"[DEBUG] Found page file: {f}", file=sys.stderr)
+                    files.append(f)
+        except Exception as e:
+            print(f"[DEBUG] Error searching for {pattern}: {e}", file=sys.stderr)
 
     return files[:50]  # Limit to 50 files
 
