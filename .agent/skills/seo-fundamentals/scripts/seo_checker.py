@@ -73,11 +73,30 @@ def is_page_file(file_path: Path) -> bool:
     if any(skip in name for skip in SKIP_PATTERNS):
         return False
 
+    # Skip common component filenames
+    component_patterns = [
+        "navbar",
+        "footer",
+        "sidebar",
+        "modal",
+        "button",
+        "input",
+        "card",
+        "dropdown",
+    ]
+    if any(pattern in stem for pattern in component_patterns):
+        return False
+
     # Check path - pages in specific directories are likely pages
     parts = [p.lower() for p in file_path.parts]
     page_dirs = ["pages", "app", "routes", "views", "screens"]
 
     if any(d in parts for d in page_dirs):
+        # For files in app directory, only consider files named page.tsx or layout.tsx
+        if "app" in parts:
+            if name == "page.tsx" or name == "layout.tsx" or name == "not-found.tsx":
+                return True
+            return False
         return True
 
     # Filename indicators for pages
