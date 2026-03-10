@@ -44,6 +44,7 @@ export function getAtsParserSkill(language: string = DEFAULT_LANGUAGE): string {
   const fase = extractFase(content, '########## PPPAAARRRSSSIIINNNGGG', '########## FIM PPPAAARRRSSSIIINNNGGG');
 
   if (!fase) {
+    console.warn(`[Skill] ats-analyzer: Fase PPPAAARRRSSSIIINNNGGG não encontrada para idioma ${language}`);
     return language === 'en' 
       ? "You are a resume data extractor." 
       : "Você é um extrator de dados de currículos.";
@@ -102,6 +103,7 @@ export function getAtsAnalyzerSkill(language: string = DEFAULT_LANGUAGE): string
   const fase = extractFase(content, '########## AAAUUUDDDIIITTTOOORRRIIIAAA', '########## FIM AAAUUUDDDIIITTTOOORRRIIIAAA');
 
   if (!fase) {
+    console.warn(`[Skill] ats-analyzer: Fase AAAUUUDDDIIITTTOOORRRIIIAAA não encontrada para idioma ${language}`);
     return language === 'en'
       ? "You are an ATS specialist."
       : "Você é um especialista em ATS.";
@@ -155,6 +157,7 @@ export function getAtsSummarySkill(language: string = DEFAULT_LANGUAGE): string 
   const fase = extractFase(content, '########## EEEDDDIIITTTOOORRR', '########## FIM EEEDDDIIITTTOOORRR');
 
   if (!fase) {
+    console.warn(`[Skill] getAtsSummarySkill: Fase SSSUMMMMAAARRRYYY não encontrada para idioma ${language}`);
     return language === 'en'
       ? "You are a professional writing specialist."
       : "Você é um especialista em redação profissional.";
@@ -168,6 +171,7 @@ export function getAtsUISkill(language: string = DEFAULT_LANGUAGE): string {
   const fase = extractFase(content, '########## UUUIII', '########## FIM UUUIII');
 
   if (!fase) {
+    console.warn(`[Skill] getAtsUISkill: Fase UUUIII não encontrada para idioma ${language}`);
     return language === 'en'
       ? "UI Integration (Zustand) - Keep TypeScript types aligned with the JSON format defined in this skill."
       : "Integração com UI (Zustand) - Mantenha os tipos TypeScript alinhados com o formato JSON definido nesta skill.";
@@ -181,6 +185,7 @@ export function getResumeEditorSummarySkill(language: string = DEFAULT_LANGUAGE)
   const fase = extractFase(content, '########## SSSUMMMMAAARRRYYY', '########## FIM SSSUMMMMAAARRRYYY');
 
   if (!fase) {
+    console.warn(`[Skill] getResumeEditorSummarySkill: Fase SSSUMMMMAAARRRYYY não encontrada para idioma ${language}`);
     return language === 'en'
       ? "You are an elite resume writer, specialized in ATS."
       : "Você é um redator de currículos de elite, especializado em ATS.";
@@ -194,6 +199,7 @@ export function getResumeEditorRewriteSkill(language: string = DEFAULT_LANGUAGE)
   const fase = extractFase(content, '########## SSSTTTAAARRRREEEwwwrrriiittteee', '########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE');
 
   if (!fase) {
+    console.warn(`[Skill] getResumeEditorRewriteSkill: Fase SSSTTTAAARRRREEEwwwrrriiittteee não encontrada para idioma ${language}`);
     return language === 'en'
       ? "You are a career and ATS specialist."
       : "Você é um especialista em carreira e ATS.";
@@ -207,6 +213,7 @@ export function getResumeEditorGrammarSkill(language: string = DEFAULT_LANGUAGE)
   const fase = extractFase(content, '########## GGGRRRAAAMMMMMMAAARRRR', '########## FIM GGGRRRAAAMMMMMMAAARRRR');
 
   if (!fase) {
+    console.warn(`[Skill] getResumeEditorGrammarSkill: Fase GGGRRRAAAMMMMMMAAARRRR não encontrada para idioma ${language}`);
     return language === 'en'
       ? "You are a surgical grammar corrector specialized in professional and technical texts."
       : "Você é um revisor gramatical cirúrgico especializado em textos profissionais e técnicos.";
