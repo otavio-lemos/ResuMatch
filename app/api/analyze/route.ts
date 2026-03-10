@@ -2,7 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
+import { z } from 'zod';
 
+// TODO: Add proper authentication before production
+// Current: Using hardcoded 'local-user' for MVP
+// Plan: Implement NextAuth.js or similar for production
+
+
+const analyzeSchema = z.object({
+  resumeData: z.record(z.any()).optional(),
+  atsPrompt: z.string().optional(),
+  jobDescription: z.string().optional(),
+  aiSettings: z.object({
+    apiKey: z.string().optional(),
+    model: z.string().optional()
+  }).optional(),
+  language: z.enum(['pt', 'en']).default('pt')
+});
 
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -46,7 +62,10 @@ export async function POST(req: NextRequest) {
     rateLimitMap.set(ip, userRate);
 
   try {
-    const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = await req.json();
+    const body = await req.json();
+    const validated = analyzeSchema.parse(body);
+    
+    const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = validated;
     const apiKey = aiSettings?.apiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) return NextResponse.json({ error: "Chave de API não configurada." }, { status: 401 });
@@ -97,6 +116,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(robustJsonParse(result.response.text()));
 
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: error.message || "Erro na análise." }, { status: 500 });
   }
 }

@@ -4,6 +4,11 @@ import mammoth from 'mammoth';
 import { getAtsParserSkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
 
+// TODO: Add proper authentication before production
+// Current: Using hardcoded 'local-user' for MVP
+// Plan: Implement NextAuth.js or similar for production
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +20,15 @@ export async function POST(req: NextRequest) {
 
     if (!apiKey) return NextResponse.json({ error: "Chave de API não configurada." }, { status: 401 });
     if (!file) return NextResponse.json({ error: "Arquivo não fornecido" }, { status: 400 });
+    
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: `Arquivo muito grande. Máximo: 5MB` }, { status: 400 });
+    }
+
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: "Tipo de arquivo não suportado. Use PDF, DOCX ou TXT." }, { status: 400 });
+    }
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const mimeType = file.type;
@@ -40,6 +54,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(robustJsonParse(result.response.text()));
 
   } catch (error: any) {
+    console.error('Parse resume error:', error);
+    if (error.name === 'SyntaxError') {
+      return NextResponse.json({ error: "Formato de dados inválido." }, { status: 400 });
+    }
     return NextResponse.json({ error: error.message || "Erro no parsing." }, { status: 500 });
   }
 }

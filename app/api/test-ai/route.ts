@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { z } from 'zod';
+
+const testAiSchema = z.object({
+  baseUrl: z.string().url('URL inválida'),
+  model: z.string().min(1, 'Modelo é obrigatório'),
+  apiKey: z.string().optional(),
+  provider: z.string().optional(),
+  timeout: z.number().optional()
+});
 
 export async function POST(request: NextRequest) {
   try {
     const settings = await request.json();
+    
+    try {
+      testAiSchema.parse(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { success: false, message: 'Validation failed', details: error.errors },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!settings.baseUrl || !settings.model) {
       return NextResponse.json(
