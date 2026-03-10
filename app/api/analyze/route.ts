@@ -4,6 +4,8 @@ import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
 import { z, ZodError } from 'zod';
 import { checkRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
+import { getTranslation } from '@/hooks/useTranslation';
+import { Language } from '@/lib/translations';
 
 const analyzeSchema = z.object({
   resumeData: z.record(z.string(), z.any()).optional(),
@@ -32,13 +34,14 @@ export async function POST(req: NextRequest) {
     const validated = analyzeSchema.parse(body);
     
     const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = validated;
+    const t = (key: string) => getTranslation(key, language as Language);
     const apiKey = aiSettings?.apiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) return NextResponse.json({ error: "Chave de API não configurada." }, { status: 401 });
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: aiSettings?.model || "gemini-2.0-flash",
+      model: aiSettings?.model || "gemini-2.5-flash",
       systemInstruction: getAtsAnalyzerSkill(language),
       generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
     });
@@ -83,11 +86,11 @@ export async function POST(req: NextRequest) {
         try {
           // Send initial progress message
           if (isJobMatch) {
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "start", "message": "Iniciando análise de compatibilidade com a vaga..."}\n\n`));
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "analyzing", "message": "Analisando seu currículo em relação aos requisitos da vaga..."}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "start", "message": "${t('analysis.jobMatchStart') || 'Iniciando análise de compatibilidade com a vaga...'}"}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "analyzing", "message": "${t('analysis.jobMatchAnalyzing') || 'Analisando seu currículo em relação aos requisitos da vaga...'}"}\n\n`));
           } else {
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "start", "message": "Iniciando auditoria ATS..."}\n\n`));
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "analyzing", "message": "Analisando palavras-chave e estrutura..."}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "start", "message": "${t('analysis.auditStart') || 'Iniciando auditoria ATS...'}"}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "analyzing", "message": "${t('analysis.auditAnalyzing') || 'Analisando palavras-chave e estrutura...'}"}\n\n`));
           }
           
           // Stream the AI response
@@ -98,9 +101,9 @@ export async function POST(req: NextRequest) {
           }
           
           if (isJobMatch) {
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "scoring", "message": "Calculando score de compatibilidade..."}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "scoring", "message": "${t('analysis.jobMatchScoring') || 'Calculando score de compatibilidade...'}"}\n\n`));
           } else {
-            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "scoring", "message": "Calculando scores de Design, Estrutura e Conteúdo..."}\n\n`));
+            controller.enqueue(encoder.encode(`data: {"type": "progress", "stage": "scoring", "message": "${t('analysis.auditScoring') || 'Calculando scores de Design, Estrutura e Conteúdo...'}"}\n\n`));
           }
           
           // Parse and send final result
@@ -132,7 +135,7 @@ export async function POST(req: NextRequest) {
       const encoder = new TextEncoder();
       const errorStream = new ReadableStream({
         start(controller) {
-          controller.enqueue(encoder.encode(`data: {"type": "error", "message": "Validação falhou"}\n\n`));
+          controller.enqueue(encoder.encode(`data: {"type": "error", "message": "Validation failed"}\n\n`));
           controller.close();
         }
       });
@@ -143,7 +146,7 @@ export async function POST(req: NextRequest) {
         status: 400
       });
     }
-    const message = error instanceof Error ? error.message : "Erro na análise.";
+    const message = error instanceof Error ? error.message : "Analysis error";
     const encoder = new TextEncoder();
     const errorStream = new ReadableStream({
       start(controller) {

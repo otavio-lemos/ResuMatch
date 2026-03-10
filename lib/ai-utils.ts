@@ -11,10 +11,8 @@ export function robustJsonParse(text: string): any {
 
     let cleaned = text.trim();
 
-    // 1. Remove Markdown code fences
     cleaned = cleaned.replace(/```json\n?|```/g, '').trim();
 
-    // 2. Try to find the first '{' and last '}' to isolate a JSON object
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
 
@@ -22,15 +20,12 @@ export function robustJsonParse(text: string): any {
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     }
 
-    // 3. Initial attempt at parsing
     try {
         return JSON.parse(cleaned);
     } catch (err: any) {
         logger.warn('First JSON parse attempt failed. Attempting cleanup of trailing commas...', { error: err.message });
 
         try {
-            // 4. Cleanup trailing commas in objects and arrays
-            // This regex finds a comma before a closing brace or bracket
             const withoutTrailingCommas = cleaned
                 .replace(/,\s*}/g, '}')
                 .replace(/,\s*]/g, ']');
@@ -40,9 +35,9 @@ export function robustJsonParse(text: string): any {
             logger.error('Robust JSON parsing failed completely.', {
                 originalError: err.message,
                 cleanupError: err2.message,
-                snippet: text.substring(0, 100) + '...'
+                snippet: text.substring(0, 500) + '...'
             });
-            throw new Error(`Falha ao processar resposta da IA: ${err.message}`);
+            throw new Error(`Falha ao processar resposta da IA: ${err.message}. Texto recebido: ${text.substring(0, 200)}...`);
         }
     }
 }

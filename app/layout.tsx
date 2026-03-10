@@ -30,20 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           })();
         ` }} />
       </head>
-      <body className="bg-slate-50 dark:bg-[#0b1219] text-slate-900 dark:text-slate-100 antialiased font-sans" style={{ fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
+      <body className="bg-slate-50 dark:bg-[#0b1219] text-slate-900 dark:text-slate-100 antialiased font-sans">
         <ClientLayout>{children}</ClientLayout>
-        <div id="google_translate_element" style={{ display: 'none' }}></div>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-          function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-              pageLanguage: 'en',
-              includedLanguages: 'en,pt',
-              autoDisplay: false
-            }, 'google_translate_element');
-          }
-        `}} />
-        <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
       </body>
     </html>
   );

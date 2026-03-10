@@ -291,7 +291,7 @@ export default function ConfigForm() {
   }, [language]);
 
   const testAI = async (type: 'primary' | 'import') => {
-    const settings = type === 'primary' ? primaryAI : importAI;
+    const settings = { ...(type === 'primary' ? primaryAI : importAI), language };
     const key = type;
     
     setTestLoading(prev => ({ ...prev, [key]: true }));

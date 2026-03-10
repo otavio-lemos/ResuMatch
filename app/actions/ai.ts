@@ -23,7 +23,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             return {
                 type: 'gemini' as const,
                 apiKey: authSettings.apiKey,
-                endpoint: `${authSettings.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${authSettings.model || 'gemini-1.5-flash'}:generateContent`,
+                endpoint: `${authSettings.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${authSettings.model || 'gemini-2.5-flash'}:generateContent`,
                 temperature: authSettings.temperature ?? 0.1,
                 maxTokens: authSettings.maxTokens ?? 16384
             };
@@ -43,7 +43,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
 };
 
 async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
-    const systemInstruction = skill || getAtsAnalyzerSkill();
+    const systemInstruction = skill || getAtsAnalyzerSkill(language);
     try {
         if (aiConfig.type === 'gemini') {
             const res = await fetch(`${aiConfig.endpoint}?key=${aiConfig.apiKey}`, {
@@ -84,7 +84,11 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 temperature: aiConfig.temperature || 0.1,
                 response_format: responseFormat ? { type: responseFormat } : undefined,
             });
-            return { prompt, response: response.choices[0].message.content || '' };
+            const firstChoice = response.choices?.[0];
+            if (!firstChoice) {
+                throw new Error('A IA não retornou nenhuma escolha.');
+            }
+            return { prompt, response: firstChoice.message?.content || '' };
         }
     } catch (error: any) {
         logger.error('AI Call failed', error);
@@ -135,7 +139,7 @@ export async function generateATSAnalysis(resumeData: ResumeData, jobDescription
 export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<{ prompt: string; response: ResumeData }> {
     const aiConfig = await getAIClient(authSettings);
     const prompt = `Traduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`;
-    const { response } = await callAI(prompt, aiConfig, 'json_object', undefined, 'pt');
+    const { response } = await callAI(prompt, aiConfig, 'json_object', undefined, targetLang);
     return { prompt, response: robustJsonParse(response) };
 }
 
@@ -165,10 +169,12 @@ export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSe
         }
 
         const aiConfig = await getAIClient(authSettings);
-        const instruction = `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${data.text}`;
+        const instruction = language === 'en'
+            ? `Execute Action 1: Import (Parsing) according to SKILL.md. IMPORTANT: Preserve original paragraph breaks and bullets in descriptions. TEXT: ${data.text}`
+            : `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${data.text}`;
 
         logger.info('Calling AI for parsing...');
-        const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(), language);
+        const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(language), language);
 
         if (!response) throw new Error('A IA de extração retornou uma resposta vazia.');
 

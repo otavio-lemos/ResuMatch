@@ -1,5 +1,3 @@
-'use client';
-
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { translations, Language } from '@/lib/translations';
 

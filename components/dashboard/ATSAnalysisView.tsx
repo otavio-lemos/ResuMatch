@@ -270,7 +270,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
 export default function ATSAnalysisView() {
     const { t, language } = useTranslation();
     const { atsPrompt, primaryAI } = useAISettingsStore();
-    const { data, resumeId, analyzeResume, isAnalyzing: storeIsAnalyzing, error: storeError, setJobDescription, saveLocalResume } = useResumeStore();
+    const { data, resumeId, analyzeResume, isAnalyzing: storeIsAnalyzing, streamProgress, error: storeError, setJobDescription, saveLocalResume } = useResumeStore();
     const [showBenchmarking, setShowBenchmarking] = useState(false);
     const [activeAnalysisMode, setActiveAnalysisMode] = useState<'general' | 'job'>('general');
     const [suggestions, setSuggestions] = useState<DetailedSuggestion[]>([]);
@@ -403,6 +403,25 @@ export default function ATSAnalysisView() {
                 </div>
                 <div className="flex flex-col items-center gap-2">
                     <CircularProgress percent={displayScore} colorClass={displayScore >= 92 ? "text-emerald-500" : displayScore >= 60 ? "text-amber-500" : "text-red-500"} size="lg" />
+                    
+                    {/* Streaming Progress Display */}
+                    {storeIsAnalyzing && streamProgress.length > 0 && (
+                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg max-h-48 overflow-y-auto">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Loader2 className="size-3 animate-spin text-blue-600" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase">{t('analysis.analyzingInProgress')}</span>
+                            </div>
+                            <ul className="space-y-1">
+                                {streamProgress.map((msg, i) => (
+                                    <li key={i} className="text-[10px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
+                                        <span className="text-blue-500 mt-0.5">›</span>
+                                        {msg}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    
                     <button
                         onClick={() => { setActiveAnalysisMode('general'); handleAnalyze(undefined); }}
                         disabled={storeIsAnalyzing}

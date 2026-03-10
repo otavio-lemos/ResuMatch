@@ -1,0 +1,835 @@
+{
+  "_sectionHeaders": {
+    "personalInfo": "",
+    "summary": "Summary",
+    "experiences": "Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "",
+    "certifications": "Certificates",
+    "languages": "",
+    "volunteer": ""
+  },
+  "personalInfo": {
+    "fullName": "Otavio Luis Bastos Lemos",
+    "title": "Principal Cloud Architect",
+    "email": "otaviera@icloud.com",
+    "phone": "61 99890-1240",
+    "location": "Valparaiso de Goias/GO, 72873-157",
+    "linkedin": "https://www.linkedin.com/in/otavio-lemos",
+    "portfolio": ""
+  },
+  "summary": "Innovative Principal Cloud Architect with 20+ years' experience leading multi-cloud transformation for public and private sectors. Expert in aligning technology with business strategy, delivering measurable results through team leadership and AI-driven solutions.",
+  "experiences": [
+    {
+      "id": "exp-2",
+      "company": "Oracle",
+      "position": "Principal Enterprise Cloud Architect",
+      "location": "Brasilia, Federal District",
+      "startDate": "12/2020",
+      "endDate": "03/2025",
+      "current": false,
+      "description": "Led transformative cloud initiatives for regulated clients.\nExpanded global reach via multi-region deployments.\nAccelerated revenue growth with emerging tech.\nShortened sales cycles across numerous accounts."
+    },
+    {
+      "id": "exp-3",
+      "company": "Central IT - Governança Corporativa",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "06/2020",
+      "endDate": "12/2020",
+      "current": false,
+      "description": "Automated cloud mgmt, 99.9% uptime.\nCut overhead 35%; secure data for 200+ endpoints.\nDevOps/Docker: Deployments weeks-to-days.\nRTO reduced 70%; AWS/OpenStack for 300+ users."
+    },
+    {
+      "id": "exp-4",
+      "company": "Cabal Brasil",
+      "position": "Infrastructure Analyst Senior",
+      "location": "Brasilia, Federal District",
+      "startDate": "12/2019",
+      "endDate": "06/2020",
+      "current": false,
+      "description": "Migrated 10+ apps/100+ VMs zero-downtime.\n30%+ cost cuts; hybrid cloud 40-50% faster.\nScalability 25% no CAPEX; 99.8% availability."
+    },
+    {
+      "id": "exp-5",
+      "company": "CITSmart Corporation",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2018",
+      "endDate": "12/2019",
+      "current": false,
+      "description": "Cut costs 30%+ via automation; zero-downtime migration of 100+ VMs.\nEnabled hybrid cloud (AWS/OpenStack) for 50% faster deployments and 60% more flexibility."
+    },
+    {
+      "id": "exp-6",
+      "company": "Universidade de Brasília",
+      "position": "Academic Research",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2018",
+      "endDate": "12/2018",
+      "current": false,
+      "description": "Handled auth/authz/session for MDS SUAS EMR app.\nEnabled nationwide secure access across Brazil."
+    },
+    {
+      "id": "exp-7",
+      "company": "Central IT - Governança Corporativa",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2013",
+      "endDate": "01/2018",
+      "current": false,
+      "description": "Built AWS/OpenStack cloud for 300+ users.\nAchieved 99.7% availability.\nDevOps/Docker: Deployments weeks to days."
+    },
+    {
+      "id": "exp-8",
+      "company": "Embratel",
+      "position": "Telecommunications Specialist",
+      "location": "Brasilia, Federal District",
+      "startDate": "06/2011",
+      "endDate": "01/2013",
+      "current": false,
+      "description": "Managed DCs for 20+ clients (SLAs >98%).\nLed 8+ teams; downtime -45%.\n250+ Linux servers; VMware/network security."
+    },
+    {
+      "id": "exp-9",
+      "company": "",
+      "position": "Earlier Career",
+      "location": "São Paulo, São Paulo",
+      "startDate": "03/2003",
+      "endDate": "06/2011",
+      "current": false,
+      "description": "Full role history and details available on LinkedIn."
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "institution": "Faculdade Exame",
+      "degree": "MBA in Leadership and Management",
+      "location": "Brasilia, Brazil",
+      "startDate": "01/2026",
+      "endDate": "",
+      "current": true,
+      "description": "Focus: Executive leadership, high-performance team management, innovation strategy, and\nmeasurable corporate results."
+    },
+    {
+      "id": "edu-2",
+      "institution": "Faculdade Exame",
+      "degree": "MBA in Artificial Intelligence for Business",
+      "location": "Brasilia, Brazil",
+      "startDate": "03/2025",
+      "endDate": "12/2025",
+      "current": false,
+      "description": "Specialized in AI strategy, Generative AI Professional, and MLOps to drive enterprise business\ntransformation via innovative, cloud-integrated AI solutions and data-driven outcomes."
+    },
+    {
+      "id": "edu-3",
+      "institution": "UNB",
+      "degree": "MSc in Telecommunications & Networking",
+      "location": "Brasilia, Brazil",
+      "startDate": "04/2018",
+      "endDate": "08/2019",
+      "current": false,
+      "description": "Advanced studies in telecom systems, networking protocols, and infra design—delivered key\ninsights despite accident-related interruption."
+    },
+    {
+      "id": "edu-4",
+      "institution": "Universidade Estácio de Sá",
+      "degree": "BSc in Network Management",
+      "location": "São Paulo, Brazil",
+      "startDate": "01/2006",
+      "endDate": "12/2008",
+      "current": false,
+      "description": "BSc Network Management: Specialized in infrastructure design, telecom systems, and scalable\nenterprise connectivity."
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "category": "Leadership & Business",
+      "skills": [
+        "Agile/Scrum Team Leadership",
+        "Executive Stakeholder Management",
+        "Business Case Management",
+        "Change Management",
+        "Cloud Evangelism"
+      ]
+    },
+    {
+      "id": "skill-2",
+      "category": "Cloud",
+      "skills": [
+        "HA/DR Architectures",
+        "Cloud Migrations",
+        "AWS",
+        "OpenStack",
+        "Multicloud Transformation",
+        "FinOps"
+      ]
+    },
+    {
+      "id": "skill-3",
+      "category": "DevOps & Tools",
+      "skills": [
+        "DevOps",
+        "CI/CD",
+        "Infrastructure as Code (IaC)",
+        "Docker"
+      ]
+    },
+    {
+      "id": "skill-4",
+      "category": "AI/ML",
+      "skills": [
+        "Generative AI (GenAI)",
+        "Large Language Models (LLMs)",
+        "MLOps"
+      ]
+    },
+    {
+      "id": "skill-5",
+      "category": "Compliance & Security",
+      "skills": [
+        "GDPR Compliance",
+        "HIPAA Compliance",
+        "Audit-ready Governance",
+        "Network Security"
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-1",
+      "name": "Scrum Foundation Professional Certification",
+      "issuer": "",
+      "date": "05/2025",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-2",
+      "name": "Oracle Cloud Infrastructure 2025 Multicloud Architect Professional",
+      "issuer": "Oracle",
+      "date": "02/2025",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-3",
+      "name": "Oracle Cloud Infrastructure 2024 Generative AI Professional",
+      "issuer": "Oracle",
+      "date": "07/2024",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-4",
+      "name": "Oracle Cloud Infrastructure 2023 Security Professional",
+      "issuer": "Oracle",
+      "date": "09/2023",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-5",
+      "name": "Oracle Cloud Infrastructure 2022 Architect Professional",
+      "issuer": "Oracle",
+      "date": "04/2023",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-6",
+      "name": "Microsoft Certified: Azure Fundamentals",
+      "issuer": "Microsoft",
+      "date": "06/2020",
+      "expirationDate": null
+    },
+    {
+      "id": "cert-7",
+      "name": "AWS Certified Cloud Practitioner",
+      "issuer": "AWS",
+      "date": "09/2019",
+      "expirationDate": null
+    }
+  ],
+  "projects": [],
+  "languages": [],
+  "volunteer": [],
+  "atsScore": {
+    "scores": {
+      "design": 100,
+      "structure": 70,
+      "content": 30
+    },
+    "designChecks": [
+      {
+        "label": "Standard fonts",
+        "passed": true,
+        "feedback": "No non-standard fonts detected from JSON data. Assuming standard fonts are used."
+      },
+      {
+        "label": "Single column layout",
+        "passed": true,
+        "feedback": "No multi-column layout detected from JSON data. Assuming single column layout."
+      },
+      {
+        "label": "No tables in skills",
+        "passed": true,
+        "feedback": "Skills are listed as an array, not in tables."
+      },
+      {
+        "label": "No graphs/bars",
+        "passed": true,
+        "feedback": "No graphs or bars detected from JSON data."
+      },
+      {
+        "label": "No headers/footers",
+        "passed": true,
+        "feedback": "Contact information is present in the personalInfo section, assuming it's in the document body and not headers/footers."
+      },
+      {
+        "label": "No text boxes",
+        "passed": true,
+        "feedback": "No text boxes detected from JSON data."
+      },
+      {
+        "label": "No icons/emoji",
+        "passed": true,
+        "feedback": "Contact information uses text labels (email, phone, linkedin) instead of icons or emojis."
+      },
+      {
+        "label": "PDF/DOCX only",
+        "passed": true,
+        "feedback": "File format cannot be determined from JSON, assuming PDF or DOCX."
+      },
+      {
+        "label": "File <5MB",
+        "passed": true,
+        "feedback": "File size cannot be determined from JSON, assuming it is less than 5MB."
+      }
+    ],
+    "structureChecks": [
+      {
+        "label": "Dates MM/YYYY",
+        "passed": true,
+        "feedback": "All dates (experience, education, certifications) are in the MM/YYYY format."
+      },
+      {
+        "label": "Standard headers",
+        "passed": true,
+        "feedback": "Standard section headers like 'summary', 'experiences', 'education', 'skills', 'certifications' are used."
+      },
+      {
+        "label": "Required sections",
+        "passed": true,
+        "feedback": "Summary, Experience, Education, and Skills sections are all present."
+      },
+      {
+        "label": "Contact info parseable",
+        "passed": true,
+        "feedback": "Email, phone, location, and LinkedIn are clearly provided and parseable."
+      },
+      {
+        "label": "Smart quotes/Em-dashes",
+        "passed": true,
+        "feedback": "No smart quotes or em-dashes detected in the provided text."
+      },
+      {
+        "label": "Hobbies/Interests/Photo",
+        "passed": true,
+        "feedback": "No 'Hobbies/Interests' section or photo detected."
+      },
+      {
+        "label": "Old experiences (>10 years)",
+        "passed": false,
+        "feedback": "Experience from 03/2003 (Earlier Career) and 06/2011 (Embratel) are more than 10 years old. Consider removing or summarizing to focus on more recent and relevant milestones. (Impact: -20 points)"
+      },
+      {
+        "label": "Expired certifications (>3 years)",
+        "passed": false,
+        "feedback": "Certification 'Microsoft Certified: Azure Fundamentals' expired on 06/2020 and 'AWS Certified Cloud Practitioner' expired on 09/2019. Both are more than 3 years expired. Consider removing or listing as '(expired [DATE])'. (Impact: -10 points)"
+      }
+    ],
+    "contentMetrics": {
+      "wordCount": {
+        "value": 370,
+        "target": "330-573",
+        "status": "good"
+      },
+      "paragraphsPerSection": {
+        "value": 4,
+        "target": "3-5",
+        "status": "good"
+      },
+      "charsPerParagraph": {
+        "value": 77,
+        "target": "67-94",
+        "status": "good"
+      },
+      "experienceDescriptions": {
+        "value": 2.75,
+        "target": "4-7",
+        "status": "danger"
+      },
+      "starBullets": {
+        "value": 63.6,
+        "target": ">70%",
+        "status": "warning"
+      },
+      "keywordCount": {
+        "value": 70,
+        "target": "15-25",
+        "status": "danger"
+      },
+      "pageCount": {
+        "value": 1,
+        "target": "2-3",
+        "status": "warning"
+      }
+    },
+    "improvedBullets": [
+      {
+        "section": "experience",
+        "index": 0,
+        "original": "Led transformative cloud initiatives for regulated clients.",
+        "improved": "Led 5+ transformative cloud initiatives for regulated clients, resulting in 15% faster project delivery and 10% cost savings.",
+        "reason": "Added quantifiable metrics (number of initiatives, percentage faster delivery, cost savings) to demonstrate impact using the STAR method."
+      },
+      {
+        "section": "experience",
+        "index": 4,
+        "original": "Handled auth/authz/session for MDS SUAS EMR app.",
+        "improved": "Designed and implemented authentication/authorization/session management for the MDS SUAS EMR app, supporting 500,000+ users nationwide.",
+        "reason": "Provided specific actions and quantified the scale of impact (number of users) to align with the STAR method."
+      },
+      {
+        "section": "experience",
+        "index": 7,
+        "original": "Full role history and details available on LinkedIn.",
+        "improved": "Successfully managed and optimized legacy systems, contributing to a 10% reduction in operational costs and improving system stability by 15%.",
+        "reason": "Replaced a generic statement with a bullet point detailing achievements and quantifiable results from earlier career, making the experience more impactful."
+      }
+    ],
+    "detailedSuggestions": [
+      {
+        "type": "Structure",
+        "field": "experiences[7].startDate",
+        "original": "06/2011",
+        "issue": "Experience from 2011 is more than 10 years old.",
+        "suggestion": "Consider summarizing this experience to 1-2 highly relevant bullet points or removing it to focus on more recent achievements.",
+        "impact": "high"
+      },
+      {
+        "type": "Structure",
+        "field": "experiences[8].startDate",
+        "original": "03/2003",
+        "issue": "Experience from 2003 is more than 10 years old.",
+        "suggestion": "Consider removing this experience or summarizing it into a single line if absolutely critical, as it significantly predates current industry standards.",
+        "impact": "high"
+      },
+      {
+        "type": "Structure",
+        "field": "certifications[5].date",
+        "original": "06/2020",
+        "issue": "Certification 'Microsoft Certified: Azure Fundamentals' expired on 06/2020 (more than 3 years ago).",
+        "suggestion": "Consider removing this expired certification or updating it if it's still relevant to your target roles. Alternatively, list as 'Microsoft Certified: Azure Fundamentals (expired 06/2020)'.",
+        "impact": "medium"
+      },
+      {
+        "type": "Structure",
+        "field": "certifications[6].date",
+        "original": "09/2019",
+        "issue": "Certification 'AWS Certified Cloud Practitioner' expired on 09/2019 (more than 3 years ago).",
+        "suggestion": "Consider removing this expired certification or updating it if it's still relevant to your target roles. Alternatively, list as 'AWS Certified Cloud Practitioner (expired 09/2019)'.",
+        "impact": "medium"
+      },
+      {
+        "type": "Content",
+        "field": "experiences[4].description",
+        "original": "Handled auth/authz/session for MDS SUAS EMR app.\nEnabled nationwide secure access across Brazil.",
+        "issue": "This experience has only 2 bullet points, below the recommended 4-7, and lacks quantifiable results.",
+        "suggestion": "Expand this section to 4-7 bullet points, incorporating specific actions and measurable outcomes using the STAR method. For example, 'Designed and implemented authentication/authorization/session management for the MDS SUAS EMR app, supporting 500,000+ users nationwide, reducing security incidents by X%'.",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "experiences[8].description",
+        "original": "Full role history and details available on LinkedIn.",
+        "issue": "This experience has only 1 bullet point, significantly below the recommended 4-7, and is a placeholder.",
+        "suggestion": "Replace this placeholder with 4-7 strong, quantifiable bullet points detailing achievements from your earlier career, or remove the section if it's not directly relevant to your target roles.",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "summary, experiences",
+        "original": "Multiple bullets lack quantifiable metrics.",
+        "issue": "Less than 70% of bullets use the STAR method (Situation, Task, Action, Result).",
+        "suggestion": "Review each bullet point, especially in your 'Principal Enterprise Cloud Architect' and 'Academic Research' roles, to include quantifiable metrics and clear results. Example: 'Reduced costs by 30% through automation of cloud provisioning processes.'",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "Overall Resume",
+        "original": "Keyword count is 70.",
+        "issue": "The resume contains a very high number of unique keywords (>50) without a specific job description, which can dilute focus.",
+        "suggestion": "While good for iCIMS, for other ATS, consider tailoring your keywords to be more targeted (15-25 unique keywords) based on the specific job description you are applying for. Prioritize the most relevant skills and technologies.",
+        "impact": "medium"
+      },
+      {
+        "type": "Content",
+        "field": "Overall Resume",
+        "original": "1 page",
+        "issue": "The resume is 1 page long, which is typically too short for a Principal/Executive level role (target 2-3 pages).",
+        "suggestion": "Expand on your significant achievements, leadership contributions, and the impact of your work, especially in your more recent and relevant roles, to fill 2-3 pages. This will provide more context for your extensive experience.",
+        "impact": "medium"
+      }
+    ]
+  },
+  "templateId": "classic",
+  "appearance": {
+    "fontFamily": "Inter",
+    "fontSize": "11",
+    "lineSpacing": "1.5",
+    "pageSize": "A4"
+  },
+  "sectionsConfig": [
+    {
+      "id": "personal",
+      "title": "Personal Information",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "summary",
+      "title": "Summary",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "experience",
+      "title": "Experience",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "education",
+      "title": "Education",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "type": "DATED_LIST",
+      "active": true
+    },
+    {
+      "id": "skills",
+      "title": "Skills",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "certifications",
+      "title": "Certificates",
+      "type": "SIMPLE_LIST",
+      "active": true,
+      "items": [
+        {
+          "id": "cert-1",
+          "name": "Scrum Foundation Professional Certification",
+          "issuer": "",
+          "date": "05/2025",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-2",
+          "name": "Oracle Cloud Infrastructure 2025 Multicloud Architect Professional",
+          "issuer": "Oracle",
+          "date": "02/2025",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-3",
+          "name": "Oracle Cloud Infrastructure 2024 Generative AI Professional",
+          "issuer": "Oracle",
+          "date": "07/2024",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-4",
+          "name": "Oracle Cloud Infrastructure 2023 Security Professional",
+          "issuer": "Oracle",
+          "date": "09/2023",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-5",
+          "name": "Oracle Cloud Infrastructure 2022 Architect Professional",
+          "issuer": "Oracle",
+          "date": "04/2023",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-6",
+          "name": "Microsoft Certified: Azure Fundamentals",
+          "issuer": "Microsoft",
+          "date": "06/2020",
+          "expirationDate": null
+        },
+        {
+          "id": "cert-7",
+          "name": "AWS Certified Cloud Practitioner",
+          "issuer": "AWS",
+          "date": "09/2019",
+          "expirationDate": null
+        }
+      ]
+    },
+    {
+      "id": "languages",
+      "title": "Languages",
+      "type": "TEXT",
+      "active": false,
+      "content": ""
+    },
+    {
+      "id": "volunteer",
+      "title": "Volunteering",
+      "type": "DATED_LIST",
+      "active": false,
+      "items": []
+    }
+  ],
+  "jobDescription": "",
+  "language": "en",
+  "score": 33,
+  "aiAnalysis": {
+    "scores": {
+      "design": 100,
+      "structure": 70,
+      "content": 30
+    },
+    "designChecks": [
+      {
+        "label": "Standard fonts",
+        "passed": true,
+        "feedback": "No non-standard fonts detected from JSON data. Assuming standard fonts are used."
+      },
+      {
+        "label": "Single column layout",
+        "passed": true,
+        "feedback": "No multi-column layout detected from JSON data. Assuming single column layout."
+      },
+      {
+        "label": "No tables in skills",
+        "passed": true,
+        "feedback": "Skills are listed as an array, not in tables."
+      },
+      {
+        "label": "No graphs/bars",
+        "passed": true,
+        "feedback": "No graphs or bars detected from JSON data."
+      },
+      {
+        "label": "No headers/footers",
+        "passed": true,
+        "feedback": "Contact information is present in the personalInfo section, assuming it's in the document body and not headers/footers."
+      },
+      {
+        "label": "No text boxes",
+        "passed": true,
+        "feedback": "No text boxes detected from JSON data."
+      },
+      {
+        "label": "No icons/emoji",
+        "passed": true,
+        "feedback": "Contact information uses text labels (email, phone, linkedin) instead of icons or emojis."
+      },
+      {
+        "label": "PDF/DOCX only",
+        "passed": true,
+        "feedback": "File format cannot be determined from JSON, assuming PDF or DOCX."
+      },
+      {
+        "label": "File <5MB",
+        "passed": true,
+        "feedback": "File size cannot be determined from JSON, assuming it is less than 5MB."
+      }
+    ],
+    "structureChecks": [
+      {
+        "label": "Dates MM/YYYY",
+        "passed": true,
+        "feedback": "All dates (experience, education, certifications) are in the MM/YYYY format."
+      },
+      {
+        "label": "Standard headers",
+        "passed": true,
+        "feedback": "Standard section headers like 'summary', 'experiences', 'education', 'skills', 'certifications' are used."
+      },
+      {
+        "label": "Required sections",
+        "passed": true,
+        "feedback": "Summary, Experience, Education, and Skills sections are all present."
+      },
+      {
+        "label": "Contact info parseable",
+        "passed": true,
+        "feedback": "Email, phone, location, and LinkedIn are clearly provided and parseable."
+      },
+      {
+        "label": "Smart quotes/Em-dashes",
+        "passed": true,
+        "feedback": "No smart quotes or em-dashes detected in the provided text."
+      },
+      {
+        "label": "Hobbies/Interests/Photo",
+        "passed": true,
+        "feedback": "No 'Hobbies/Interests' section or photo detected."
+      },
+      {
+        "label": "Old experiences (>10 years)",
+        "passed": false,
+        "feedback": "Experience from 03/2003 (Earlier Career) and 06/2011 (Embratel) are more than 10 years old. Consider removing or summarizing to focus on more recent and relevant milestones. (Impact: -20 points)"
+      },
+      {
+        "label": "Expired certifications (>3 years)",
+        "passed": false,
+        "feedback": "Certification 'Microsoft Certified: Azure Fundamentals' expired on 06/2020 and 'AWS Certified Cloud Practitioner' expired on 09/2019. Both are more than 3 years expired. Consider removing or listing as '(expired [DATE])'. (Impact: -10 points)"
+      }
+    ],
+    "contentMetrics": {
+      "wordCount": {
+        "value": 370,
+        "target": "330-573",
+        "status": "good"
+      },
+      "paragraphsPerSection": {
+        "value": 4,
+        "target": "3-5",
+        "status": "good"
+      },
+      "charsPerParagraph": {
+        "value": 77,
+        "target": "67-94",
+        "status": "good"
+      },
+      "experienceDescriptions": {
+        "value": 2.75,
+        "target": "4-7",
+        "status": "danger"
+      },
+      "starBullets": {
+        "value": 63.6,
+        "target": ">70%",
+        "status": "warning"
+      },
+      "keywordCount": {
+        "value": 70,
+        "target": "15-25",
+        "status": "danger"
+      },
+      "pageCount": {
+        "value": 1,
+        "target": "2-3",
+        "status": "warning"
+      }
+    },
+    "improvedBullets": [
+      {
+        "section": "experience",
+        "index": 0,
+        "original": "Led transformative cloud initiatives for regulated clients.",
+        "improved": "Led 5+ transformative cloud initiatives for regulated clients, resulting in 15% faster project delivery and 10% cost savings.",
+        "reason": "Added quantifiable metrics (number of initiatives, percentage faster delivery, cost savings) to demonstrate impact using the STAR method."
+      },
+      {
+        "section": "experience",
+        "index": 4,
+        "original": "Handled auth/authz/session for MDS SUAS EMR app.",
+        "improved": "Designed and implemented authentication/authorization/session management for the MDS SUAS EMR app, supporting 500,000+ users nationwide.",
+        "reason": "Provided specific actions and quantified the scale of impact (number of users) to align with the STAR method."
+      },
+      {
+        "section": "experience",
+        "index": 7,
+        "original": "Full role history and details available on LinkedIn.",
+        "improved": "Successfully managed and optimized legacy systems, contributing to a 10% reduction in operational costs and improving system stability by 15%.",
+        "reason": "Replaced a generic statement with a bullet point detailing achievements and quantifiable results from earlier career, making the experience more impactful."
+      }
+    ],
+    "detailedSuggestions": [
+      {
+        "type": "Structure",
+        "field": "experiences[7].startDate",
+        "original": "06/2011",
+        "issue": "Experience from 2011 is more than 10 years old.",
+        "suggestion": "Consider summarizing this experience to 1-2 highly relevant bullet points or removing it to focus on more recent achievements.",
+        "impact": "high"
+      },
+      {
+        "type": "Structure",
+        "field": "experiences[8].startDate",
+        "original": "03/2003",
+        "issue": "Experience from 2003 is more than 10 years old.",
+        "suggestion": "Consider removing this experience or summarizing it into a single line if absolutely critical, as it significantly predates current industry standards.",
+        "impact": "high"
+      },
+      {
+        "type": "Structure",
+        "field": "certifications[5].date",
+        "original": "06/2020",
+        "issue": "Certification 'Microsoft Certified: Azure Fundamentals' expired on 06/2020 (more than 3 years ago).",
+        "suggestion": "Consider removing this expired certification or updating it if it's still relevant to your target roles. Alternatively, list as 'Microsoft Certified: Azure Fundamentals (expired 06/2020)'.",
+        "impact": "medium"
+      },
+      {
+        "type": "Structure",
+        "field": "certifications[6].date",
+        "original": "09/2019",
+        "issue": "Certification 'AWS Certified Cloud Practitioner' expired on 09/2019 (more than 3 years ago).",
+        "suggestion": "Consider removing this expired certification or updating it if it's still relevant to your target roles. Alternatively, list as 'AWS Certified Cloud Practitioner (expired 09/2019)'.",
+        "impact": "medium"
+      },
+      {
+        "type": "Content",
+        "field": "experiences[4].description",
+        "original": "Handled auth/authz/session for MDS SUAS EMR app.\nEnabled nationwide secure access across Brazil.",
+        "issue": "This experience has only 2 bullet points, below the recommended 4-7, and lacks quantifiable results.",
+        "suggestion": "Expand this section to 4-7 bullet points, incorporating specific actions and measurable outcomes using the STAR method. For example, 'Designed and implemented authentication/authorization/session management for the MDS SUAS EMR app, supporting 500,000+ users nationwide, reducing security incidents by X%'.",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "experiences[8].description",
+        "original": "Full role history and details available on LinkedIn.",
+        "issue": "This experience has only 1 bullet point, significantly below the recommended 4-7, and is a placeholder.",
+        "suggestion": "Replace this placeholder with 4-7 strong, quantifiable bullet points detailing achievements from your earlier career, or remove the section if it's not directly relevant to your target roles.",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "summary, experiences",
+        "original": "Multiple bullets lack quantifiable metrics.",
+        "issue": "Less than 70% of bullets use the STAR method (Situation, Task, Action, Result).",
+        "suggestion": "Review each bullet point, especially in your 'Principal Enterprise Cloud Architect' and 'Academic Research' roles, to include quantifiable metrics and clear results. Example: 'Reduced costs by 30% through automation of cloud provisioning processes.'",
+        "impact": "high"
+      },
+      {
+        "type": "Content",
+        "field": "Overall Resume",
+        "original": "Keyword count is 70.",
+        "issue": "The resume contains a very high number of unique keywords (>50) without a specific job description, which can dilute focus.",
+        "suggestion": "While good for iCIMS, for other ATS, consider tailoring your keywords to be more targeted (15-25 unique keywords) based on the specific job description you are applying for. Prioritize the most relevant skills and technologies.",
+        "impact": "medium"
+      },
+      {
+        "type": "Content",
+        "field": "Overall Resume",
+        "original": "1 page",
+        "issue": "The resume is 1 page long, which is typically too short for a Principal/Executive level role (target 2-3 pages).",
+        "suggestion": "Expand on your significant achievements, leadership contributions, and the impact of your work, especially in your more recent and relevant roles, to fill 2-3 pages. This will provide more context for your extensive experience.",
+        "impact": "medium"
+      }
+    ],
+    "score": 33
+  }
+}

@@ -480,12 +480,12 @@ export function EditorPanel() {
 
                                 {/* Photo Upload - COMPACT */}
                                 <div className="pt-2">
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Foto de Perfil</label>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('form.profilePhoto')}</label>
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-none border border-slate-100 dark:border-slate-700">
                                             {personalInfo.photoUrl && (
                                                 <div className="relative size-12 rounded-none overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 shadow-sm">
-                                                    <NextImage src={personalInfo.photoUrl} alt="Foto de perfil do currículo" fill className="object-cover" />
+                                                    <NextImage src={personalInfo.photoUrl} alt={t('form.profilePhotoAlt')} fill className="object-cover" />
                                                 </div>
                                             )}
                                             <div className="flex-1">
@@ -555,7 +555,7 @@ export function EditorPanel() {
                                 rows={8}
                                 value={summary}
                                 onChange={(e) => updateSummary(e.target.value)}
-                                placeholder="Descreva suas principais realizações..."
+                                placeholder={t('form.mainAchievements')}
                             />
                         </div>
                     </div>
@@ -662,7 +662,7 @@ export function EditorPanel() {
 
                                 <div>
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">Descrição</label>
+                                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.description')}</label>
                                         <button
                                             onClick={() => handleAIAssist('refresh', exp.id, exp.description || `Cargo: ${exp.position}, Empresa: ${exp.company}`)}
                                             disabled={isGeneratingRefine === exp.id || isGeneratingGrammar === exp.id}
@@ -684,7 +684,7 @@ export function EditorPanel() {
                                                 onClick={() => handleAIAssist('grammar', exp.id, exp.description)}
                                                 disabled={isGeneratingRefine === exp.id || isGeneratingGrammar === exp.id || !exp.description}
                                                 className="p-1 text-slate-400 hover:text-blue-600 transition-colors disabled:opacity-50"
-                                                title="Corrigir Gramática"
+                                                title={t('form.correctGrammar')}
                                             >
                                                 {isGeneratingGrammar === exp.id ? <Loader2 className="size-3 animate-spin" /> : <SpellCheck className="size-3.5" />}
                                             </button>

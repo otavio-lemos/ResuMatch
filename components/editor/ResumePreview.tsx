@@ -4,6 +4,7 @@
 import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeData, AppearanceSettings } from '@/store/useResumeStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const LABELS = { pt: 'Atual', en: 'Current' };
 
@@ -1189,6 +1190,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
     const data = explicitData || storeData;
     const size = PAGE_SIZES[(data?.appearance?.pageSize as keyof typeof PAGE_SIZES) || 'A4'] || PAGE_SIZES['A4'];
     const language = data?.language || 'pt';
+    const { t } = useTranslation();
 
     const renderTemplate = () => {
         switch (data.templateId) {
@@ -1256,13 +1258,13 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
             {showPageBreaks && (
                 <>
                     <div className="page-break-indicator" style={{ top: size.minHeight }}>
-                        <span className="page-break-label">Fim da Página 1</span>
+                        <span className="page-break-label">{t('editor.pageBreakEnd')} 1</span>
                     </div>
                     <div className="page-break-indicator" style={{ top: `calc(${size.minHeight} * 2)` }}>
-                        <span className="page-break-label">Fim da Página 2</span>
+                        <span className="page-break-label">{t('editor.pageBreakEnd')} 2</span>
                     </div>
                     <div className="page-break-indicator" style={{ top: `calc(${size.minHeight} * 3)` }}>
-                        <span className="page-break-label">Fim da Página 3</span>
+                        <span className="page-break-label">{t('editor.pageBreakEnd')} 3</span>
                     </div>
                 </>
             )}

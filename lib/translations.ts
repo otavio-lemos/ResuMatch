@@ -68,6 +68,16 @@ export const translations = {
       jobMatchTitle: "Análise de Match com a Vaga",
       jobPlaceholder: "Cole aqui a descrição completa da vaga que você deseja aplicar...",
       analyzeWithJob: "Analisar com Vaga",
+      jobMatchStart: "Iniciando análise de compatibilidade com a vaga...",
+      jobMatchAnalyzing: "Analisando seu currículo em relação aos requisitos da vaga...",
+      jobMatchScoring: "Calculando score de compatibilidade...",
+      auditStart: "Iniciando auditoria ATS...",
+      auditAnalyzing: "Analisando palavras-chave e estrutura...",
+      auditScoring: "Calculando scores de Design, Estrutura e Conteúdo...",
+      errorProcessingAnalysis: "Erro ao processar análise.",
+      errorUnknown: "Erro desconhecido",
+      errorValidation: "Validação falhou",
+      analyzingInProgress: "Análise em progresso",
       impact: {
         high: "alto",
         medium: "médio",
@@ -100,7 +110,11 @@ export const translations = {
       description: "Descrição",
       startDate: "Data de Início",
       endDate: "Data de Término",
-      current: "Atual"
+      current: "Atual",
+      profilePhoto: "Foto de Perfil",
+      profilePhotoAlt: "Foto de perfil do currículo",
+      mainAchievements: "Descreva suas principais realizações...",
+      correctGrammar: "Corrigir Gramática"
     },
     config: {
       title: "Configurações de IA",
@@ -188,8 +202,9 @@ export const translations = {
       categoryPlaceholder: "Ex: Linguagens, Ferramentas...",
       enterContent: "Digite o conteúdo aqui...",
       listItem: "Item da lista...",
-      viewCriteria: "Ver critérios de análise"
-      },
+      viewCriteria: "Ver critérios de análise",
+      pageBreakEnd: "Fim da Página"
+    },
     dashboard: {
       loadingResume: "Carregando dados do currículo...",
       processing: "Processando",
@@ -289,18 +304,31 @@ export const translations = {
       errorReading: "Falha ao ler o arquivo.",
       errorInconsistent: "A IA não conseguiu extrair dados consistentes.",
       errorSaving: "Falha ao salvar.",
-      parsingBubbles: [
-        { from: 'user', text: 'Quero importar meu currículo em PDF para o sistema.', delay: 300 },
-        { from: 'ai', text: 'Entendido! Vou ler o documento agora e identificar sua estrutura.', delay: 1100 },
-        { from: 'ai', text: 'Aplicando as Regras de Extração (SKILL.md) para reconhecer as seções…', delay: 2000 },
-        { from: 'user', text: 'Consegue identificar minhas experiências e formação?', delay: 2900 },
-        { from: 'ai', text: 'Sim! Já mapeei as experiências profissionais e a formação acadêmica.', delay: 3700 },
-        { from: 'ai', text: 'Também capturei suas habilidades, competências e informações de contato.', delay: 4600 },
-        { from: 'user', text: 'E os títulos originais das seções?', delay: 5400 },
-        { from: 'ai', text: 'Preservados! Vou mostrar os nomes exatos que aparecem no seu currículo.', delay: 6200 },
-        { from: 'ai', text: 'Tudo estruturado no padrão ATS. Pode revisar o mapeamento agora ✓', delay: 7100 },
-        { from: 'user', text: 'Vou montar a tabela de revisão... espere um pouco.', delay: 8200 }
-      ],
+      apiUpload: "Arquivo carregado. Iniciando análise...",
+      apiExtracting: "Extraindo texto do documento...",
+      apiProcessing: "Processando dados extraídos...",
+      apiErrorProcessing: "Erro ao processar dados extraídos.",
+      apiErrorUnknown: "Erro desconhecido",
+      apiParsing: "Execute a Fase 1 (Importação/Parsing).",
+      apiErrorParsing: "Erro no parsing.",
+      noFile: "Arquivo não fornecido",
+      fileTooLarge: "Arquivo muito grande.",
+      unsupportedFileType: "Tipo de arquivo não suportado. Use PDF, DOCX ou TXT.",
+      apiKeyRequired: "Chave de API não configurada.",
+      errorNoFileSent: "Arquivo não enviado ou inválido",
+      errorNoTextExtracted: "Não foi possível extrair texto do arquivo",
+      errorProcessingResume: "Erro ao processar currículo:",
+      sections: {
+        personalInfo: "Informações Pessoais",
+        summary: "Resumo Profissional",
+        experiences: "Experiência Profissional",
+        education: "Formação Acadêmica",
+        projects: "Projetos de Destaque",
+        skills: "Habilidades & Competências",
+        certifications: "Certificações",
+        languages: "Idiomas",
+        volunteer: "Voluntariado"
+      },
       revalidatingBubbles: [
         { from: 'user', text: 'Pode confirmar se entendeu o mapeamento que configurei?', delay: 300 },
         { from: 'ai', text: 'Claro! Estou lendo o De/Para que você definiu…', delay: 1100 },
@@ -324,18 +352,7 @@ export const translations = {
         experiencesFound: "Encontrei {count} experiências profissionais{lastCompany}.",
         lastCompany: ", sendo a mais recente na {company}",
         skillsMapped: "Mapeei {count} competências técnicas{education}.",
-        education: " e sua formação na {institution}"
-      },
-      sections: {
-        personalInfo: "Informações Pessoais",
-        summary: "Resumo Profissional",
-        experiences: "Experiência Profissional",
-        education: "Formação Acadêmica",
-        projects: "Projetos de Destaque",
-        skills: "Habilidades & Competências",
-        certifications: "Certificações",
-        languages: "Idiomas",
-        volunteer: "Voluntariado"
+      education: " e sua formação na {institution}"
       }
     },
     templates: {
@@ -535,6 +552,16 @@ export const translations = {
       jobMatchTitle: "Job Match Analysis",
       jobPlaceholder: "Paste the full job description you want to apply for here...",
       analyzeWithJob: "Analyze with Job",
+      jobMatchStart: "Starting job match analysis...",
+      jobMatchAnalyzing: "Analyzing your resume against job requirements...",
+      jobMatchScoring: "Calculating match score...",
+      auditStart: "Starting ATS audit...",
+      auditAnalyzing: "Analyzing keywords and structure...",
+      auditScoring: "Calculating Design, Structure and Content scores...",
+      errorProcessingAnalysis: "Error processing analysis.",
+      errorUnknown: "Unknown error",
+      errorValidation: "Validation failed",
+      analyzingInProgress: "Analysis in progress",
       impact: {
         high: "high",
         medium: "medium",
@@ -567,7 +594,11 @@ export const translations = {
       description: "Description",
       startDate: "Start Date",
       endDate: "End Date",
-      current: "Current"
+      current: "Current",
+      profilePhoto: "Profile Photo",
+      profilePhotoAlt: "Resume profile photo",
+      mainAchievements: "Describe your main achievements...",
+      correctGrammar: "Correct Grammar"
     },
     config: {
       title: "AI Settings",
@@ -655,8 +686,9 @@ export const translations = {
       categoryPlaceholder: "e.g., Languages, Tools...",
       enterContent: "Enter content here...",
       listItem: "List item...",
-      viewCriteria: "View analysis criteria"
-      },
+      viewCriteria: "View analysis criteria",
+      pageBreakEnd: "End of Page"
+    },
     dashboard: {
       loadingResume: "Loading resume data...",
       processing: "Processing",
@@ -712,15 +744,15 @@ export const translations = {
         contentAdvice: "Content is the heart of the resume. Use action verbs, quantify results, and adapt the text for each job using relevant keywords."
       }
     },
-     import: {
-       uploadingFile: "I'm uploading the PDF file for analysis.",
-       extractingText: "Extracting text from the document...",
-       receivedDocument: "Document received! Starting analysis process.",
-       analyzingContent: "Analyzing resume content with AI...",
-       processingComplete: "Processing complete! Data extracted successfully.",
-       extractionResults: "Extraction results: personal information, experiences, education, and skills.",
-       noPrompt: "No prompt to display.",
-       selectPdf: "Select your PDF Resume",
+    import: {
+      uploadingFile: "I'm uploading the PDF file for analysis.",
+      extractingText: "Extracting text from the document...",
+      receivedDocument: "Document received! Starting analysis process.",
+      analyzingContent: "Analyzing resume content with AI...",
+      processingComplete: "Processing complete! Data extracted successfully.",
+      extractionResults: "Extraction results: personal information, experiences, education, and skills.",
+      noPrompt: "No prompt to display.",
+      selectPdf: "Select your PDF Resume",
       selectFile: "Select File",
       parsing: "Parsing",
       revalidating: "Revalidating",
@@ -756,6 +788,20 @@ export const translations = {
       errorReading: "Failed to read the file.",
       errorInconsistent: "The AI could not extract consistent data.",
       errorSaving: "Failed to save.",
+      apiUpload: "File uploaded. Starting analysis...",
+      apiExtracting: "Extracting text from document...",
+      apiProcessing: "Processing extracted data...",
+      apiErrorProcessing: "Error processing extracted data.",
+      apiErrorUnknown: "Unknown error",
+      apiParsing: "Execute Action 1 (Import/Parsing).",
+      apiErrorParsing: "Parsing error.",
+      noFile: "No file provided",
+      fileTooLarge: "File too large.",
+      unsupportedFileType: "Unsupported file type. Use PDF, DOCX or TXT.",
+      apiKeyRequired: "API key not configured.",
+      errorNoFileSent: "No file sent or invalid",
+      errorNoTextExtracted: "Could not extract text from file",
+      errorProcessingResume: "Error processing resume:",
       parsingBubbles: [
         { from: 'user', text: 'I want to import my PDF resume into the system.', delay: 300 },
         { from: 'ai', text: 'Understood! I will read the document now and identify its structure.', delay: 1100 },
@@ -771,9 +817,9 @@ export const translations = {
       revalidatingBubbles: [
         { from: 'user', text: 'Can you confirm if you understood the mapping I configured?', delay: 300 },
         { from: 'ai', text: 'Sure! I am reading the mapping you defined…', delay: 1100 },
-        { from: 'ai', text: 'Correlating each section of your resume with the system\'s ATS standard…', delay: 2000 },
+        { from: 'ai', text: "Correlating each section of your resume with the system's ATS standard…", delay: 2000 },
         { from: 'ai', text: 'Semantic matching confirmed for all mapped fields ✓', delay: 3200 },
-        { from: 'ai', text: 'Mapping validated! Saving the new structure... we\'ll be right back.', delay: 4300 }
+        { from: 'ai', text: 'Mapping validated! Saving the new structure... we will be right back.', delay: 4300 }
       ],
       analysingBubbles: [
         { from: 'user', text: 'I want a complete ATS audit of my resume.', delay: 300 },

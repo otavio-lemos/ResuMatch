@@ -26,7 +26,8 @@ function hasResumes(): boolean {
   try {
     const resumesList = JSON.parse(resumes);
     return Array.isArray(resumesList) && resumesList.length > 0;
-  } catch {
+  } catch (error) {
+    console.error('Error checking resumes:', error);
     return false;
   }
 }

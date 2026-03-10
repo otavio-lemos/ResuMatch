@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveResume, listResumes } from '@/lib/storage/resume-storage';
 import { logger } from '@/lib/logger';
+import { getTranslation } from '@/hooks/useTranslation';
+import { Language } from '@/lib/translations';
 
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_SECTIONS_CONFIG = [
-    { id: 'personal', title: 'Informações Pessoais', type: 'STANDARD', active: true },
-    { id: 'summary', title: 'Resumo Profissional', type: 'STANDARD', active: true },
-    { id: 'experience', title: 'Experiência Profissional', type: 'STANDARD', active: true },
-    { id: 'education', title: 'Formação Acadêmica', type: 'STANDARD', active: true },
-    { id: 'projects', title: 'Projetos de Destaque', type: 'DATED_LIST', active: true },
-    { id: 'skills', title: 'Habilidades & Competências', type: 'STANDARD', active: true },
-    { id: 'certifications', title: 'Certificações', type: 'SIMPLE_LIST', active: false, items: [] },
-    { id: 'languages', title: 'Idiomas', type: 'TEXT', active: false, content: '' },
-    { id: 'volunteer', title: 'Voluntariado', type: 'DATED_LIST', active: false, items: [] },
+const DEFAULT_SECTIONS_CONFIG = (lang: string) => [
+    { id: 'personal', title: getTranslation('import.sections.personalInfo', lang as Language), type: 'STANDARD', active: true },
+    { id: 'summary', title: getTranslation('import.sections.summary', lang as Language), type: 'STANDARD', active: true },
+    { id: 'experience', title: getTranslation('import.sections.experiences', lang as Language), type: 'STANDARD', active: true },
+    { id: 'education', title: getTranslation('import.sections.education', lang as Language), type: 'STANDARD', active: true },
+    { id: 'projects', title: getTranslation('import.sections.projects', lang as Language), type: 'DATED_LIST', active: true },
+    { id: 'skills', title: getTranslation('import.sections.skills', lang as Language), type: 'STANDARD', active: true },
+    { id: 'certifications', title: getTranslation('import.sections.certifications', lang as Language), type: 'SIMPLE_LIST', active: false, items: [] },
+    { id: 'languages', title: getTranslation('import.sections.languages', lang as Language), type: 'TEXT', active: false, content: '' },
+    { id: 'volunteer', title: getTranslation('import.sections.volunteer', lang as Language), type: 'DATED_LIST', active: false, items: [] },
 ];
 
 const DEFAULT_PERSONAL_INFO = {
@@ -28,10 +30,10 @@ const DEFAULT_PERSONAL_INFO = {
 };
 
 export async function POST(request: NextRequest) {
+    let language = 'pt';
     try {
         let aiSettings = undefined;
         let fileData: { buffer: Buffer, name: string, type: string } | null = null;
-        let language = 'pt';
 
         const contentType = request.headers.get('content-type') || '';
         console.log(`[Import] Request Content-Type: ${contentType}`);
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!fileData) {
-            return NextResponse.json({ error: 'Arquivo não enviado ou inválido' }, { status: 400 });
+            return NextResponse.json({ error: language === 'en' ? 'No file sent or invalid' : 'Arquivo não enviado ou inválido' }, { status: 400 });
         }
 
         if (aiSettings) {
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!text.trim()) {
-            return NextResponse.json({ error: 'Não foi possível extrair texto do arquivo' }, { status: 400 });
+            return NextResponse.json({ error: language === 'en' ? 'Could not extract text from file' : 'Não foi possível extrair texto do arquivo' }, { status: 400 });
         }
 
         const { parseResumeFromText } = await import('@/app/actions/ai');
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, resumeId, data: finalData }, { status: 201 });
     } catch (error: any) {
         logger.error('Import error', error);
-        return NextResponse.json({ error: 'Erro ao processar currículo: ' + error.message }, { status: 500 });
+        return NextResponse.json({ error: (language === 'en' ? 'Error processing resume: ' : 'Erro ao processar currículo: ') + error.message }, { status: 500 });
     }
 }
 

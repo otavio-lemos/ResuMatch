@@ -3,23 +3,44 @@ import OpenAI from 'openai';
 import { z, ZodError } from 'zod';
 
 const testAiSchema = z.object({
-  baseUrl: z.string().url('URL inválida'),
-  model: z.string().min(1, 'Modelo é obrigatório'),
+  baseUrl: z.string().url('Invalid URL'),
+  model: z.string().min(1, 'Model is required'),
   apiKey: z.string().optional(),
   provider: z.string().optional(),
-  timeout: z.number().optional()
+  timeout: z.number().optional(),
+  language: z.string().optional()
 });
 
 export async function POST(request: NextRequest) {
   try {
     const settings = await request.json();
+    const lang = settings.language || 'pt';
+    const isEn = lang === 'en';
+    
+    const t = {
+      validationFailed: isEn ? 'Validation failed' : 'Validação falhou',
+      baseUrlRequired: isEn ? 'Base URL and model are required' : 'URL base e modelo são obrigatórios',
+      successMessage: isEn ? '✅ Connection OK! Response:' : '✅ Conexão OK! Resposta:',
+      errorPrefix: isEn ? '❌ Error' : '❌ Erro',
+      rateLimit: isEn 
+        ? '❌ Rate limit exceeded (Error 429). The free Gemini service has a per-minute limit. Please wait a moment and try again.' 
+        : '❌ Rate limit excedido (Erro 429). O serviço gratuito do Gemini tem limite por minuto. Aguarde e tente novamente.',
+      unknownError: isEn ? 'Unknown error' : 'Erro desconhecido',
+      dnsError: isEn ? '❌ DNS could not resolve the address' : '❌ DNS não conseguiu resolver o endereço',
+      dnsDetails: isEn ? 'The server likely has no internet access or the domain is wrong.' : 'O K8s provavelmente não tem acesso à internet ou o domínio está errado.',
+      connRefused: isEn ? '❌ Connection refused' : '❌ Conexão recusada',
+      connRefusedDetails: isEn ? 'The server is not accepting connections on the specified port.' : 'O servidor não está aceitando conexões na porta especificada.',
+      timeoutError: isEn ? '⏱ Timeout exceeded' : '⏱ Tempo limite excedido',
+      timeoutDetails: isEn ? 'The server took too long to respond. Try increasing the timeout.' : 'O servidor demorou demais para responder. Tente aumentar o timeout.',
+      genericError: isEn ? '❌ Error:' : '❌ Erro:',
+    };
     
     try {
       testAiSchema.parse(settings);
     } catch (error) {
       if (error instanceof ZodError) {
         return NextResponse.json(
-          { success: false, message: 'Validation failed', details: error.issues },
+          { success: false, message: t.validationFailed, details: error.issues },
           { status: 400 }
         );
       }
@@ -27,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (!settings.baseUrl || !settings.model) {
       return NextResponse.json(
-        { success: false, message: 'URL base e modelo são obrigatórios' },
+        { success: false, message: t.baseUrlRequired },
         { status: 400 }
       );
     }
@@ -66,7 +87,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `✅ Conexão OK! Resposta: "${openaiResponse.choices[0].message.content}"`,
+        message: `${t.successMessage} "${openaiResponse.choices[0]?.message?.content || 'N/A'}"`,
       });
     }
 
@@ -75,7 +96,7 @@ export async function POST(request: NextRequest) {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
       return NextResponse.json({
         success: true,
-        message: text ? `✅ Conexão OK! Resposta: "${text}"` : `✅ Conexão OK! (response: ${JSON.stringify(data).substring(0, 100)})`,
+        message: text ? `${t.successMessage} "${text}"` : `${t.successMessage} (response: ${JSON.stringify(data).substring(0, 100)})`,
       });
     }
 
@@ -83,49 +104,54 @@ export async function POST(request: NextRequest) {
     
     if (response.status === 429) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: `❌ Rate limit exceeded (Error 429). The free Gemini service has a per-minute limit. Please wait a moment and try again.` 
-        },
+        { success: false, message: t.rateLimit },
         { status: 429 }
       );
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        message: `❌ Erro ${response.status}: ${errorText.substring(0, 200)}` 
-      },
+      { success: false, message: `${t.errorPrefix} ${response.status}: ${errorText.substring(0, 200)}` },
       { status: 500 }
     );
   } catch (error: any) {
     console.error('AI Test Error:', error);
     
-    let errorMessage = 'Erro desconhecido';
+    const settings = await request.json().catch(() => ({}));
+    const lang = settings.language || 'pt';
+    const isEn = lang === 'en';
+    
+    const t = {
+      unknownError: isEn ? 'Unknown error' : 'Erro desconhecido',
+      dnsError: isEn ? '❌ DNS could not resolve the address' : '❌ DNS não conseguiu resolver o endereço',
+      dnsDetails: isEn ? 'The server likely has no internet access or the domain is wrong.' : 'O K8s provavelmente não tem acesso à internet ou o domínio está errado.',
+      connRefused: isEn ? '❌ Connection refused' : '❌ Conexão recusada',
+      connRefusedDetails: isEn ? 'The server is not accepting connections on the specified port.' : 'O servidor não está aceitando conexões na porta especificada.',
+      timeoutError: isEn ? '⏱ Timeout exceeded' : '⏱ Tempo limite excedido',
+      timeoutDetails: isEn ? 'The server took too long to respond. Try increasing the timeout.' : 'O servidor demorou demais para responder. Tente aumentar o timeout.',
+      genericError: isEn ? '❌ Error:' : '❌ Erro:',
+    };
+    
+    let errorMessage = t.unknownError;
     let errorDetails = '';
     
     const errorStr = JSON.stringify(error);
     
     if (error.code === 'ENOTFOUND' || error.message?.includes('ENOTFOUND') || errorStr.includes('ENOTFOUND')) {
-      errorMessage = '❌ DNS não conseguiu resolver o endereço';
-      errorDetails = 'O K8s provavelmente não tem acesso à internet ou o domínio está errado.';
+      errorMessage = t.dnsError;
+      errorDetails = t.dnsDetails;
     } else if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED') || errorStr.includes('ECONNREFUSED')) {
-      errorMessage = '❌ Conexão recusada';
-      errorDetails = 'O servidor não está aceitando conexões na porta especificada.';
+      errorMessage = t.connRefused;
+      errorDetails = t.connRefusedDetails;
     } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout') || errorStr.includes('timeout')) {
-      errorMessage = '⏱ Tempo limite excedido';
-      errorDetails = 'O servidor demorou demais para responder. Tente aumentar o timeout.';
+      errorMessage = t.timeoutError;
+      errorDetails = t.timeoutDetails;
     } else if (error.message) {
-      errorMessage = '❌ Erro: ' + error.message;
+      errorMessage = `${t.genericError} ${error.message}`;
       errorDetails = errorStr.length < 500 ? errorStr : '';
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
-        message: errorDetails ? `${errorMessage}\n\n${errorDetails}` : errorMessage,
-        error: errorStr.substring(0, 1000)
-      },
+      { success: false, message: errorDetails ? `${errorMessage}\n\n${errorDetails}` : errorMessage },
       { status: 500 }
     );
   }

@@ -29,7 +29,7 @@ interface ATSAnalysis {
 
 interface ImportResumeData extends Omit<Partial<ResumeData>, 'certifications'> {
     atsScore?: ATSAnalysis;
-    certifications?: Array<{ id: string; name: string; issuer: string; date: string }>;
+    certifications?: Array<{ id: string; name: string; issuer: string; date: string; expirationDate?: string }>;
     _sectionHeaders?: Record<string, string>;
 }
 
@@ -118,7 +118,7 @@ interface MapRow {
 export default function ImportWizardClient() {
     const { t, language } = useTranslation();
     const router = useRouter();
-    const { importAI, primaryAI } = useAISettingsStore();
+    const { importAI, primaryAI, importPrompt } = useAISettingsStore();
 
     const ATS_SECTIONS = useMemo(() => [
         { key: 'personalInfo', label: t('import.sections.personalInfo') },
@@ -140,8 +140,9 @@ export default function ImportWizardClient() {
     const [rows, setRows] = useState<MapRow[]>([]);
     const [hasValidationResult, setHasValidationResult] = useState(false);
     
-    const initialParsingBubbles = useMemo(() => (t('import.parsingBubbles') as unknown) as Bubble[], [t]);
+    const initialParsingBubbles = useMemo(() => ((t('import.parsingBubbles') as unknown) || []) as Bubble[], [t]);
     const [parsingBubbles, setParsingBubbles] = useState<Bubble[]>([]);
+    const [analysingBubbles, setAnalysingBubbles] = useState<Bubble[]>([]);
 
     useEffect(() => {
         if (Array.isArray(initialParsingBubbles)) {
@@ -175,32 +176,111 @@ export default function ImportWizardClient() {
     const processFile = async (selectedFile: File) => {
         setStep('PARSING');
         setError(null);
+        setParsingBubbles([]);
+        
+        // Real-time conversation store
+        const conversation: Bubble[] = [
+            { from: 'user', text: 'Quero importar meu currículo em PDF para o sistema.', delay: 0 },
+        ];
+        
         try {
-            const base64 = await new Promise<string>((res, rej) => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result as string);
-                reader.onerror = () => rej(new Error(t('import.errorReading')));
-                reader.readAsDataURL(selectedFile);
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('language', language);
+            
+            const aiSettings = importAI ? {
+                apiKey: importAI.apiKey,
+                model: importAI.model
+            } : null;
+            
+            if (aiSettings) {
+                formData.append('aiSettings', JSON.stringify(aiSettings));
+            }
+            
+            if (importPrompt) {
+                formData.append('importPrompt', importPrompt);
+            }
+            
+            // Start streaming request
+            const response = await fetch('/api/parse-resume', {
+                method: 'POST',
+                body: formData,
             });
 
-            const { data: extracted, error: serverError, prompt, response } = await parseResumeFromPDF(base64, importAI, language);
-            if (serverError) throw new Error(serverError);
-            if (!extracted?.personalInfo) throw new Error(t('import.errorInconsistent'));
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao processar arquivo');
+            }
 
-            const data = extracted as ImportResumeData;
+            const reader = response.body?.getReader();
+            if (!reader) throw new Error('Erro ao ler resposta');
+
+            const decoder = new TextDecoder();
+            let extractedData: any = null;
+            let aiMessage = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'progress') {
+                                // Add AI progress message
+                                const progressBubble: Bubble = {
+                                    from: 'ai',
+                                    text: data.message,
+                                    delay: 0
+                                };
+                                conversation.push(progressBubble);
+                                setParsingBubbles([...conversation]);
+                            } else if (data.type === 'chunk') {
+                                // Accumulate AI response
+                                aiMessage += data.content;
+                                const latestBubble: Bubble = {
+                                    from: 'ai',
+                                    text: aiMessage,
+                                    delay: 0
+                                };
+                                // Update or add the latest AI message
+                                const lastIndex = conversation.length - 1;
+                                if (conversation[lastIndex]?.from === 'ai') {
+                                    conversation[lastIndex] = latestBubble;
+                                } else {
+                                    conversation.push(latestBubble);
+                                }
+                                setParsingBubbles([...conversation]);
+                            } else if (data.type === 'complete') {
+                                extractedData = data.data;
+                            } else if (data.type === 'error') {
+                                throw new Error(data.message);
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                }
+            }
+
+            if (!extractedData?.personalInfo) throw new Error(t('import.errorInconsistent'));
+
+            const data = extractedData as ImportResumeData;
             setParsedData(data);
 
-            // Display real AI communication
-            const realBubbles: Bubble[] = [
-                { from: 'user', text: t('import.uploadingFile'), delay: 500 },
-                { from: 'user', text: t('import.extractingText'), delay: 1500 },
-                { from: 'ai', text: t('import.receivedDocument'), delay: 2500 },
-                { from: 'ai', text: t('import.analyzingContent'), delay: 3500 },
-                { from: 'user', text: prompt, delay: 4500 },
-                { from: 'ai', text: t('import.processingComplete'), delay: 6000 },
-                { from: 'ai', text: t('import.extractionResults'), delay: 7000 },
-            ];
-            setParsingBubbles(realBubbles);
+            // Final message with extraction results
+            const finalBubble: Bubble = {
+                from: 'ai',
+                text: t('import.extractionResults'),
+                delay: 0
+            };
+            conversation.push(finalBubble);
+            setParsingBubbles([...conversation]);
 
             const headers = data._sectionHeaders || {};
             const rawRows: MapRow[] = ATS_SECTIONS.map((s, idx) => {
@@ -330,7 +410,85 @@ export default function ImportWizardClient() {
 
             if (!skipAnalysis) {
                 setStep('ANALYSING');
-                const { response: atsResult } = await generateATSAnalysis(finalData as ResumeData, undefined, primaryAI, language);
+                setAnalysingBubbles([]);
+                
+                // Real-time conversation for ATS analysis
+                const conversation: Bubble[] = [
+                    { from: 'user', text: language === 'pt' ? 'Quero uma auditoria ATS completa do meu currículo.' : 'I want a complete ATS audit of my resume.', delay: 0 },
+                ];
+                setAnalysingBubbles([...conversation]);
+                
+                const aiSettings = primaryAI ? {
+                    apiKey: primaryAI.apiKey,
+                    model: primaryAI.model
+                } : null;
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resumeData: finalData,
+                        aiSettings,
+                        language
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro na análise');
+                }
+
+                const reader = response.body?.getReader();
+                if (!reader) throw new Error('Erro ao ler resposta');
+
+                const decoder = new TextDecoder();
+                let atsResult: any = null;
+                let aiMessage = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.type === 'progress') {
+                                    const progressBubble: Bubble = {
+                                        from: 'ai',
+                                        text: data.message,
+                                        delay: 0
+                                    };
+                                    conversation.push(progressBubble);
+                                } else if (data.type === 'chunk') {
+                                    aiMessage += data.content;
+                                    const latestBubble: Bubble = {
+                                        from: 'ai',
+                                        text: aiMessage,
+                                        delay: 0
+                                    };
+                                    const lastIndex = conversation.length - 1;
+                                    if (conversation[lastIndex]?.from === 'ai') {
+                                        conversation[lastIndex] = latestBubble;
+                                    } else {
+                                        conversation.push(latestBubble);
+                                    }
+                                } else if (data.type === 'complete') {
+                                    atsResult = data.data;
+                                } else if (data.type === 'error') {
+                                    throw new Error(data.message);
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON
+                            }
+                        }
+                    }
+                }
+
                 if (atsResult) finalData.atsScore = atsResult;
             }
 
@@ -568,7 +726,7 @@ export default function ImportWizardClient() {
                     })()}
 
                     {/* ── ANALYSING ───────────────────────────── */}
-                    {step === 'ANALYSING' && <ChatView key="analysing" bubbles={ANALYSING_BUBBLES} title={t('import.analysingTitle')} t={t} />}
+                    {step === 'ANALYSING' && <ChatView key="analysing" bubbles={analysingBubbles} title={t('import.analysingTitle')} t={t} />}
 
 
                     {/* ── SAVING ──────────────────────────────── */}
