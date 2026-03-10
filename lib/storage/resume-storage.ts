@@ -2,13 +2,20 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 
 const RESUME_DIR = join(process.cwd(), 'data', 'resumes');
+const MAX_RESUME_SIZE_BYTES = 10 * 1024 * 1024;
 
 export async function saveResume(resumeData: any, fileName?: string): Promise<string> {
+  const jsonString = JSON.stringify(resumeData, null, 2);
+  
+  if (jsonString.length > MAX_RESUME_SIZE_BYTES) {
+    throw new Error(`Currículo muito grande (${Math.round(jsonString.length / 1024)}KB). Máximo: 10MB`);
+  }
+  
   const id = fileName || Date.now().toString();
   const filePath = join(RESUME_DIR, `${id}.json`);
   
   await fs.mkdir(RESUME_DIR, { recursive: true });
-  await fs.writeFile(filePath, JSON.stringify(resumeData, null, 2));
+  await fs.writeFile(filePath, jsonString);
   
   return id;
 }
