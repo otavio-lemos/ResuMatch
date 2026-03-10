@@ -559,7 +559,19 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         if (data.language === targetLang) return;
         setSyncStatus('saving');
         try {
-            const { translateResumeData } = await import('@/app/actions/ai');
+            let translateResumeData: any;
+            try {
+                const aiModule = await import('@/app/actions/ai');
+                translateResumeData = aiModule.translateResumeData;
+            } catch (importError: any) {
+                console.error('Failed to load AI module:', importError);
+                throw new Error('Módulo de tradução não disponível. Tente novamente.');
+            }
+            
+            if (!translateResumeData) {
+                throw new Error('Função translateResumeData não encontrada.');
+            }
+            
             const { response: translatedData } = await translateResumeData(data, targetLang, authSettings);
             const newSections = translatedData.sectionsConfig.map((s: SectionConfig) => {
                 const defaults = DEFAULT_TITLES[s.id];
@@ -569,7 +581,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             setFullData({ ...translatedData, sectionsConfig: newSections, language: targetLang });
             set({ needsNewAnalysis: true });
             setSyncStatus('saved');
-        } catch (error) { console.error('Translation failed:', error); setSyncStatus('error'); }
+        } catch (error: any) { 
+            console.error('Translation failed:', error); 
+            setSyncStatus('error'); 
+        }
     },
 
     // Suggestion application methods
