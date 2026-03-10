@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const analyzeSchema = z.object({
-  resumeData: z.record(z.any()).optional(),
+  resumeData: z.record(z.string(), z.any()).optional(),
   atsPrompt: z.string().optional(),
   jobDescription: z.string().optional(),
   aiSettings: z.object({

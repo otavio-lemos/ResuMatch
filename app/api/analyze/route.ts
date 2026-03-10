@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
 // TODO: Add proper authentication before production
 // Current: Using hardcoded 'local-user' for MVP
@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 
 const analyzeSchema = z.object({
-  resumeData: z.record(z.any()).optional(),
+  resumeData: z.record(z.string(), z.any()).optional(),
   atsPrompt: z.string().optional(),
   jobDescription: z.string().optional(),
   aiSettings: z.object({
@@ -115,13 +115,14 @@ export async function POST(req: NextRequest) {
     const result = await model.generateContent([userPrompt]);
     return NextResponse.json(robustJsonParse(result.response.text()));
 
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
-    return NextResponse.json({ error: error.message || "Erro na análise." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Erro na análise.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

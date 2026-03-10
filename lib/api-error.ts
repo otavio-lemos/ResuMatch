@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
 export class ApiError extends Error {
   constructor(
@@ -12,9 +12,9 @@ export class ApiError extends Error {
 }
 
 export function handleApiError(error: unknown) {
-  if (error instanceof z.ZodError) {
+  if (error instanceof ZodError) {
     return new Response(
-      JSON.stringify({ error: 'Validation failed', details: error.errors }),
+      JSON.stringify({ error: 'Validation failed', details: error.issues }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }

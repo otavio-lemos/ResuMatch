@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
 const testAiSchema = z.object({
   baseUrl: z.string().url('URL inválida'),
@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     try {
       testAiSchema.parse(settings);
     } catch (error) {
-      if (error instanceof z.ZodError) {
+      if (error instanceof ZodError) {
         return NextResponse.json(
-          { success: false, message: 'Validation failed', details: error.errors },
+          { success: false, message: 'Validation failed', details: error.issues },
           { status: 400 }
         );
       }
