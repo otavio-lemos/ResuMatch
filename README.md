@@ -303,6 +303,43 @@ npx playwright test
 
 ---
 
+## ✅ Code Quality & Padrões
+
+Este projeto segue padrões rigorosos de qualidade de código:
+
+### Validação de Entrada
+- **Zod** para validação de schemas em todas as API routes
+- Validação de tipo e tamanho de arquivos (PDF, DOCX, TXT)
+- Tratamento padronizado de erros com `lib/api-error.ts`
+
+### Configuração Centralizada
+- Valores mágicos extraídos para `lib/config.ts`
+- Rate limiting, limits de upload, e UI config centralizados
+
+### Error Handling
+- `components/ErrorBoundary.tsx` para captura de erros React
+- Error handlers padronizados nas API routes
+
+### Testes Unitários
+| Test Suite | Cobertura |
+|------------|----------|
+| `__tests__/api/analyze.test.ts` | Zod validation |
+| `__tests__/api/parse-resume.test.ts` | File size/type validation |
+| `__tests__/api/test-ai.test.ts` | Schema validation |
+| `__tests__/lib/config.test.ts` | Config values |
+| `__tests__/lib/api-error.test.ts` | Error handlers |
+
+### Auditoria Automática (Docker DevOps)
+O `Dockerfile-DevOps` executa automaticamente:
+- Security Scan (vulnerabilidades)
+- Lint Check (ESLint, Ruff)
+- Schema Validation
+- Test Runner (Jest)
+- UX Audit
+- SEO Check
+
+---
+
 ## 🔧 Ferramentas de Desenvolvimento
 
 ### Scripts Disponíveis
