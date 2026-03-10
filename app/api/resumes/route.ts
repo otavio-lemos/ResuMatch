@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Import] Text extracted (${text.length} chars). Starting IA parsing...`);
 
         // IA Extraction
-        const extractedData = await parseResumeFromText(text, {
+        const { response: extractedData } = await parseResumeFromText(text, {
             ...aiSettings,
             importPrompt: aiSettings?.importPrompt
         }, language);

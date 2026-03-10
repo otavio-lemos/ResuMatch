@@ -26,9 +26,10 @@ describe('AI Actions', () => {
     });
 
     describe('rewriteText', () => {
-        it('returns empty string if input is empty', async () => {
+        it('returns empty prompt and response if input is empty', async () => {
             const result = await rewriteText('');
-            expect(result).toBe('');
+            expect(result.prompt).toBe('');
+            expect(result.response).toBe('');
         });
 
         it('returns the AI generated text from Gemini on success', async () => {
@@ -40,7 +41,7 @@ describe('AI Actions', () => {
             });
 
             const result = await rewriteText('Original text');
-            expect(result).toBe('Rewritten text');
+            expect(result.response).toBe('Rewritten text');
             expect(global.fetch).toHaveBeenCalledTimes(1);
         });
 
@@ -72,9 +73,10 @@ describe('AI Actions', () => {
     });
 
     describe('correctGrammar', () => {
-        it('returns empty string if input is empty', async () => {
+        it('returns empty prompt and response if input is empty', async () => {
             const result = await correctGrammar('');
-            expect(result).toBe('');
+            expect(result.prompt).toBe('');
+            expect(result.response).toBe('');
         });
 
         it('returns the AI generated text on success', async () => {
@@ -86,7 +88,7 @@ describe('AI Actions', () => {
             });
 
             const result = await correctGrammar('Originaltext with errrs');
-            expect(result).toBe('Corrected text');
+            expect(result.response).toBe('Corrected text');
         });
     });
 });

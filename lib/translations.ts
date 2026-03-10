@@ -245,8 +245,15 @@ export const translations = {
         contentAdvice: "O conteúdo é o coração do currículo. Use verbos de ação, quantifique resultados e adapte o texto para cada vaga usando palavras-chave relevantes."
       }
     },
-    import: {
-      selectPdf: "Selecione seu Currículo em PDF",
+     import: {
+       uploadingFile: "Estou carregando o arquivo PDF para análise.",
+       extractingText: "Extraindo texto do documento...",
+       receivedDocument: "Documento recebido! Iniciando processo de análise.",
+       analyzingContent: "Analisando o conteúdo do currículo com IA...",
+       processingComplete: "Processamento completo! Dados extraídos com sucesso.",
+       extractionResults: "Resultados da extração: informações pessoais, experiências, formação e habilidades.",
+       noPrompt: "Não há prompt para exibir.",
+       selectPdf: "Selecione seu Currículo em PDF",
       selectFile: "Selecionar Arquivo",
       parsing: "Processando",
       revalidando: "Revalidando",
@@ -705,8 +712,15 @@ export const translations = {
         contentAdvice: "Content is the heart of the resume. Use action verbs, quantify results, and adapt the text for each job using relevant keywords."
       }
     },
-    import: {
-      selectPdf: "Select your PDF Resume",
+     import: {
+       uploadingFile: "I'm uploading the PDF file for analysis.",
+       extractingText: "Extracting text from the document...",
+       receivedDocument: "Document received! Starting analysis process.",
+       analyzingContent: "Analyzing resume content with AI...",
+       processingComplete: "Processing complete! Data extracted successfully.",
+       extractionResults: "Extraction results: personal information, experiences, education, and skills.",
+       noPrompt: "No prompt to display.",
+       selectPdf: "Select your PDF Resume",
       selectFile: "Select File",
       parsing: "Parsing",
       revalidating: "Revalidating",

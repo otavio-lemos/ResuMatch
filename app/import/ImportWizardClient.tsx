@@ -183,40 +183,24 @@ export default function ImportWizardClient() {
                 reader.readAsDataURL(selectedFile);
             });
 
-            const { data: extracted, error: serverError } = await parseResumeFromPDF(base64, importAI, language);
+            const { data: extracted, error: serverError, prompt, response } = await parseResumeFromPDF(base64, importAI, language);
             if (serverError) throw new Error(serverError);
             if (!extracted?.personalInfo) throw new Error(t('import.errorInconsistent'));
 
             const data = extracted as ImportResumeData;
             setParsedData(data);
 
-            // Generate "Real Data" bubbles for the chat
-            const name = data.personalInfo?.fullName || t('labels.user');
-            const expCount = data.experiences?.length || 0;
-            const lastCompany = data.experiences?.[0]?.company;
-            const edu = data.education?.[0]?.institution;
-            const skillCount = data.skills?.reduce((acc, s) => acc + (s.skills?.length || 0), 0) || 0;
-
-            const dynamicBubbles: Bubble[] = [
-                ...(Array.isArray(initialParsingBubbles) ? initialParsingBubbles.slice(0, 6) : []), // Keep process-related start
-                { from: 'ai', text: t('import.dynamicBubbles.parsingDone').replace('{name}', name), delay: 5000 },
-                { 
-                    from: 'ai', 
-                    text: t('import.dynamicBubbles.experiencesFound')
-                        .replace('{count}', String(expCount))
-                        .replace('{lastCompany}', lastCompany ? t('import.dynamicBubbles.lastCompany').replace('{company}', lastCompany) : ''), 
-                    delay: 6500 
-                },
-                { 
-                    from: 'ai', 
-                    text: t('import.dynamicBubbles.skillsMapped')
-                        .replace('{count}', String(skillCount))
-                        .replace('{education}', edu ? t('import.dynamicBubbles.education').replace('{institution}', edu) : ''), 
-                    delay: 8000 
-                },
-                { from: 'user', text: Array.isArray(initialParsingBubbles) ? initialParsingBubbles[initialParsingBubbles.length - 1].text : '', delay: 9500 },
+            // Display real AI communication
+            const realBubbles: Bubble[] = [
+                { from: 'user', text: t('import.uploadingFile'), delay: 500 },
+                { from: 'user', text: t('import.extractingText'), delay: 1500 },
+                { from: 'ai', text: t('import.receivedDocument'), delay: 2500 },
+                { from: 'ai', text: t('import.analyzingContent'), delay: 3500 },
+                { from: 'user', text: prompt, delay: 4500 },
+                { from: 'ai', text: t('import.processingComplete'), delay: 6000 },
+                { from: 'ai', text: t('import.extractionResults'), delay: 7000 },
             ];
-            setParsingBubbles(dynamicBubbles);
+            setParsingBubbles(realBubbles);
 
             const headers = data._sectionHeaders || {};
             const rawRows: MapRow[] = ATS_SECTIONS.map((s, idx) => {
@@ -346,7 +330,7 @@ export default function ImportWizardClient() {
 
             if (!skipAnalysis) {
                 setStep('ANALYSING');
-                const atsResult = await generateATSAnalysis(finalData as ResumeData, undefined, primaryAI, language);
+                const { response: atsResult } = await generateATSAnalysis(finalData as ResumeData, undefined, primaryAI, language);
                 if (atsResult) finalData.atsScore = atsResult;
             }
 

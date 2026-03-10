@@ -78,15 +78,15 @@ export function EditorPanel() {
         };
         setAiError(null);
 
-        try {
+         try {
             if (type === 'refresh') {
                 setIsGeneratingRefine(expId);
-                const result = await rewriteText(text, authSettings, language);
-                updateExperience(expId, { description: result });
+                const { response } = await rewriteText(text, authSettings, language);
+                updateExperience(expId, { description: response });
             } else {
                 setIsGeneratingGrammar(expId);
-                const result = await correctGrammar(text, authSettings, language);
-                updateExperience(expId, { description: result });
+                const { response } = await correctGrammar(text, authSettings, language);
+                updateExperience(expId, { description: response });
             }
         } catch (error: any) {
             console.error(error);
@@ -104,9 +104,9 @@ export function EditorPanel() {
             ...primaryAI,
             summaryPrompt
         };
-        try {
-            const result = await generateSummaryAI(data, authSettings, language);
-            updateSummary(result);
+         try {
+            const { response } = await generateSummaryAI(data, authSettings, language);
+            updateSummary(response);
         } catch (error: any) {
             console.error(error);
             setAiError(error.message || 'Erro ao gerar resumo com IA');
@@ -120,8 +120,8 @@ export function EditorPanel() {
         setAiError(null);
         const authSettings = primaryAI;
         try {
-            const result = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
-            setAiAnalysis(result);
+             const { response } = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
+            setAiAnalysis(response);
             setShowATSDetails(true);
             await saveLocalResume();
         } catch (error: any) {

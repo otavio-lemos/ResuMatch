@@ -42,7 +42,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
     throw new Error('Configuração de IA não encontrada.');
 };
 
-async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<string> {
+async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     const systemInstruction = skill || getAtsAnalyzerSkill();
     try {
         if (aiConfig.type === 'gemini') {
@@ -75,7 +75,8 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 throw new Error(`Erro na API Gemini (${res.status}): ${errorDetails}`);
             }
             const data = await res.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const response = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            return { prompt, response };
         } else {
             const response = await aiConfig.client.chat.completions.create({
                 model: aiConfig.model,
@@ -83,7 +84,7 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 temperature: aiConfig.temperature || 0.1,
                 response_format: responseFormat ? { type: responseFormat } : undefined,
             });
-            return response.choices[0].message.content || '';
+            return { prompt, response: response.choices[0].message.content || '' };
         }
     } catch (error: any) {
         logger.error('AI Call failed', error);
@@ -91,8 +92,8 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
     }
 }
 
-export async function rewriteText(text: string, authSettings?: AIAuthSettings & { rewritePrompt?: string }, language: string = 'pt'): Promise<string> {
-    if (!text?.trim()) return '';
+export async function rewriteText(text: string, authSettings?: AIAuthSettings & { rewritePrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
+    if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const safeText = text.replace(/[{}]/g, '');
     const instruction = language === 'en'
@@ -101,8 +102,8 @@ export async function rewriteText(text: string, authSettings?: AIAuthSettings & 
     return callAI(authSettings?.rewritePrompt ? `${authSettings.rewritePrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorRewriteSkill(language), language);
 }
 
-export async function correctGrammar(text: string, authSettings?: AIAuthSettings & { grammarPrompt?: string }, language: string = 'pt'): Promise<string> {
-    if (!text?.trim()) return '';
+export async function correctGrammar(text: string, authSettings?: AIAuthSettings & { grammarPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
+    if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const instruction = language === 'en'
         ? `Execute Action 3: Grammar according to SKILL.md for this text: "${text}"`
@@ -110,7 +111,7 @@ export async function correctGrammar(text: string, authSettings?: AIAuthSettings
     return callAI(authSettings?.grammarPrompt ? `${authSettings.grammarPrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorGrammarSkill(language), language);
 }
 
-export async function generateSummaryAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { summaryPrompt?: string }, language: string = 'pt'): Promise<string> {
+export async function generateSummaryAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { summaryPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     const aiConfig = await getAIClient(authSettings);
     const instruction = language === 'en'
         ? `Execute Action 3: Summary according to SKILL.md for this data: ${JSON.stringify(resumeData)}`
@@ -118,7 +119,7 @@ export async function generateSummaryAI(resumeData: ResumeData, authSettings?: A
     return callAI(authSettings?.summaryPrompt ? `${authSettings.summaryPrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorSummarySkill(language), language);
 }
 
-export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<any> {
+export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ prompt: string; response: any }> {
     const aiConfig = await getAIClient(authSettings);
     const instruction = jobDescription
         ? language === 'en'
@@ -127,26 +128,27 @@ export async function generateATSAnalysis(resumeData: ResumeData, jobDescription
         : language === 'en'
             ? `Execute Action 2: Resume analysis according to SKILL.md. DATA: ${JSON.stringify(resumeData)}`
             : `Execute a Fase 2: Análise de currículo conforme o SKILL.md. DADOS: ${JSON.stringify(resumeData)}`;
-    const text = await callAI(instruction, aiConfig, 'json_object', undefined, language);
-    return robustJsonParse(text);
+    const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', undefined, language);
+    return { prompt, response: robustJsonParse(response) };
 }
 
-export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<ResumeData> {
+export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<{ prompt: string; response: ResumeData }> {
     const aiConfig = await getAIClient(authSettings);
-    const text = await callAI(`Traduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`, aiConfig, 'json_object', undefined, 'pt');
-    return robustJsonParse(text);
+    const prompt = `Traduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`;
+    const { response } = await callAI(prompt, aiConfig, 'json_object', undefined, 'pt');
+    return { prompt, response: robustJsonParse(response) };
 }
 
-export async function parseResumeFromText(text: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<Partial<ResumeData>> {
+export async function parseResumeFromText(text: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ prompt: string; response: Partial<ResumeData> }> {
     const aiConfig = await getAIClient(authSettings);
     const instruction = language === 'en'
         ? `Execute Action 1: Import (Parsing) according to SKILL.md. IMPORTANT: Preserve original paragraph breaks and bullets in descriptions. TEXT: ${text}`
         : `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${text}`;
-    const resultText = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(language), language);
-    return robustJsonParse(resultText);
+    const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(language), language);
+    return { prompt, response: robustJsonParse(response) };
 }
 
-export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ data?: Partial<ResumeData>; error?: string }> {
+export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ data?: Partial<ResumeData>; error?: string; prompt?: string; response?: string }> {
     try {
         const base64Data = base64.split(';base64,').pop();
         if (!base64Data) throw new Error('Dados Base64 inválidos ou vazios');
@@ -166,11 +168,11 @@ export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSe
         const instruction = `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${data.text}`;
 
         logger.info('Calling AI for parsing...');
-        const text = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(), language);
+        const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(), language);
 
-        if (!text) throw new Error('A IA de extração retornou uma resposta vazia.');
+        if (!response) throw new Error('A IA de extração retornou uma resposta vazia.');
 
-        return { data: robustJsonParse(text) };
+        return { data: robustJsonParse(response), prompt, response };
     } catch (error: any) {
         logger.error('Error in parseResumeFromPDF', error);
         return { error: error.message || 'Erro interno no servidor' };

@@ -19,6 +19,18 @@ function getLastResumeId(): string | null {
   return localStorage.getItem('lastResumeId');
 }
 
+function hasResumes(): boolean {
+  if (typeof window === 'undefined') return false;
+  const resumes = localStorage.getItem('resuMatch_resumes_v1');
+  if (!resumes) return false;
+  try {
+    const resumesList = JSON.parse(resumes);
+    return Array.isArray(resumesList) && resumesList.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function EditButton() {
   const pathname = usePathname();
   const { t } = useTranslation();
@@ -29,7 +41,7 @@ function EditButton() {
     return getLastResumeId();
   }, [pathname]);
 
-  const href = resumeId ? `/editor/${resumeId}` : '/modelos';
+  const href = hasResumes() && resumeId ? `/editor/${resumeId}` : '/modelos';
 
   return (
     <Link
@@ -52,7 +64,7 @@ function AtsButton() {
     return getLastResumeId();
   }, [pathname]);
 
-  const href = resumeId ? `/dashboard/${resumeId}` : '/modelos';
+  const href = hasResumes() && resumeId ? `/dashboard/${resumeId}` : '/modelos';
 
   return (
     <Link
@@ -128,7 +140,7 @@ export default function Navbar() {
           }, 250);
         }
       }
-    } else if (resumeId) {
+    } else if (hasResumes() && resumeId) {
       window.print();
     } else {
       router.push('/modelos');

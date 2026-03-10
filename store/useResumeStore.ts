@@ -491,7 +491,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         setSyncStatus('saving');
         try {
             const { translateResumeData } = await import('@/app/actions/ai');
-            const translatedData = await translateResumeData(data, targetLang, authSettings);
+            const { response: translatedData } = await translateResumeData(data, targetLang, authSettings);
             const newSections = translatedData.sectionsConfig.map((s: SectionConfig) => {
                 const defaults = DEFAULT_TITLES[s.id];
                 if (defaults && s.title === defaults[data.language]) return { ...s, title: defaults[targetLang] };
