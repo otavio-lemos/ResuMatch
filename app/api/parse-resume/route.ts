@@ -15,10 +15,15 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File;
     const customPrompt = formData.get('importPrompt') as string;
     const aiSettings = formData.get('aiSettings') ? JSON.parse(formData.get('aiSettings') as string) : null;
+    
+    // Verificar se provider é Ollama (não precisa de API key)
+    const provider = aiSettings?.provider;
+    const isOllama = provider === 'ollama' || provider === 'openai';
     const apiKey = aiSettings?.apiKey || process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return new Response(`data: {"type": "error", "message": "API Key Missing"}\n\n`, {
+    // Se não é Ollama e não tem API key, erro
+    if (!isOllama && !apiKey) {
+      return new Response(`data: {"type": "error", "message": "API Key Missing - Configure no menu Configurações (ícone de engrenagem)"}\n\n`, {
         headers: { 'Content-Type': 'text/event-stream' }
       });
     }

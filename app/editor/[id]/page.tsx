@@ -34,6 +34,8 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const loadLocalResume = useResumeStore(state => state.loadLocalResume);
+  const syncStatus = useResumeStore(state => state.syncStatus);
+  const router = useRouter();
 
   useEffect(() => {
     if (resolvedParams.id && resolvedParams.id !== 'new') {
@@ -41,7 +43,12 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
     }
   }, [resolvedParams.id, loadLocalResume]);
 
-  const router = useRouter();
+  useEffect(() => {
+    if (syncStatus === 'error') {
+      router.push('/modelos');
+    }
+  }, [syncStatus, router]);
+
   const [isVerifying, setIsVerifying] = useState(false);
 
   const performVerification = useCallback(async () => {

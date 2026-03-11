@@ -5,72 +5,30 @@ interface RateLimitConfig {
     maxRequests: number;
 }
 
-type RateLimitStore = Map<string, { count: number; resetTime: number }>;
-
-const store: RateLimitStore = new Map();
-
-const CLEANUP_INTERVAL_MS = 60 * 1000;
-let lastCleanup = Date.now();
-
-function cleanupExpiredEntries(): void {
-    const now = Date.now();
-    if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
-    
-    for (const [key, record] of store.entries()) {
-        if (now > record.resetTime) {
-            store.delete(key);
-        }
-    }
-    lastCleanup = now;
-}
-
-function getClientIdentifier(request: NextRequest, userId?: string): string {
-    if (userId) return `user:${userId}`;
-    const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
-    return `ip:${ip}`;
-}
-
+/**
+ * DEPRECATED: Local rate limiting is disabled. 
+ * The system now relies on the AI provider's own rate limiting.
+ */
 export function rateLimit(config: RateLimitConfig) {
     return (request: NextRequest, userId?: string): { allowed: boolean; remaining: number; resetIn: number } => {
-        const identifier = getClientIdentifier(request, userId);
-        return checkRateLimit(identifier, config);
+        return { allowed: true, remaining: 999, resetIn: 0 };
     };
 }
 
 /**
  * Rate limit by a direct string ID (e.g., user ID).
- * Useful for Server Actions where NextRequest is not available.
+ * Disabled: Always returns allowed.
  */
 export function rateLimitById(id: string, config: RateLimitConfig) {
-    return checkRateLimit(`id:${id}`, config);
+    return { allowed: true, remaining: 999, resetIn: 0 };
 }
 
 /**
  * Check rate limit directly by identifier string.
- * Useful for API routes where you want more control.
+ * Disabled: Always returns allowed.
  */
 export function checkRateLimit(identifier: string, config: RateLimitConfig): { allowed: boolean; remaining: number; resetIn: number } {
-    cleanupExpiredEntries();
-    cleanupExpiredEntries();
-    const now = Date.now();
-    
-    const record = store.get(identifier);
-    
-    if (!record || now > record.resetTime) {
-        store.set(identifier, {
-            count: 1,
-            resetTime: now + config.windowMs
-        });
-        return { allowed: true, remaining: config.maxRequests - 1, resetIn: config.windowMs };
-    }
-    
-    if (record.count >= config.maxRequests) {
-        return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
-    }
-    
-    record.count++;
-    return { allowed: true, remaining: config.maxRequests - record.count, resetIn: record.resetTime - now };
+    return { allowed: true, remaining: 999, resetIn: 0 };
 }
 
 export function addRateLimitHeaders(
@@ -78,8 +36,6 @@ export function addRateLimitHeaders(
     remaining: number,
     resetIn: number
 ): NextResponse {
-    response.headers.set('X-RateLimit-Limit', '10');
-    response.headers.set('X-RateLimit-Remaining', remaining.toString());
-    response.headers.set('X-RateLimit-Reset', Math.ceil((Date.now() + resetIn) / 1000).toString());
+    // No-op
     return response;
 }

@@ -16,7 +16,7 @@ interface TestLog {
   baseUrl: string;
   duration: number;
   message: string;
-  type: 'ATS' | 'UPLOAD';
+  type: 'ATS' | 'UPLOAD' | 'EDITOR';
 }
 
 interface AIConfigFormProps {
@@ -364,7 +364,7 @@ export default function ConfigForm() {
         baseUrl: settings.baseUrl,
         duration,
         message: result.message,
-        type: (type === 'primary' ? 'ATS' : (type === 'import' ? 'UPLOAD' : 'ATS')) as 'ATS' | 'UPLOAD'
+        type: (type === 'primary' ? 'ATS' : type === 'import' ? 'UPLOAD' : type === 'editor' ? 'EDITOR' : 'ATS') as 'ATS' | 'UPLOAD' | 'EDITOR'
       }, ...prev].slice(0, 20));
 
     } catch (error: any) {

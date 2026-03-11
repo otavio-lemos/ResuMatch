@@ -106,8 +106,10 @@ def run_script(name: str, script_path: Path, project_path: str, url: Optional[st
             print_success(f"{name}: PASSED")
         else:
             print_error(f"{name}: FAILED")
+            if result.stdout:
+                print(f"  Output:\n{result.stdout}")
             if result.stderr:
-                print(f"  Error: {result.stderr[:200]}")
+                print(f"  Error:\n{result.stderr}")
         
         return {
             "name": name,

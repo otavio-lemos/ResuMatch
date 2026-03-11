@@ -12,9 +12,10 @@ const testAiSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  let settings: any;
   try {
-    const settings = await request.json();
-    const lang = settings.language || 'pt';
+    settings = await request.json();
+    const lang = settings?.language || 'pt';
     const isEn = lang === 'en';
     
     const t = {
@@ -102,22 +103,15 @@ export async function POST(request: NextRequest) {
 
     const errorText = await response.text();
     
-    if (response.status === 429) {
-      return NextResponse.json(
-        { success: false, message: t.rateLimit },
-        { status: 429 }
-      );
-    }
-
     return NextResponse.json(
       { success: false, message: `${t.errorPrefix} ${response.status}: ${errorText.substring(0, 200)}` },
-      { status: 500 }
+      { status: response.status }
     );
   } catch (error: any) {
     console.error('AI Test Error:', error);
     
-    const settings = await request.json().catch(() => ({}));
-    const lang = settings.language || 'pt';
+    // settings is already available from the outer scope if it succeeded reading initially
+    const lang = (typeof settings !== 'undefined' && settings?.language) || 'pt';
     const isEn = lang === 'en';
     
     const t = {

@@ -229,17 +229,21 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.certifications && data.certifications.length > 0 && (
-                <div className="border-l-2 border-pink-500 pl-3">
-                    <span className="text-[9px] font-black text-pink-600 uppercase block mb-2">{t('sections.certifications') || 'Certificações'}</span>
-                    {data.certifications.map((cert, i) => (
-                        <div key={cert.id || i} className="mb-2 pb-2 border-b border-slate-200 dark:border-slate-700 last:border-0">
-                            <p className="font-bold text-slate-900 dark:text-white">{cert.name}</p>
-                            <p className="text-slate-600 dark:text-slate-400">{cert.issuer} | {cert.date}</p>
-                        </div>
-                    ))}
-                </div>
-            )}
+            {(() => {
+                const certSection = data.sectionsConfig?.find(s => s.id === 'certifications');
+                const certs = certSection?.items || [];
+                return certs.length > 0 && (
+                    <div className="border-l-2 border-pink-500 pl-3">
+                        <span className="text-[9px] font-black text-pink-600 uppercase block mb-2">{t('sections.certifications') || 'Certificações'}</span>
+                        {(certs as any[]).map((cert: any, i: number) => (
+                            <div key={cert.id || i} className="mb-2 pb-2 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                                <p className="font-bold text-slate-900 dark:text-white">{cert.name}</p>
+                                <p className="text-slate-600 dark:text-slate-400">{cert.issuer} | {cert.date}</p>
+                            </div>
+                        ))}
+                    </div>
+                );
+            })()}
 
             {data.languages && data.languages.length > 0 && (
                 <div className="border-l-2 border-indigo-500 pl-3">
@@ -357,7 +361,12 @@ export default function ATSAnalysisView() {
     const displayScore = analysis ? getAnalysisScore(analysis) : 0;
 
     const handleAnalyze = async (jobDescription?: string) => {
-        await analyzeResume(atsPrompt, jobDescription, primaryAI, language);
+        const aiSettings = primaryAI ? {
+            apiKey: primaryAI.apiKey,
+            model: primaryAI.model,
+            baseUrl: primaryAI.baseUrl
+        } : null;
+        await analyzeResume(atsPrompt, jobDescription, aiSettings as any, language);
         router.refresh();
     };
 

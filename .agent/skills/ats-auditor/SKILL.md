@@ -1,55 +1,12 @@
 ---
-name: ats-analyzer
-description: Especialista em algoritmos de Applicant Tracking System (ATS), parsing de currículos e extração de dados estruturados.
+name: ats-auditor
+description: Especialista em auditoria ATS, pontuação e análise de compatibilidade com sistemas de rastreamento de candidatos.
 allowed-tools: Read, Write, Edit
 ---
 
-# ATS Analyzer & Parser Principles
+# ATS Auditor Skill (Audit Phase)
 
-> Princípios e regras rigorosas para análise, pontuação e importação de currículos para máxima compatibilidade com sistemas ATS (Workday, Taleo, Greenhouse, Lever, iCIMS, BrassRing).
-
----
-
-########## PPPAAARRRSSSIIINNNGGG
-## 1. Fase de Importação (Parsing)
-
-Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) para o formato JSON do sistema, aplique as seguintes regras:
-
-### Regras de Extração (Zero Alucinação)
-- **Fidelidade Absoluta:** Não invente dados. Se uma informação não existir no documento original, retorne string vazia `""` ou array vazio `[]`.
-- **Preservação de Parágrafos:** Mantenha as quebras de parágrafo originais nas descrições de experiência e formação usando uma linha em branco (duplo \n). Não remova ou aglutine bullets originais.
-- **Padronização de Datas:** Converter para formato `MM/AAAA` (ex: "10/2021"). Se cargo atual, usar `current`: true e `endDate`: "".
-- **Categorização de Habilidades:** Agrupar em categorias lógicas ("Linguagens", "Ferramentas", "Soft Skills", "Frameworks", "Cloud", "Metodologias").
-- **Geração de IDs:** IDs curtos únicos (ex: `exp-1`, `edu-1`).
-
-### Regras de Datas para ATS (CRÍTICO)
-- **Formato preferencial:** MM/AAAA (ex: "10/2021 - 12/2024")
-- **Formato alternativo:** "Outubro 2021" a "Dezembro 2024"
-- **Formatos INVÁLIDOS:** YYYY-MM, YYYY-MM-DD, DD/MM/YYYY, apenas o ano
-- **Nota:** Sistemas ATS calculam tempo de experiência baseados nas datas
-
-### System Prompt para Importação
-```text
-Você é um Extrator de Dados de Currículos de alta precisão. Sua única função é ler o documento fornecido e extrair as informações para um JSON rigoroso.
-Não invente dados. Padronize datas para MM/AAAA.
-Regras ATS:
-- Use formato MM/AAAA para todas as datas (ex: 10/2021 - 12/2024)
-- Não use YYYY-MM, YYYY-MM-DD ou apenas ano
-- Cabeçalhos devem ser preservados do original
-FORMATO JSON OBRIGATÓRIO:
-{
-  "personalInfo": { "fullName": "", "title": "", "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" },
-  "summary": "",
-  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false, "description": "" } ],
-  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": ["skill 1"] } ],
-  "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/AAAA", "expirationDate": "MM/AAAA ou null" } ],
-  "projects": [ { "id": "proj-1", "title": "", "subtitle": "", "description": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false } ],
-  "languages": [ { "id": "lang-1", "language": "", "proficiency": "" } ],
-  "volunteer": [ { "id": "vol-1", "organization": "", "role": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "description": "" } ]
-}
-```
-########## FIM PPPAAARRRSSSIIINNNGGG
+> Habilidade dedicada à auditoria de currículos: análise de pontuação ATS, validação de formatos e compatibilidade com sistemas como Workday, Taleo, Greenhouse.
 
 ---
 
@@ -127,7 +84,7 @@ Foco: Densidade de keywords e método STAR
 - Feedback: "Ícones detectados. Substitua '📞' por 'Telefone:', '✉️' por 'Email:'."
 
 #### D) CARACTERES ESPECIAIS
-- **Smart quotes** (“ ”) → converter para aspas retas (")
+- **Smart quotes** (" ") → converter para aspas retas (")
 - **Em-dashes** (—) → converter para hífen (-)
 - **Caracteres não-ASCII** → evitar para Taleo
 - Feedback: "Smart quotes detectadas. Converta para aspas retas."
@@ -212,7 +169,7 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
    - Usar "Telefone:" não 📞, "Email:" não ✉️
 
 4. CARACTERES ESPECIAIS:
-   - Smart quotes (“ ”) → aspas retas (")
+   - Smart quotes (" ") → aspas retas (")
    - Em-dashes (—) → hífen (-)
    - Non-ASCII → evitar para Taleo
 
@@ -285,25 +242,3 @@ RETORNE APENAS JSON:
 }
 ```
 ########## FIM AAAUUUDDDIIITTTOOORRRIIIAAA
-
----
-
-########## EEEDDDIIITTTOOORRR
-## 3. Ações do Editor (Resumo, Reformular, Gramática)
-
-### Regras de Geração
-- **Resumo:** No máximo 4 linhas, foco em anos de experiência e impacto mensurável
-- **Reformular (STAR):** Transformar em bullets de alto impacto com: Verbo de ação + O que fez + Como fez + Resultado mensurável (%)
-- **Gramática:** Corrigir erros mantendo o tom original
-- **Saída:** RETORNE APENAS O TEXTO RESULTANTE
-
-########## FIM EEEDDDIIITTTOOORRR
-
----
-
-########## UUUIII
-## 4. Integração com a UI (Zustand)
-
-Sempre que modificar a API de análise, certifique-se que `store/useResumeStore.ts` tem as interfaces alinhadas com este SKILL.
-
-########## FIM UUUIII

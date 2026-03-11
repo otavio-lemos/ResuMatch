@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
     BarChart2, Plus, Sparkles, RefreshCw, SpellCheck, Edit2,
     Trash2, Loader2, Info, ChevronDown, ChevronUp, X,
-    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert
+    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert, Undo2
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useResumeStore, ResumeData, SectionConfig, Experience, Education, DatedListItem } from '@/store/useResumeStore';
@@ -50,11 +50,12 @@ export function EditorPanel() {
         setJobDescription
     } = useResumeStore();
 
-    const { primaryAI, importAI, importPrompt, summaryPrompt, rewritePrompt, grammarPrompt } = useAISettingsStore();
+    const { primaryAI, importAI, editorAI, importPrompt, summaryPrompt, rewritePrompt, grammarPrompt, atsPrompt } = useAISettingsStore();
 
     const [isGeneratingRefine, setIsGeneratingRefine] = useState<string | null>(null);
     const [isGeneratingGrammar, setIsGeneratingGrammar] = useState<string | null>(null);
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+    const [undoHistory, setUndoHistory] = useState<Record<string, string>>({});
     const [isAnalyzingATS, setIsAnalyzingATS] = useState(false);
     const [isImportingPDF, setIsImportingPDF] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
@@ -72,11 +73,12 @@ export function EditorPanel() {
         if (!text) return;
 
         const authSettings = {
-            ...primaryAI,
+            ...editorAI,
             rewritePrompt,
             grammarPrompt
         };
         setAiError(null);
+        setUndoHistory(prev => ({ ...prev, [expId]: text }));
 
          try {
             if (type === 'refresh') {
@@ -91,6 +93,7 @@ export function EditorPanel() {
         } catch (error: any) {
             console.error(error);
             setAiError(error.message || 'Erro ao processar texto com IA');
+            setUndoHistory(prev => { const newH = {...prev}; delete newH[expId]; return newH; });
         } finally {
             setIsGeneratingRefine(null);
             setIsGeneratingGrammar(null);
@@ -101,15 +104,17 @@ export function EditorPanel() {
         setIsGeneratingSummary(true);
         setAiError(null);
         const authSettings = {
-            ...primaryAI,
+            ...editorAI,
             summaryPrompt
         };
+        setUndoHistory(prev => ({ ...prev, ['summary']: summary }));
          try {
             const { response } = await generateSummaryAI(data, authSettings, language);
             updateSummary(response);
         } catch (error: any) {
             console.error(error);
             setAiError(error.message || 'Erro ao gerar resumo com IA');
+            setUndoHistory(prev => { const newH = {...prev}; delete newH['summary']; return newH; });
         } finally {
             setIsGeneratingSummary(false);
         }
@@ -118,7 +123,10 @@ export function EditorPanel() {
     const handleATSVerify = async () => {
         setIsAnalyzingATS(true);
         setAiError(null);
-        const authSettings = primaryAI;
+        const authSettings = {
+            ...primaryAI,
+            atsPrompt
+        };
         try {
              const { response } = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
             setAiAnalysis(response);
@@ -346,7 +354,7 @@ export function EditorPanel() {
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-blue-600'
                                 }`}
                         >
-                            {section.title}
+                            {t(`sections.${section.id}`) || section.title}
                         </button>
                     ))}
                     <button
@@ -541,14 +549,29 @@ export function EditorPanel() {
                                         </button>
                                     </div>
                                 )}
-                                <button
-                                    onClick={handleGenerateSummary}
-                                    disabled={isGeneratingSummary}
-                                    className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-tighter disabled:opacity-50"
-                                >
-                                    {isGeneratingSummary ? <Loader2 className="size-2.5 animate-spin" /> : <Sparkles className="size-2.5" />}
-                                    {t('editor.generateWithAI')}
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    {undoHistory['summary'] && (
+                                        <button
+                                            onClick={() => {
+                                                updateSummary(undoHistory['summary']);
+                                                setUndoHistory(prev => { const newH = {...prev}; delete newH['summary']; return newH; });
+                                            }}
+                                            className="text-[9px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 uppercase tracking-tighter transition-colors"
+                                            title={t('actions.undo')}
+                                        >
+                                            <Undo2 className="size-2.5" />
+                                            {t('actions.undo')}
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleGenerateSummary}
+                                        disabled={isGeneratingSummary}
+                                        className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-tighter disabled:opacity-50"
+                                    >
+                                        {isGeneratingSummary ? <Loader2 className="size-2.5 animate-spin" /> : <Sparkles className="size-2.5" />}
+                                        {t('editor.generateWithAI')}
+                                    </button>
+                                </div>
                             </div>
                             <textarea
                                 className="w-full rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-xs p-2.5 leading-relaxed font-medium outline-none focus:ring-1 focus:ring-blue-500"
@@ -663,14 +686,29 @@ export function EditorPanel() {
                                 <div>
                                     <div className="flex justify-between items-center mb-1">
                                         <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.description')}</label>
-                                        <button
-                                            onClick={() => handleAIAssist('refresh', exp.id, exp.description || `Cargo: ${exp.position}, Empresa: ${exp.company}`)}
-                                            disabled={isGeneratingRefine === exp.id || isGeneratingGrammar === exp.id}
-                                            className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-tighter disabled:opacity-50"
-                                        >
-                                            {isGeneratingRefine === exp.id ? <Loader2 className="size-2.5 animate-spin" /> : <Sparkles className="size-2.5" />}
-                                            {t('editor.generateWithAI')}
-                                        </button>
+                                        <div className="flex items-center gap-3">
+                                            {undoHistory[exp.id] && (
+                                                <button
+                                                    onClick={() => {
+                                                        updateExperience(exp.id, { description: undoHistory[exp.id] });
+                                                        setUndoHistory(prev => { const newH = {...prev}; delete newH[exp.id]; return newH; });
+                                                    }}
+                                                    className="text-[9px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 uppercase tracking-tighter transition-colors"
+                                                    title={t('actions.undo')}
+                                                >
+                                                    <Undo2 className="size-2.5" />
+                                                    {t('actions.undo')}
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleAIAssist('refresh', exp.id, exp.description || `Cargo: ${exp.position}, Empresa: ${exp.company}`)}
+                                                disabled={isGeneratingRefine === exp.id || isGeneratingGrammar === exp.id}
+                                                className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-tighter disabled:opacity-50"
+                                            >
+                                                {isGeneratingRefine === exp.id ? <Loader2 className="size-2.5 animate-spin" /> : <Sparkles className="size-2.5" />}
+                                                {t('editor.generateWithAI')}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="relative">
                                         <textarea
@@ -1042,11 +1080,13 @@ export function EditorPanel() {
                                 </div>
                             )}
 
-                            {section.type === 'SIMPLE_LIST' && (section.items as string[] || []).map((item, idx) => (
+                            {section.type === 'SIMPLE_LIST' && (section.items as any[] || []).map((item, idx) => {
+                                const isCertItem = typeof item === 'object' && item !== null && 'name' in item;
+                                return (
                                 <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative pr-10">
                                     <input
                                         className="flex-1 px-2 py-1 rounded bg-transparent border-none text-xs outline-none focus:ring-1 focus:ring-blue-500"
-                                        value={item}
+                                        value={isCertItem ? (item as any).name || '' : String(item)}
                                         onChange={(e) => updateSectionListItem(section.id, idx.toString(), e.target.value)}
                                         placeholder={t('labels.listItem') || "Item da lista..."}
                                     />
@@ -1054,7 +1094,8 @@ export function EditorPanel() {
                                         <Trash2 className="size-3.5" />
                                     </button>
                                 </div>
-                            ))}
+                                );
+                            })}
 
                             {section.type === 'DATED_LIST' && (section.items as DatedListItem[] || []).map((item) => (
                                 <div key={item.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-4 relative shadow-sm">

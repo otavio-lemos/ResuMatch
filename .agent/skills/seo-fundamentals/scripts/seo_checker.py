@@ -39,6 +39,8 @@ SKIP_DIRS = {
     "docs",
     "documentation",
     "examples",
+    "playwright-report",
+    "test-results",
 }
 
 # Files to skip (not pages)

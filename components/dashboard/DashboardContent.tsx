@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Upload, FileText, Calendar, ChevronLeft, ChevronRight, Loader2, BarChart3, Sparkles, CheckCircle2, AlertCircle, Trash2, Edit3, Save, Check, X, Info } from 'lucide-react';
-import { createNewResume, deleteResume, getResumeData } from '@/app/dashboard/actions';
+import { Plus, Upload, FileText, Calendar, ChevronLeft, ChevronRight, Loader2, BarChart3, Sparkles, CheckCircle2, AlertCircle, Trash2, Edit3, Save, Check, X, Info, Copy, Languages } from 'lucide-react';
+import { createNewResume, deleteResume, getResumeData, duplicateResume, translateResumeAction } from '@/app/dashboard/actions';
 import { ResumePreview } from '@/components/editor/ResumePreview';
 import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -35,6 +35,8 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
     const [fullResume, setFullResume] = useState<any>(null);
     const [isLoadingFullResume, setIsLoadingFullResume] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDuplicating, setIsDuplicating] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -155,6 +157,50 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
         }
     };
 
+    const handleDuplicate = async () => {
+        if (!selectedResume) return;
+        setIsDuplicating(true);
+        setError(null);
+        try {
+            const result = await duplicateResume(selectedResume.id, language);
+            if (result.success && result.id) {
+                router.push(`/editor/${result.id}`);
+            } else {
+                setError(result.message || t('templates.error'));
+            }
+        } catch (err) {
+            setError(t('templates.error'));
+        } finally {
+            setIsDuplicating(false);
+        }
+    };
+
+    const handleTranslate = async () => {
+        if (!selectedResume) return;
+        
+        const { primaryAI } = useAISettingsStore.getState();
+        if (!primaryAI.apiKey) {
+            setError(t('templates.errorNoApiKey'));
+            return;
+        }
+
+        const targetLang = language === 'en' ? 'pt' : 'en';
+        setIsTranslating(true);
+        setError(null);
+        try {
+            const result = await translateResumeAction(selectedResume.id, targetLang, primaryAI);
+            if (result.success && result.id) {
+                router.push(`/editor/${result.id}`);
+            } else {
+                setError(result.message || t('templates.error'));
+            }
+        } catch (err) {
+            setError(t('templates.error'));
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
     const getScoreColor = (score?: number) => {
         if (score === undefined) return 'text-slate-400';
         if (score >= 92) return 'text-emerald-500';
@@ -272,15 +318,36 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
                                 </select>
                             </div>
 
-                            {/* Standardized Delete Action Header */}
-                            <button
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-black uppercase bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 transition-all disabled:opacity-50"
-                            >
-                                {isDeleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
-                                {t('actions.delete')}
-                            </button>
+                            {/* Actions Group */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleTranslate}
+                                    disabled={isTranslating}
+                                    title={t('actions.translate') || (language === 'en' ? 'Traduza para Português' : 'Translate to English')}
+                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all disabled:opacity-50"
+                                >
+                                    {isTranslating ? <Loader2 className="size-3.5 animate-spin" /> : <Languages className="size-3.5" />}
+                                </button>
+                                
+                                <button
+                                    onClick={handleDuplicate}
+                                    disabled={isDuplicating}
+                                    title={t('actions.duplicate')}
+                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 transition-all disabled:opacity-50"
+                                >
+                                    {isDuplicating ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+                                </button>
+
+                                {/* Standardized Delete Action Header */}
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                    title={t('actions.delete')}
+                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 transition-all disabled:opacity-50"
+                                >
+                                    {isDeleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 

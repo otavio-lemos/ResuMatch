@@ -1,6 +1,6 @@
 ---
 name: resume-editor
-description: Especialista em auditoria ATS, geração, reformulação e correção de textos de currículo seguindo métricas rigorosas para maximizar score em Workday, Taleo e Greenhouse.
+description: Especialista em auditoria ATS, geração, reformulação e correção de textos de currículo seguindo métricas rigorosas.
 allowed-tools: Read, Write, Edit, Audit
 ---
 
@@ -202,7 +202,7 @@ const editorCall = async (
         context: sanitizeContext(resumeContext)
       });
 
-  return await gemini.generateContent({
+   return await gemini.generateContent({
     systemInstruction: skillPrompts[action],
     contents: [{ role: 'user', parts: [{ text: payload }] }],
     generationConfig: {
@@ -213,4 +213,23 @@ const editorCall = async (
     }
   });
 };
+```
+
+########## EEEDDDIIITTTOOORRR
+## 3. Ações do Editor (Resumo, Reformular, Gramática)
+
+### Regras de Geração
+- **Resumo:** No máximo 4 linhas, foco em anos de experiência e impacto mensurável
+- **Reformular (STAR):** Transformar em bullets de alto impacto com: Verbo de ação + O que fez + Como fez + Resultado mensurável (%)
+- **Gramática:** Corrigir erros mantendo o tom original
+- **Saída:** RETORNE APENAS O TEXTO RESULTANTE
+
+########## FIM EEEDDDIIITTTOOORRR
+
+########## UUUIII
+## 4. Integração com a UI (Zustand)
+
+Sempre que modificar a API de análise, certifique-se que `store/useResumeStore.ts` tem as interfaces alinhadas com este SKILL.
+
+########## FIM UUUIII
 ```

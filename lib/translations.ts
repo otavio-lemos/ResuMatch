@@ -24,9 +24,12 @@ export const translations = {
       saving: "Salvando...",
       saved: "Salvo!",
       create: "Criar",
+      duplicate: "Duplicar Currículo",
+      translate: "Traduzir Currículo (pt/en)",
       edit: "Editar",
       delete: "Excluir",
       cancel: "Cancelar",
+      undo: "Desfazer",
       confirm: "Confirmar",
       test: "Testar",
       clear: "Limpar",
@@ -121,16 +124,20 @@ export const translations = {
       subtitle: "Gerencie conexões e prompts",
       tabs: {
         analysis: "Análise ATS",
-        import: "Importação"
+        import: "Importação",
+        editor: "Editor IA"
       },
       primaryAI: "IA de Análise (ATS)",
       importAI: "IA DE IMPORTAÇÃO (UPLOAD)",
+      editorAI: "IA DE EDIÇÃO (ESCRITA)",
       skillEditor: "Inteligência Central (SKILL.md)",
       skillParser: "Regras de Extração (SKILL.md)",
       skillSummary: "Gerar Resumo (SKILL.md)",
       skillRewrite: "Reformular (STAR) (SKILL.md)",
       skillGrammar: "Corrigir Gramática (SKILL.md)",
+      customPrompt: "Prompt Personalizado",
       readOnly: "Somente Leitura",
+      syncModels: "UTILIZAR O MESMO MODELO E CHAVE DE API EM TODAS AS ETAPAS",
       secondaryDisabled: "(Desativada)",
       tips: "Dicas",
       tipsList: {
@@ -164,7 +171,9 @@ export const translations = {
       user: "usuário",
       visualElement: "Elemento visual detectado",
       invalidData: "Dado inválido",
-      missingActionVerb: "Falta verbo de ação ou métrica"
+      missingActionVerb: "Falta verbo de ação ou métrica",
+      recommendedPro: "(recomendado gemini-2.5-pro)",
+      recommendedFlash: "(recomendado gemini-2.5-flash)"
     },
     providers: {
       gemini: "Google Gemini",
@@ -508,9 +517,12 @@ export const translations = {
       saving: "Saving...",
       saved: "Saved!",
       create: "Create",
+      duplicate: "Duplicate Resume",
+      translate: "Translate Resume (en/pt)",
       edit: "Edit",
       delete: "Delete",
       cancel: "Cancel",
+      undo: "Undo",
       confirm: "Confirm",
       test: "Test",
       clear: "Clear",
@@ -605,16 +617,20 @@ export const translations = {
       subtitle: "Manage connections and prompts",
       tabs: {
         analysis: "ATS Analysis",
-        import: "Import"
+        import: "Import",
+        editor: "AI Editor"
       },
       primaryAI: "Analysis AI (ATS)",
       importAI: "IMPORT AI (UPLOAD)",
+      editorAI: "EDITOR AI (WRITING)",
       skillEditor: "Core Intelligence (SKILL.md)",
       skillParser: "Extraction Rules (SKILL.md)",
       skillSummary: "Generate Summary (SKILL.md)",
       skillRewrite: "Rewrite (STAR) (SKILL.md)",
       skillGrammar: "Correct Grammar (SKILL.md)",
+      customPrompt: "Custom Prompt",
       readOnly: "Read Only",
+      syncModels: "USE THE SAME MODEL AND API KEY FOR ALL STAGES",
       secondaryDisabled: "(Disabled)",
       tips: "Tips",
       tipsList: {
@@ -648,7 +664,9 @@ export const translations = {
       user: "user",
       visualElement: "Visual element detected",
       invalidData: "Invalid data",
-      missingActionVerb: "Missing action verb or metric"
+      missingActionVerb: "Missing action verb or metric",
+      recommendedPro: "(recommended gemini-2.5-pro)",
+      recommendedFlash: "(recommended gemini-2.5-flash)"
     },
     providers: {
       gemini: "Google Gemini",
