@@ -53,6 +53,21 @@ function AIConfigForm({
     { value: 'custom' as AIProvider, label: t('providers.custom'), description: t('providers.customDesc') },
   ], [t]);
 
+  // Detect if running in Docker container
+  const isDocker = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' || 
+    process.env.NEXT_PUBLIC_DOCKER === 'true' ||
+    process.env.DOCKER_CONTAINER === 'true'
+  );
+
+  // Get Ollama base URL based on environment
+  const getOllamaBaseUrl = () => {
+    if (isDocker) {
+      return 'http://host.docker.internal:11434/v1';
+    }
+    return 'http://localhost:11434/v1';
+  };
+
   const handleProviderChange = (provider: AIProvider) => {
     if (isSynced) return;
     const presets: Record<AIProvider, Partial<AISettings>> = {
@@ -61,7 +76,7 @@ function AIConfigForm({
         model: 'gemini-2.5-flash',
       },
       ollama: {
-        baseUrl: 'http://host.docker.internal:11434/v1',
+        baseUrl: getOllamaBaseUrl(),
         model: 'llama3.2:3b',
       },
       openai: {

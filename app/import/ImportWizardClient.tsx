@@ -43,10 +43,15 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
 
     useEffect(() => {
         if (!Array.isArray(bubbles)) return;
-        // Force show all bubbles immediately for debugging
-        setVisible(bubbles.length);
+        // Use defer with setTimeout to avoid sync setState in effect
+        const timeout = setTimeout(() => {
+            setVisible(bubbles.length);
+        }, 0);
         const timeouts = bubbles.map((b, i) => setTimeout(() => setVisible(v => Math.max(v, i + 1)), b.delay));
-        return () => timeouts.forEach(t => clearTimeout(t));
+        return () => {
+            clearTimeout(timeout);
+            timeouts.forEach(t => clearTimeout(t));
+        };
     }, [bubbles]);
 
     useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [visible]);
@@ -173,23 +178,36 @@ export default function ImportWizardClient() {
     };
 
     const processFile = async (selectedFile: File) => {
+        // Reset state FIRST
         setStep('PARSING');
         setError(null);
         setParsingBubbles([]);
         
-        console.log('[IMPORT] Starting processFile, step set to PARSING');
+        // Force re-render with a small delay to ensure state is updated
+        await new Promise(r => setTimeout(r, 50));
         
-        const aiProvider = importAI?.provider || 'gemini';
-        const aiModel = importAI?.model || 'gemini-2.0-flash';
+        console.log('[IMPORT] Starting processFile');
+        console.log('[IMPORT] importAI settings:', importAI);
         
-        // Real-time conversation store
-        const conversation: Bubble[] = [
-            { from: 'user', text: `📄 Enviando arquivo: ${selectedFile.name}`, delay: 0 },
+        // Create conversation and set immediately
+        const newBubbles = [
+            { from: 'user' as const, text: `📄 Enviando arquivo: ${selectedFile.name}`, delay: 0 },
+            { from: 'ai' as const, text: `🔄 Preparando...\nProvider: ${importAI?.provider || 'gemini'}\nModel: ${importAI?.model || 'gemini-2.0-flash'}\nURL: ${importAI?.baseUrl || 'padrão'}`, delay: 0 },
         ];
         
-        console.log('[IMPORT] Setting initial bubbles:', conversation);
-        setParsingBubbles([...conversation]);
-        console.log('[IMPORT] Bubbles set, fetching...');
+        console.log('[IMPORT] Setting bubbles:', newBubbles);
+        setParsingBubbles(newBubbles);
+        
+        // Force another update
+        await new Promise(r => setTimeout(r, 100));
+        
+        // Timeout de 60 segundos
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.log('[IMPORT] TIMEOUT TRIGGERED');
+            setError('Tempo limite excedido (60s). Verifique a conexão.');
+            setStep('UPLOAD');
+        }, 60000);
         
         try {
             const formData = new FormData();
@@ -211,32 +229,56 @@ export default function ImportWizardClient() {
                 formData.append('importPrompt', importPrompt);
             }
             
-            // Start streaming request
-            const response = await fetch('/api/parse-resume', {
+            console.log('[IMPORT] Starting fetch to /api/parse-resume');
+            
+            // Start streaming request with timeout
+            const responsePromise = fetch('/api/parse-resume', {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal
             });
+            
+            // Add timeout wrapper - cast to Response
+            let response: Response;
+            try {
+                response = await Promise.race<Response>([
+                    responsePromise,
+                    new Promise<Response>((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout: servidor não respondeu em 60s')), 60000)
+                    )
+                ]);
+            } catch (raceError: any) {
+                console.error('[IMPORT] Race error:', raceError);
+                setError(raceError.message || 'Tempo limite excedido');
+                setStep('UPLOAD');
+                return;
+            }
 
-            console.log('[IMPORT] Fetch started');
+            console.log('[IMPORT] Got response:', response.status);
+            
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 const errorText = await response.text();
                 console.log('[IMPORT] Error response:', response.status, errorText);
-                conversation.push({
-                    from: 'ai',
-                    text: `❌ ERRO ${response.status}: ${errorText.substring(0, 500)}`,
-                    delay: 0
-                });
-                setParsingBubbles([...conversation]);
-                throw new Error(`Erro ${response.status}`);
+                setError(`Erro ${response.status}: ${errorText.substring(0, 200)}`);
+                setStep('UPLOAD');
+                return;
             }
 
             const reader = response.body?.getReader();
-            if (!reader) throw new Error('Erro ao ler resposta');
+            if (!reader) {
+                setError('Erro ao ler resposta do servidor');
+                setStep('UPLOAD');
+                return;
+            }
 
             const decoder = new TextDecoder();
             let extractedData: any = null;
             let aiMessage = '';
+            
+            // Update to show we're processing
+            setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -249,48 +291,33 @@ export default function ImportWizardClient() {
                     if (line.startsWith('data: ')) {
                         try {
                             const data = JSON.parse(line.slice(6));
+                            console.log('[IMPORT] Received data type:', data.type);
                             
-                            if (data.type === 'progress') {
-                                // Add AI progress message
-                                const progressBubble: Bubble = {
-                                    from: 'ai',
-                                    text: data.message,
-                                    delay: 0
-                                };
-                                conversation.push(progressBubble);
-                                setParsingBubbles([...conversation]);
+                            if (data.type === 'progress' || data.type === 'skill' || data.type === 'prompt') {
+                                setParsingBubbles(prev => [...prev, { 
+                                    from: 'ai' as const, 
+                                    text: data.message || data.content || 'Processando...', 
+                                    delay: 0 
+                                }]);
                             } else if (data.type === 'chunk') {
-                                // Accumulate AI response
                                 aiMessage += data.content;
-                                const latestBubble: Bubble = {
-                                    from: 'ai',
-                                    text: aiMessage, // Full response, no truncation
-                                    delay: 0
-                                };
-                                // Update or add the latest AI message
-                                const lastIndex = conversation.length - 1;
-                                if (conversation[lastIndex]?.from === 'ai') {
-                                    conversation[lastIndex] = latestBubble;
-                                } else {
-                                    conversation.push(latestBubble);
-                                }
-                                setParsingBubbles([...conversation]);
+                                setParsingBubbles(prev => {
+                                    const newBubbles = [...prev];
+                                    // Update last AI message
+                                    const lastAiIndex = newBubbles.findLastIndex(b => b.from === 'ai');
+                                    if (lastAiIndex >= 0) {
+                                        newBubbles[lastAiIndex] = { ...newBubbles[lastAiIndex], text: aiMessage };
+                                    }
+                                    return newBubbles;
+                                });
                             } else if (data.type === 'complete') {
                                 extractedData = data.data;
-                                conversation.push({
-                                    from: 'ai',
-                                    text: `✅ Extração concluída! Dados: ${Object.keys(extractedData).join(', ')}`,
-                                    delay: 0
-                                });
-                                setParsingBubbles([...conversation]);
+                                console.log('[IMPORT] Complete, data keys:', Object.keys(extractedData || {}));
                             } else if (data.type === 'error') {
-                                conversation.push({
-                                    from: 'ai',
-                                    text: `❌ ERRO: ${data.message}`,
-                                    delay: 0
-                                });
-                                setParsingBubbles([...conversation]);
-                                throw new Error(data.message);
+                                console.log('[IMPORT] Error from server:', data.message);
+                                setError(data.message);
+                                setStep('UPLOAD');
+                                return;
                             }
                         } catch (e) {
                             // Skip invalid JSON
@@ -299,52 +326,22 @@ export default function ImportWizardClient() {
                 }
             }
 
-            if (!extractedData?.personalInfo) throw new Error(t('import.errorInconsistent'));
+            if (!extractedData?.personalInfo) {
+                setError('Dados inválidos recebidos da IA');
+                setStep('UPLOAD');
+                return;
+            }
 
-            const data = extractedData as ImportResumeData;
-            setParsedData(data);
-
-            // Final message with extraction results
-            const finalBubble: Bubble = {
-                from: 'ai',
-                text: t('import.extractionResults'),
-                delay: 0
-            };
-            conversation.push(finalBubble);
-            setParsingBubbles([...conversation]);
-
-            const headers = data._sectionHeaders || {};
-            const rawRows: MapRow[] = ATS_SECTIONS.map((s, idx) => {
-                const detected = hasData(data, s.key);
-                const headerLabel = headers[s.key]?.trim() || '';
-                const isAiSuggestion = s.key !== 'personalInfo' && detected && !headerLabel;
-
-                return {
-                    id: `row-${idx}`,
-                    userLabel: headerLabel || (detected ? s.label : ''),
-                    atsKey: detected || headerLabel ? s.key : null,
-                    validated: false,
-                    isAiSuggestion,
-                };
-            });
-
-            // Sort: populated rows first, empty ones at the bottom
-            rawRows.sort((a, b) => {
-                const aHas = (a.userLabel.trim() || a.atsKey) ? 1 : 0;
-                const bHas = (b.userLabel.trim() || b.atsKey) ? 1 : 0;
-                return bHas - aHas;
-            });
-
-            setRows(rawRows);
-            setHasValidationResult(false);
-            // Wait for bubbles to finish before moving to REVIEW
-            await new Promise(r => setTimeout(r, WIZARD_DELAYS.PARSING_COMPLETE));
+            setParsedData(extractedData);
+            setParsingBubbles(prev => [...prev, { from: 'ai', text: `✅ Concluído! Dados: ${Object.keys(extractedData).join(', ')}`, delay: 0 }]);
+            await new Promise(r => setTimeout(r, 1000));
             setStep('REVIEW');
+            
         } catch (err: any) {
-            setError(err.message || t('import.errorParsing'));
+            clearTimeout(timeoutId);
+            console.error('[IMPORT] Catch error:', err);
+            setError(err.message || 'Erro desconhecido');
             setStep('UPLOAD');
-            setParsedData(null);
-            setRows([]);
         }
     };
 

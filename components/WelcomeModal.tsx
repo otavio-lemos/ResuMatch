@@ -7,20 +7,21 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 type ModalStep = 'DISCLAIMER' | 'WELCOME';
 
+// Lazy initialization function to check localStorage without causing hydration mismatch
+function getInitialModalState(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hasSeenModal = localStorage.getItem('resumatch-welcome-seen');
+  return !hasSeenModal;
+}
+
 export default function WelcomeModal() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(getInitialModalState);
   const [step, setStep] = useState<ModalStep>('DISCLAIMER');
   const [agreed, setAgreed] = useState(false);
   const router = useRouter();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    // Check if the user has already seen the modal
-    const hasSeenModal = localStorage.getItem('resumatch-welcome-seen');
-    if (!hasSeenModal) {
-      setTimeout(() => setIsOpen(true), 0);
-    }
-  }, []);
+  // No useEffect needed - state is initialized lazily
 
   const nextStep = () => {
     if (agreed) {
@@ -117,9 +118,7 @@ export default function WelcomeModal() {
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex items-start gap-2 text-left">
                   <Key className="size-4 text-blue-500 mt-0.5 shrink-0" />
                   <p>
-                    {t('welcome.configInstruction').split('Gemini API Key')[0]}
-                    <span className="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-tight">Gemini API Key</span>
-                    {t('welcome.configInstruction').split('Gemini API Key')[1]}
+                    {t('welcome.configInstruction')}
                   </p>
                 </div>
 

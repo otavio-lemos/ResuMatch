@@ -2,41 +2,60 @@
 
 AI-powered resume builder with ATS scoring, intelligent parsing, and multilingual support.
 
-## Features
+---
 
-- **ATS Scoring Engine** - Real-time feedback on readability, content density, and keyword optimization
-- **AI Writing Assistance** - STAR method optimization, grammar correction, and text rewriting
-- **Intelligent Parsing** - Import from PDF, DOCX, or TXT with AI-filled fields
-- **Job Match Analysis** - Paste a job description and get compatibility scoring
-- **Multilingual** - Automatic translation between Portuguese and English
-- **8 Professional Templates** - ATS-optimized, executive, tech, academic, and more
-
-## Quick Start
+## 🚀 Quick Start (Docker)
 
 ```bash
-# Clone and install
+# Clone
 git clone https://github.com/otavio-lemos/ResuMatch.git
 cd ResuMatch
-npm install --legacy-peer-deps
 
-# Start development
-npm run dev
+# Production
+docker-compose up -d --build
+
+# Development (with live reload)
+docker build -f Dockerfile-DevOps -t resumatch-dev .
+docker run -p 3000:3000 resumatch-dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-### Docker
+---
+
+## ⚙️ Configuration
+
+Configure AI providers through the built-in settings page (`/config`). No `.env` files required.
+
+Supported providers:
+- **Google Gemini** (default)
+- **OpenAI** (GPT models)
+- **Ollama** (local models)
+
+---
+
+## 🛠️ Development (Local)
 
 ```bash
-# Development
-docker build -f Dockerfile-DevOps -t resumatch-dev .
-docker run -p 3000:3000 resumatch-dev
+# Install dependencies
+npm install --legacy-peer-deps
 
-# Production
-docker-compose up -d --build
+# Start development server
+npm run dev
+
+# Production build
+npm run build
+
+# Run linter
+npm run lint
+
+# Run tests
+npm run test
 ```
 
-## Tech Stack
+---
+
+## 📦 Tech Stack
 
 | Category | Technology |
 |----------|------------|
@@ -47,16 +66,9 @@ docker-compose up -d --build
 | AI | OpenAI, Google Gemini, Ollama |
 | Testing | Jest, Playwright |
 
-## Configuration
+---
 
-Configure AI providers through the built-in settings page (`/config`). No `.env` files required.
-
-Supported providers:
-- **Google Gemini** (default)
-- **OpenAI** (GPT models)
-- **Ollama** (local models)
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 ├── app/
@@ -75,7 +87,9 @@ Supported providers:
 └── .agent/              # AI agent skills
 ```
 
-## Scripts
+---
+
+## 🔧 Available Scripts
 
 | Command | Description |
 |---------|-------------|
@@ -83,6 +97,19 @@ Supported providers:
 | `npm run build` | Production build |
 | `npm run lint` | Run ESLint |
 | `npm run test` | Run Jest tests |
+
+---
+
+## 📋 Features
+
+- **ATS Scoring Engine** - Real-time feedback on readability, content density, and keyword optimization
+- **AI Writing Assistance** - STAR method optimization, grammar correction, and text rewriting
+- **Intelligent Parsing** - Import from PDF, DOCX, or TXT with AI-filled fields
+- **Job Match Analysis** - Paste a job description and get compatibility scoring
+- **Multilingual** - Automatic translation between Portuguese and English
+- **8 Professional Templates** - ATS-optimized, executive, tech, academic, and more
+
+---
 
 ## License
 

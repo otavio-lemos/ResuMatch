@@ -110,10 +110,11 @@ export async function POST(req: NextRequest) {
         
         // Send the skill being used
         const skillContent = getAtsParserSkill(currentLanguage);
-        safeEnqueue(`data: ${JSON.stringify({ type: 'skill', content: skillContent })}\n\n`);
+        safeEnqueue(`data: ${JSON.stringify({ type: 'skill', content: '📋 SKILL:\n' + skillContent.substring(0, 500) + '...' })}\n\n`);
         
-        safeEnqueue(`data: ${JSON.stringify({ type: 'progress', message: '📤 Enviando para IA: ' + aiConfig.type })}\n\n`);
-        safeEnqueue(`data: ${JSON.stringify({ type: 'prompt', content: finalPrompt })}\n\n`);
+        const modelName = 'model' in aiConfig ? aiConfig.model : 'gemini';
+        safeEnqueue(`data: ${JSON.stringify({ type: 'progress', message: '📤 Enviando para IA: ' + aiConfig.type + ' | Model: ' + modelName })}\n\n`);
+        safeEnqueue(`data: ${JSON.stringify({ type: 'prompt', content: '📝 PROMPT ENVIADO:\n' + finalPrompt.substring(0, 1000) + '...' })}\n\n`);
         
         try {
           if (aiConfig.type === 'gemini') {

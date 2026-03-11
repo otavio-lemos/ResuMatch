@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { ResumeData } from '@/store/useResumeStore';
 import { AISettings } from '@/store/useAISettingsStore';
 import { logger } from '@/lib/logger';
-import { getAtsAnalyzerSkill, getAtsParserSkill, getAtsSummarySkill, getResumeEditorSummarySkill, getResumeEditorRewriteSkill, getResumeEditorGrammarSkill } from '@/lib/get-skill';
+import { getAtsAnalyzerSkill, getAtsParserSkill, getAtsSummarySkill, getAtsAuditSkill, getJobComparisonSkill, getAtsUISkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
 import { getTranslation } from '@/hooks/useTranslation';
 import { Language } from '@/lib/translations';
@@ -17,38 +17,64 @@ export type AIConfig =
     | { type: 'openai'; client: OpenAI; model: string; temperature: number; maxTokens: number };
 
 export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConfig> => {
-    if (authSettings?.apiKey) {
-        const provider = authSettings.provider || 'gemini';
-        if (provider === 'gemini') {
-            return {
-                type: 'gemini' as const,
-                apiKey: authSettings.apiKey,
-                endpoint: `${authSettings.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${authSettings.model || 'gemini-2.5-flash'}:generateContent`,
-                temperature: authSettings.temperature ?? 0.1,
-                maxTokens: authSettings.maxTokens ?? 16384
-            };
-        } else {
-            return {
-                type: 'openai' as const,
-                client: new OpenAI({ baseURL: authSettings.baseUrl || 'https://api.openai.com/v1', apiKey: authSettings.apiKey }),
-                model: authSettings.model || (provider === 'ollama' ? 'llama3.2:3b' : 'gpt-3.5-turbo'),
-                temperature: authSettings.temperature ?? 0.1,
-                maxTokens: authSettings.maxTokens ?? 4096
-            };
-        }
+    const provider = authSettings?.provider || 'gemini';
+
+    // 1. Tratamento Gemini (requer API Key)
+    if (provider === 'gemini') {
+        const apiKey = authSettings?.apiKey || process.env.GEMINI_API_KEY;
+        if (!apiKey) throw new Error('Configuração de IA não encontrada. Defina a chave API nas configurações (ícone de engrenagem) ou configure GEMINI_API_KEY no arquivo .env');
+        
+        // Se o usuário não definiu um modelo, usamos o flash como padrão seguro
+        const model = authSettings?.model || 'gemini-2.5-flash';
+        return {
+            type: 'gemini' as const,
+            apiKey: apiKey,
+            endpoint: `${authSettings?.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${model}:generateContent`,
+            temperature: authSettings?.temperature ?? 0.1,
+            maxTokens: authSettings?.maxTokens ?? 16384
+        };
+    } 
+    
+    // 2. Tratamento OpenAI/Ollama (OpenAI Compatível)
+    else {
+        // Permite chave vazia para Ollama
+        const apiKey = authSettings?.apiKey || (provider === 'ollama' ? 'ollama' : '');
+        
+        // URL padrão baseada no provedor
+        // Detecta automaticamente: se baseUrl não for fornecida, usa localhost (local) ou host.docker.internal (Docker)
+        const isRunningInDocker = process.env.DOCKER_CONTAINER === 'true';
+        const defaultOllamaUrl = isRunningInDocker 
+            ? 'http://host.docker.internal:11434/v1' 
+            : 'http://localhost:11434/v1';
+            
+        const defaultUrl = provider === 'ollama' 
+            ? defaultOllamaUrl
+            : 'https://api.openai.com/v1';
+            
+        const baseURL = authSettings?.baseUrl || defaultUrl;
+
+        return {
+            type: 'openai' as const,
+            client: new OpenAI({ baseURL, apiKey }),
+            model: authSettings?.model || (provider === 'ollama' ? 'llama3.2:3b' : 'gpt-3.5-turbo'),
+            temperature: authSettings?.temperature ?? 0.1,
+            maxTokens: authSettings?.maxTokens ?? 4096
+        };
     }
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) return { type: 'gemini' as const, apiKey: geminiKey, endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, temperature: 0.1, maxTokens: 16384 };
-    throw new Error('Configuração de IA não encontrada. Defina a chave API nas configurações (ícone de engrenagem) ou configure GEMINI_API_KEY no arquivo .env');
 };
 
 async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
+    // A Skill é OBRIGATÓRIA. Se não for passada, usamos o Analyzer como fallback padrão de segurança.
     const systemInstruction = skill || getAtsAnalyzerSkill(language);
+    
     try {
         if (aiConfig.type === 'gemini') {
-            const res = await fetch(`${aiConfig.endpoint}?key=${aiConfig.apiKey}`, {
+            const res = await fetch(aiConfig.endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': aiConfig.apiKey
+                },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
                     systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -61,9 +87,6 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 })
             });
             if (!res.ok) {
-		if (res.status === 429) throw new Error(getTranslation('templates.rateLimitWait', language as Language).replace('{seconds}', '60'));
-		if (res.status === 503) throw new Error(getTranslation('templates.aiServiceOverloaded', language as Language));
-
                 let errorDetails = '';
                 try {
                     const errorJson = await res.json();
@@ -72,7 +95,7 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                     errorDetails = res.statusText || res.status.toString();
                 }
 
-                throw new Error(`Erro na API Gemini (${res.status}): ${errorDetails}`);
+                throw new Error(errorDetails);
             }
             const data = await res.json();
             const response = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -100,68 +123,63 @@ export async function rewriteText(text: string, authSettings?: AIAuthSettings & 
     if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const safeText = text.replace(/[{}]/g, '');
-    const instruction = language === 'en'
-        ? `Execute Action 3: Rewrite (STAR) according to SKILL.md for this text: "${safeText}"`
-        : `Execute a Fase 3: Rewrite (STAR) conforme o SKILL.md para este texto: "${safeText}"`;
-    return callAI(authSettings?.rewritePrompt ? `${authSettings.rewritePrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorRewriteSkill(language), language);
+    const userPrompt = authSettings?.rewritePrompt ? `USER INSTRUCTION: ${authSettings.rewritePrompt}\n\n` : '';
+    const finalPrompt = `${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
+    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
+    return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
 
 export async function correctGrammar(text: string, authSettings?: AIAuthSettings & { grammarPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
-    const instruction = language === 'en'
-        ? `Execute Action 3: Grammar according to SKILL.md for this text: "${text}"`
-        : `Execute a Fase 3: Grammar conforme o SKILL.md para este texto: "${text}"`;
-    return callAI(authSettings?.grammarPrompt ? `${authSettings.grammarPrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorGrammarSkill(language), language);
+    const userPrompt = authSettings?.grammarPrompt ? `USER INSTRUCTION: ${authSettings.grammarPrompt}\n\n` : '';
+    const finalPrompt = `${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${text}"`;
+    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
+    return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
 
 export async function generateSummaryAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { summaryPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     const aiConfig = await getAIClient(authSettings);
-    const instruction = language === 'en'
-        ? `Execute Action 3: Summary according to SKILL.md for this data: ${JSON.stringify(resumeData)}`
-        : `Execute a Fase 3: Summary conforme o SKILL.md para estes dados: ${JSON.stringify(resumeData)}`;
-    return callAI(authSettings?.summaryPrompt ? `${authSettings.summaryPrompt}\n${instruction}` : instruction, aiConfig, undefined, getResumeEditorSummarySkill(language), language);
+    const userPrompt = authSettings?.summaryPrompt ? `USER INSTRUCTION: ${authSettings.summaryPrompt}\n\n` : '';
+    const finalPrompt = `${userPrompt}EXECUTE ACTION 1: GENERATE SUMMARY for this data: ${JSON.stringify(resumeData)}`;
+    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
+    return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
 
-export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ prompt: string; response: any }> {
+export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings & { atsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: any }> {
     const aiConfig = await getAIClient(authSettings);
-    const instruction = jobDescription
-        ? language === 'en'
-            ? `Execute Action 2: Resume analysis with JOB MATCH according to SKILL.md. JOB: ${jobDescription}. DATA: ${JSON.stringify(resumeData)}`
-            : `Execute a Fase 2: Análise de currículo com MATCH DE VAGA conforme o SKILL.md. VAGA: ${jobDescription}. DATA: ${JSON.stringify(resumeData)}`
-        : language === 'en'
-            ? `Execute Action 2: Resume analysis according to SKILL.md. DATA: ${JSON.stringify(resumeData)}`
-            : `Execute a Fase 2: Análise de currículo conforme o SKILL.md. DADOS: ${JSON.stringify(resumeData)}`;
-    const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', undefined, language);
+    const userPrompt = authSettings?.atsPrompt ? `USER INSTRUCTION: ${authSettings.atsPrompt}\n\n` : '';
+    const jobInfo = jobDescription ? `JOB DESCRIPTION: ${jobDescription}\n\n` : '';
+    const finalPrompt = `${userPrompt}${jobInfo}EXECUTE ACTION 2 (AUDIT) for this data: ${JSON.stringify(resumeData)}`;
+    // OBRIGATORIAMENTE USA A SKILL FASE 2 (AUDITORIA)
+    const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsAnalyzerSkill(language), language);
     return { prompt, response: robustJsonParse(response) };
 }
 
 export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<{ prompt: string; response: ResumeData }> {
     const aiConfig = await getAIClient(authSettings);
     const prompt = `Traduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`;
-    const { response } = await callAI(prompt, aiConfig, 'json_object', undefined, targetLang);
+    // Usa a skill de escrita para tradução profissional
+    const { response } = await callAI(prompt, aiConfig, 'json_object', getAtsSummarySkill(targetLang), targetLang);
     return { prompt, response: robustJsonParse(response) };
 }
 
-export async function parseResumeFromText(text: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ prompt: string; response: Partial<ResumeData> }> {
+export async function parseResumeFromText(text: string, authSettings?: AIAuthSettings & { importPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: Partial<ResumeData> }> {
     const aiConfig = await getAIClient(authSettings);
-    const instruction = language === 'en'
-        ? `Execute Action 1: Import (Parsing) according to SKILL.md. IMPORTANT: Preserve original paragraph breaks and bullets in descriptions. TEXT: ${text}`
-        : `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${text}`;
-    const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(language), language);
+    const userPrompt = authSettings?.importPrompt ? `USER INSTRUCTION: ${authSettings.importPrompt}\n\n` : '';
+    const finalPrompt = `${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${text}`;
+    // OBRIGATORIAMENTE USA A SKILL FASE 1 (IMPORTAÇÃO)
+    const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
     return { prompt, response: robustJsonParse(response) };
 }
 
-export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSettings, language: string = 'pt'): Promise<{ data?: Partial<ResumeData>; error?: string; prompt?: string; response?: string }> {
+export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSettings & { importPrompt?: string }, language: string = 'pt'): Promise<{ data?: Partial<ResumeData>; error?: string; prompt?: string; response?: string }> {
     try {
         const base64Data = base64.split(';base64,').pop();
         if (!base64Data) throw new Error('Dados Base64 inválidos ou vazios');
 
-        // Note: pdf-parse expects a buffer. It is externalized in next.config.ts to avoid ENOENT bugs.
         const pdf = require('pdf-parse');
         const buffer = Buffer.from(base64Data, 'base64');
-
-        logger.info('Starting PDF extraction...');
         const data = await pdf(buffer);
 
         if (!data || !data.text || data.text.trim().length === 0) {
@@ -169,12 +187,11 @@ export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSe
         }
 
         const aiConfig = await getAIClient(authSettings);
-        const instruction = language === 'en'
-            ? `Execute Action 1: Import (Parsing) according to SKILL.md. IMPORTANT: Preserve original paragraph breaks and bullets in descriptions. TEXT: ${data.text}`
-            : `Execute a Fase 1: Importação (Parsing) conforme o SKILL.md. IMPORTANTE: Preserve quebras de parágrafo e bullets originais nas descrições. TEXTO: ${data.text}`;
+        const userPrompt = authSettings?.importPrompt ? `USER INSTRUCTION: ${authSettings.importPrompt}\n\n` : '';
+        const finalPrompt = `${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${data.text}`;
 
-        logger.info('Calling AI for parsing...');
-        const { prompt, response } = await callAI(instruction, aiConfig, 'json_object', getAtsParserSkill(language), language);
+        // OBRIGATORIAMENTE USA A SKILL FASE 1 (IMPORTAÇÃO)
+        const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
 
         if (!response) throw new Error('A IA de extração retornou uma resposta vazia.');
 
@@ -194,21 +211,37 @@ export async function getParserSkillContent(language: string = 'pt'): Promise<st
 }
 
 export async function getResumeEditorSummaryContent(language: string = 'pt'): Promise<string> {
-    return getResumeEditorSummarySkill(language);
+    return getAtsSummarySkill(language);
 }
 
 export async function getResumeEditorRewriteContent(language: string = 'pt'): Promise<string> {
-    return getResumeEditorRewriteSkill(language);
+    return getAtsSummarySkill(language);
 }
 
 export async function getResumeEditorGrammarContent(language: string = 'pt'): Promise<string> {
-    return getResumeEditorGrammarSkill(language);
+    return getAtsSummarySkill(language);
+}
+
+export async function getAuditSkillContent(language: string = 'pt'): Promise<string> {
+    return getAtsAuditSkill(language);
+}
+
+export async function getJobComparisonSkillContent(language: string = 'pt'): Promise<string> {
+    return getJobComparisonSkill(language);
+}
+
+export async function getUiSkillContent(language: string = 'pt'): Promise<string> {
+    return getAtsUISkill(language);
 }
 
 export async function fetchAvailableModels(apiKey: string, baseUrl?: string): Promise<string[]> {
     if (!apiKey) return [];
     try {
-        const res = await fetch(`${baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models?key=${apiKey}`);
+        const res = await fetch(`${baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models`, {
+            headers: {
+                'x-goog-api-key': apiKey
+            }
+        });
         const data = await res.json();
         return data.models.filter((m: any) => m.supportedGenerationMethods.includes('generateContent')).map((m: any) => m.name.replace('models/', '')).sort();
     } catch (error) { return []; }

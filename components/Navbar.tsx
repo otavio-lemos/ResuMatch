@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Edit3, Download, Upload, LayoutDashboard, Sparkles, Settings, PlusSquare } from 'lucide-react';
-import { useMemo, useCallback } from 'react';
+import { Edit3, Download, Upload, LayoutDashboard, Sparkles, Settings, PlusSquare, Loader2 } from 'lucide-react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -17,65 +17,6 @@ function getResumeIdFromPathname(pathname: string): string | null {
 function getLastResumeId(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('lastResumeId');
-}
-
-function hasResumes(): boolean {
-  if (typeof window === 'undefined') return false;
-  const resumes = localStorage.getItem('resuMatch_resumes_v1');
-  if (!resumes) return false;
-  try {
-    const resumesList = JSON.parse(resumes);
-    return Array.isArray(resumesList) && resumesList.length > 0;
-  } catch (error) {
-    console.error('Error checking resumes:', error);
-    return false;
-  }
-}
-
-function EditButton() {
-  const pathname = usePathname();
-  const { t } = useTranslation();
-
-  const resumeId = useMemo(() => {
-    const id = getResumeIdFromPathname(pathname);
-    if (id) return id;
-    return getLastResumeId();
-  }, [pathname]);
-
-  const href = hasResumes() && resumeId ? `/editor/${resumeId}` : '/modelos';
-
-  return (
-    <Link
-      href={href}
-      className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-    >
-      <Edit3 className="size-3 mr-2" />
-      {t('nav.edit')}
-    </Link>
-  );
-}
-
-function AtsButton() {
-  const pathname = usePathname();
-  const { t } = useTranslation();
-
-  const resumeId = useMemo(() => {
-    const id = getResumeIdFromPathname(pathname);
-    if (id) return id;
-    return getLastResumeId();
-  }, [pathname]);
-
-  const href = hasResumes() && resumeId ? `/dashboard/${resumeId}` : '/modelos';
-
-  return (
-    <Link
-      href={href}
-      className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-    >
-      <Sparkles className="size-3 mr-2" />
-      {t('nav.analysis').toUpperCase()}
-    </Link>
-  );
 }
 
 function LanguageToggle() {
@@ -105,7 +46,39 @@ export default function Navbar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
+  const [resumesCount, setResumesCount] = useState<number | null>(null);
   const isEditorPage = pathname.startsWith('/editor/');
+
+  // Check resumes existence on mount and pathname changes
+  // Use useCallback with empty deps + useEffect to avoid sync setState in effect
+  const checkResumes = useCallback(async () => {
+    try {
+      const res = await fetch('/api/resumes');
+      if (res.ok) {
+        const list = await res.json();
+        
+        // Defer state update to avoid sync setState in effect
+        setTimeout(() => {
+            setResumesCount(list.length);
+        }, 0);
+        
+        // Redirecionamento condicional: apenas se estiver em páginas que dependem de dados
+        const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/editor');
+        
+        if (list.length === 0 && isProtectedPage) {
+           router.push('/modelos');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check resumes:', err);
+    }
+  }, [pathname, router]);
+
+  useEffect(() => {
+    checkResumes();
+  }, [checkResumes]);
+
+  const hasResumes = resumesCount !== null ? resumesCount > 0 : false;
 
   const resumeId = useMemo(() => {
     const id = getResumeIdFromPathname(pathname);
@@ -113,7 +86,24 @@ export default function Navbar() {
     return getLastResumeId();
   }, [pathname]);
 
+  const editHref = hasResumes && resumeId ? `/editor/${resumeId}` : '/modelos';
+  const atsHref = hasResumes && resumeId ? `/dashboard/${resumeId}` : '/modelos';
+  const dashboardHref = hasResumes ? '/dashboard' : '/modelos';
+  const importHref = '/import'; // Import is always accessible
+
   const handleDownload = useCallback(() => {
+    // Se não tem currículo, SEMPRE vai para /modelos
+    if (!hasResumes) {
+      router.push('/modelos');
+      return;
+    }
+
+    // Se tem currículo, mas não tem ID selecionado (ex: na tela de listagem)
+    if (!resumeId) {
+      router.push('/modelos');
+      return;
+    }
+
     if (isEditorPage) {
       const printContent = document.getElementById('resume-print-container');
       if (printContent) {
@@ -141,12 +131,11 @@ export default function Navbar() {
           }, 250);
         }
       }
-    } else if (hasResumes() && resumeId) {
-      window.print();
     } else {
-      router.push('/modelos');
+      // Fora do editor, se tiver ID, tenta imprimir a página atual ou vai para o editor
+      window.print();
     }
-  }, [isEditorPage, resumeId, router]);
+  }, [isEditorPage, resumeId, router, hasResumes]);
   
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#101922]/90 py-2">
@@ -159,7 +148,7 @@ export default function Navbar() {
       <div className="mx-auto flex w-full items-center justify-between px-6 xl:px-8">
 
         {/* LOGO RESUMATCH */}
-        <Link href="/dashboard" className="text-xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-4">
+        <Link href={dashboardHref} className="text-xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-4">
           ResuMatch
         </Link>
 
@@ -170,11 +159,19 @@ export default function Navbar() {
 
         {/* 7 BOTÕES FIXOS (Incluindo TEMA) */}
         <div className="flex items-center gap-0">
-          <Link href="/dashboard" className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+          <Link href={dashboardHref} className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
             <LayoutDashboard className="size-3 mr-2" />
             {t('nav.dashboard')}
           </Link>
-          <AtsButton />
+          
+          <Link
+            href={atsHref}
+            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            <Sparkles className="size-3 mr-2" />
+            {t('nav.analysis').toUpperCase()}
+          </Link>
+
           <Link href="/config" className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
             <Settings className="size-3 mr-2" />
             {t('nav.config')}
@@ -183,9 +180,17 @@ export default function Navbar() {
             <PlusSquare className="size-3 mr-2" />
             {t('nav.new')}
           </Link>
-          <EditButton />
+          
           <Link
-            href="/import"
+            href={editHref}
+            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            <Edit3 className="size-3 mr-2" />
+            {t('nav.edit')}
+          </Link>
+
+          <Link
+            href={importHref}
             className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             <Upload className="size-3 mr-2" />
