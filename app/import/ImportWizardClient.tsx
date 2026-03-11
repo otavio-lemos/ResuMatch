@@ -147,15 +147,9 @@ export default function ImportWizardClient() {
     const [rows, setRows] = useState<MapRow[]>([]);
     const [hasValidationResult, setHasValidationResult] = useState(false);
     
-    const initialParsingBubbles = useMemo(() => ((t('import.parsingBubbles') as unknown) || []) as Bubble[], [t]);
+    // Empty initial bubbles - will be populated when needed
     const [parsingBubbles, setParsingBubbles] = useState<Bubble[]>([]);
     const [analysingBubbles, setAnalysingBubbles] = useState<Bubble[]>([]);
-
-    useEffect(() => {
-        if (Array.isArray(initialParsingBubbles)) {
-            setParsingBubbles(initialParsingBubbles);
-        }
-    }, [initialParsingBubbles]);
 
     // chip drag: the atsKey being dragged from the pool
     const [chipDrag, setChipDrag] = useState<string | null>(null);
