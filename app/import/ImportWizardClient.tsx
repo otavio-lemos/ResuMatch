@@ -9,7 +9,7 @@ import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { ResumeData } from '@/store/useResumeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
-type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'REVALIDATING' | 'ANALYSING' | 'SAVING';
+type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING';
 
 const WIZARD_DELAYS = {
     PARSING_COMPLETE: 10500,
@@ -43,6 +43,8 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
 
     useEffect(() => {
         if (!Array.isArray(bubbles)) return;
+        // Force show all bubbles immediately for debugging
+        setVisible(bubbles.length);
         const timeouts = bubbles.map((b, i) => setTimeout(() => setVisible(v => Math.max(v, i + 1)), b.delay));
         return () => timeouts.forEach(t => clearTimeout(t));
     }, [bubbles]);
@@ -71,7 +73,7 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
                         <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
                             {b.from === 'user' ? t('labels.me') || 'EU' : t('labels.ai') || 'IA'}
                         </div>
-                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium ${b.from === 'user'
+                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap ${b.from === 'user'
                             ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl'
                             : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
                             {b.text}
@@ -118,7 +120,7 @@ interface MapRow {
 export default function ImportWizardClient() {
     const { t, language } = useTranslation();
     const router = useRouter();
-    const { importAI, primaryAI, importPrompt } = useAISettingsStore();
+    const { importAI, primaryAI, importPrompt, atsPrompt } = useAISettingsStore();
 
     const ATS_SECTIONS = useMemo(() => [
         { key: 'personalInfo', label: t('import.sections.personalInfo') },
@@ -150,9 +152,6 @@ export default function ImportWizardClient() {
         }
     }, [initialParsingBubbles]);
 
-    const REVALIDATING_BUBBLES = useMemo(() => ((t('import.revalidatingBubbles') as unknown) || []) as Bubble[], [t]);
-    const ANALYSING_BUBBLES = useMemo(() => ((t('import.analysingBubbles') as unknown) || []) as Bubble[], [t]);
-
     // chip drag: the atsKey being dragged from the pool
     const [chipDrag, setChipDrag] = useState<string | null>(null);
     // row drag: the row id being dragged for reorder
@@ -178,10 +177,19 @@ export default function ImportWizardClient() {
         setError(null);
         setParsingBubbles([]);
         
+        console.log('[IMPORT] Starting processFile, step set to PARSING');
+        
+        const aiProvider = importAI?.provider || 'gemini';
+        const aiModel = importAI?.model || 'gemini-2.0-flash';
+        
         // Real-time conversation store
         const conversation: Bubble[] = [
-            { from: 'user', text: 'Quero importar meu currículo em PDF para o sistema.', delay: 0 },
+            { from: 'user', text: `📄 Enviando arquivo: ${selectedFile.name}`, delay: 0 },
         ];
+        
+        console.log('[IMPORT] Setting initial bubbles:', conversation);
+        setParsingBubbles([...conversation]);
+        console.log('[IMPORT] Bubbles set, fetching...');
         
         try {
             const formData = new FormData();
@@ -189,8 +197,10 @@ export default function ImportWizardClient() {
             formData.append('language', language);
             
             const aiSettings = importAI ? {
+                provider: importAI.provider,
                 apiKey: importAI.apiKey,
-                model: importAI.model
+                model: importAI.model,
+                baseUrl: importAI.baseUrl
             } : null;
             
             if (aiSettings) {
@@ -207,9 +217,18 @@ export default function ImportWizardClient() {
                 body: formData,
             });
 
+            console.log('[IMPORT] Fetch started');
+            
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao processar arquivo');
+                const errorText = await response.text();
+                console.log('[IMPORT] Error response:', response.status, errorText);
+                conversation.push({
+                    from: 'ai',
+                    text: `❌ ERRO ${response.status}: ${errorText.substring(0, 500)}`,
+                    delay: 0
+                });
+                setParsingBubbles([...conversation]);
+                throw new Error(`Erro ${response.status}`);
             }
 
             const reader = response.body?.getReader();
@@ -245,7 +264,7 @@ export default function ImportWizardClient() {
                                 aiMessage += data.content;
                                 const latestBubble: Bubble = {
                                     from: 'ai',
-                                    text: aiMessage,
+                                    text: aiMessage, // Full response, no truncation
                                     delay: 0
                                 };
                                 // Update or add the latest AI message
@@ -258,7 +277,19 @@ export default function ImportWizardClient() {
                                 setParsingBubbles([...conversation]);
                             } else if (data.type === 'complete') {
                                 extractedData = data.data;
+                                conversation.push({
+                                    from: 'ai',
+                                    text: `✅ Extração concluída! Dados: ${Object.keys(extractedData).join(', ')}`,
+                                    delay: 0
+                                });
+                                setParsingBubbles([...conversation]);
                             } else if (data.type === 'error') {
+                                conversation.push({
+                                    from: 'ai',
+                                    text: `❌ ERRO: ${data.message}`,
+                                    delay: 0
+                                });
+                                setParsingBubbles([...conversation]);
                                 throw new Error(data.message);
                             }
                         } catch (e) {
@@ -372,11 +403,6 @@ export default function ImportWizardClient() {
     // ── Revalidate ────────────────────────────────────────────────────────────
 
     const handleRevalidate = async () => {
-        setStep('REVALIDATING');
-        const bubbles = Array.isArray(REVALIDATING_BUBBLES) ? REVALIDATING_BUBBLES : [];
-        const totalDelay = (bubbles[bubbles.length - 1]?.delay || 0) + WIZARD_DELAYS.REVALIDATION_BUFFER;
-        await new Promise(r => setTimeout(r, totalDelay));
-
         const originalHeaders = Object.values(parsedData?._sectionHeaders || {})
             .filter(h => h != null)
             .map(h => String(h).toLowerCase().trim());
@@ -396,7 +422,6 @@ export default function ImportWizardClient() {
             };
         }));
         setHasValidationResult(true);
-        setStep('REVIEW');
     };
 
     // ── Continue ──────────────────────────────────────────────────────────────
@@ -420,7 +445,8 @@ export default function ImportWizardClient() {
                 
                 const aiSettings = primaryAI ? {
                     apiKey: primaryAI.apiKey,
-                    model: primaryAI.model
+                    model: primaryAI.model,
+                    baseUrl: primaryAI.baseUrl
                 } : null;
                 
                 const response = await fetch('/api/analyze', {
@@ -428,6 +454,7 @@ export default function ImportWizardClient() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         resumeData: finalData,
+                        atsPrompt: atsPrompt,
                         aiSettings,
                         language
                     }),
@@ -464,7 +491,22 @@ export default function ImportWizardClient() {
                                         delay: 0
                                     };
                                     conversation.push(progressBubble);
-                                } else if (data.type === 'chunk') {
+                                    setAnalysingBubbles([...conversation]);
+                            } else if (data.type === 'skill') {
+                                conversation.push({
+                                    from: 'ai',
+                                    text: `📋 SKILL USADA:\n${data.content.substring(0, 1000)}...`,
+                                    delay: 0
+                                });
+                                setParsingBubbles([...conversation]);
+                            } else if (data.type === 'prompt') {
+                                conversation.push({
+                                    from: 'user',
+                                    text: `📝 PROMPT ENVIADO:\n${data.content.substring(0, 1500)}...`,
+                                    delay: 0
+                                });
+                                setParsingBubbles([...conversation]);
+                            } else if (data.type === 'chunk') {
                                     aiMessage += data.content;
                                     const latestBubble: Bubble = {
                                         from: 'ai',
@@ -477,6 +519,7 @@ export default function ImportWizardClient() {
                                     } else {
                                         conversation.push(latestBubble);
                                     }
+                                    setAnalysingBubbles([...conversation]);
                                 } else if (data.type === 'complete') {
                                     atsResult = data.data;
                                 } else if (data.type === 'error') {
@@ -537,10 +580,6 @@ export default function ImportWizardClient() {
 
                     {/* ── PARSING ─────────────────────────────── */}
                     {step === 'PARSING' && <ChatView key="parsing" bubbles={parsingBubbles} title={t('import.parsingTitle')} t={t} />}
-
-                    {/* ── REVALIDATING ────────────────────────── */}
-                    {step === 'REVALIDATING' && <ChatView key="revalidating" bubbles={REVALIDATING_BUBBLES} title={t('import.revalidatingTitle')} t={t} />}
-
 
                     {/* ── REVIEW ──────────────────────────────── */}
                     {step === 'REVIEW' && parsedData && (() => {

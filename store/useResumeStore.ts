@@ -523,19 +523,34 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     updateSectionContent: (id, content) => set((state) => ({ data: { ...state.data, sectionsConfig: state.data.sectionsConfig.map((s) => s.id === id ? { ...s, content } : s) } })),
     addSectionListItem: (sectionId) => set((state) => ({ data: { ...state.data, sectionsConfig: state.data.sectionsConfig.map((s) => {
         if (s.id !== sectionId) return s;
-        if (s.type === 'SIMPLE_LIST') return { ...s, items: [...(s.items as string[] || []), ''] };
+        if (s.type === 'SIMPLE_LIST') { 
+            const isCertSection = sectionId === 'certifications';
+            const newItem = isCertSection ? { id: `cert-${Date.now()}`, name: '', issuer: '', date: '', expirationDate: '' } : '';
+            return { ...s, items: [...(s.items as any[] || []), newItem] }; 
+        }
         if (s.type === 'DATED_LIST') return { ...s, items: [...(s.items as DatedListItem[] || []), { id: uuidv4(), title: '', subtitle: '', location: '', startDate: '', endDate: '', current: false, description: '' }] };
         return s;
     }) } })),
     updateSectionListItem: (sectionId, itemId, data) => set((state) => ({ data: { ...state.data, sectionsConfig: state.data.sectionsConfig.map((s) => {
         if (s.id !== sectionId) return s;
-        if (s.type === 'SIMPLE_LIST') { const idx = parseInt(itemId); const newItems = [...(s.items as string[])]; newItems[idx] = data; return { ...s, items: newItems }; }
+        if (s.type === 'SIMPLE_LIST') { 
+            const idx = parseInt(itemId); 
+            const items = s.items as any[] || [];
+            const isCertSection = sectionId === 'certifications';
+            const newItems = [...items]; 
+            if (isCertSection && typeof newItems[idx] === 'object') {
+                newItems[idx] = { ...newItems[idx], name: data };
+            } else {
+                newItems[idx] = data;
+            }
+            return { ...s, items: newItems }; 
+        }
         if (s.type === 'DATED_LIST') return { ...s, items: (s.items as DatedListItem[]).map((item) => item.id === itemId ? { ...item, ...data } : item) };
         return s;
     }) } })),
     removeSectionListItem: (sectionId, itemId) => set((state) => ({ data: { ...state.data, sectionsConfig: state.data.sectionsConfig.map((s) => {
         if (s.id !== sectionId) return s;
-        if (s.type === 'SIMPLE_LIST') { const idx = parseInt(itemId); return { ...s, items: (s.items as string[]).filter((_, i) => i !== idx) }; }
+        if (s.type === 'SIMPLE_LIST') { const idx = parseInt(itemId); return { ...s, items: (s.items as any[]).filter((_, i) => i !== idx) }; }
         if (s.type === 'DATED_LIST') return { ...s, items: (s.items as DatedListItem[]).filter((i) => i.id !== itemId) };
         return s;
     }) } })),

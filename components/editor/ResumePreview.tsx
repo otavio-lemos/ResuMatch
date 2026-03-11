@@ -174,8 +174,12 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                 {section.title}
                             </h2>
                             <ul style={{ fontSize: '0.9em', color: '#374151', paddingLeft: '18px', listStyleType: 'disc' }}>
-                                {(section.items as string[] || []).map((item, idx) => (
-                                    <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                                {(section.items as any[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '4px' }}>
+                                        {section.id === 'certifications' && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : String(item)}
+                                    </li>
                                 ))}
                             </ul>
                         </section>
@@ -334,12 +338,17 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                     }
 
                     if (section.type === 'SIMPLE_LIST') {
+                        const isCertSection = section.id === 'certifications';
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
                                 <ul style={{ fontSize: '0.85em', color: '#374151', paddingLeft: '16px', listStyleType: 'square' }}>
-                                    {(section.items as string[] || []).map((item, idx) => (
-                                        <li key={idx} style={{ marginBottom: '3px' }}>{item}</li>
+                                    {(section.items as any[] || []).map((item, idx) => (
+                                        <li key={idx} style={{ marginBottom: '3px' }}>
+                                            {isCertSection && item && typeof item === 'object' && item.name ? (
+                                                <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            ) : String(item)}
+                                        </li>
                                     ))}
                                 </ul>
                             </section>
@@ -474,12 +483,17 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 }
 
                 if (section.type === 'SIMPLE_LIST') {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
                             <ul style={{ fontSize: '0.9em', color: '#334155', paddingLeft: '20px', listStyleType: 'square', margin: 0 }}>
-                                {(section.items as string[] || []).map((item, idx) => (
-                                    <li key={idx} style={{ marginBottom: '6px' }}>{item}</li>
+                                {(section.items as any[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '6px' }}>
+                                        {isCertSection && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : String(item)}
+                                    </li>
                                 ))}
                             </ul>
                         </section>
@@ -610,12 +624,17 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                 }
 
                 if (section.type === 'SIMPLE_LIST') {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
                             <ul style={{ fontSize: '0.88em', color: '#374151', paddingLeft: '14px', listStyleType: 'circle' }}>
-                                {(section.items as string[] || []).map((item, idx) => (
-                                    <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                                {(section.items as any[] || []).map((item, idx) => (
+                                    <li key={idx} style={{ marginBottom: '4px' }}>
+                                        {isCertSection && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : String(item)}
+                                    </li>
                                 ))}
                             </ul>
                         </section>
@@ -733,12 +752,17 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                 }
 
                 if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={headingStyle}>~/{section.id}</h2>
                             <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.75em' }}>
-                                {(section.items as string[]).map((item, i) => (
-                                    <li key={i} style={{ marginBottom: '2px' }}>{item}</li>
+                                {(section.items as any[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '2px' }}>
+                                        {isCertSection && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : String(item)}
+                                    </li>
                                 ))}
                             </ul>
                         </div>
@@ -1025,12 +1049,17 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                 }
 
                 if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>{section.title}</h2>
                             <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px' }}>
-                                {(section.items as string[]).map((item, i) => (
-                                    <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
+                                {(section.items as any[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '4px' }}>
+                                        {isCertSection && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : String(item)}
+                                    </li>
                                 ))}
                             </ul>
                         </section>
@@ -1167,12 +1196,23 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                 }
 
                 if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>{section.title}</h2>
                             <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px', color: '#374151' }}>
-                                {(section.items as string[]).map((item, i) => (
-                                    <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
+                                {section.items.map((item: any, i: number) => (
+                                    <li key={i} style={{ marginBottom: '4px' }}>
+                                        {isCertSection && item.name ? (
+                                            <span>
+                                                <strong>{item.name}</strong>
+                                                {item.issuer && <span> — {item.issuer}</span>}
+                                                {item.date && <span> ({item.date})</span>}
+                                            </span>
+                                        ) : (
+                                            String(item)
+                                        )}
+                                    </li>
                                 ))}
                             </ul>
                         </section>

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useAISettingsStore, AIProvider, AISettings } from '@/store/useAISettingsStore';
-import { Settings, Play, CheckCircle, XCircle, RotateCcw, Brain, Zap, Key, Link2, Cpu, Timer, Clock, Trash2, Save, Check, FileUp, RefreshCw, Sparkles, SpellCheck } from 'lucide-react';
-import { fetchAvailableModels, getSkillContent, getParserSkillContent, getResumeEditorSummaryContent, getResumeEditorRewriteContent, getResumeEditorGrammarContent } from '@/app/actions/ai';
+import { Settings, Play, CheckCircle, XCircle, RotateCcw, Brain, Zap, Key, Link2, Clock, Trash2, Save, Check, FileUp, RefreshCw, Sparkles, SpellCheck, FileText } from 'lucide-react';
+import { fetchAvailableModels, getSkillContent, getParserSkillContent, getResumeEditorSummaryContent, getResumeEditorRewriteContent, getResumeEditorGrammarContent, getAuditSkillContent, getUiSkillContent } from '@/app/actions/ai';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguageStore } from '@/store/useLanguageStore';
 
@@ -26,6 +26,8 @@ interface AIConfigFormProps {
   onTest: () => Promise<{ success: boolean; message: string; duration?: number }>;
   testLoading: boolean;
   testResult: { success: boolean; message: string; duration?: number } | null;
+  modelHint?: string;
+  isSynced?: boolean;
 }
 
 function AIConfigForm({ 
@@ -35,10 +37,14 @@ function AIConfigForm({
   onTest, 
   testLoading, 
   testResult,
+  modelHint,
+  isSynced = false,
 }: AIConfigFormProps) {
   const { t } = useTranslation();
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+  const inputDisabledClass = isSynced ? "opacity-50 grayscale bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed" : "";
 
   const providerOptions = useMemo(() => [
     { value: 'gemini' as AIProvider, label: t('providers.gemini'), description: t('providers.geminiDesc') },
@@ -48,10 +54,11 @@ function AIConfigForm({
   ], [t]);
 
   const handleProviderChange = (provider: AIProvider) => {
+    if (isSynced) return;
     const presets: Record<AIProvider, Partial<AISettings>> = {
       gemini: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-        model: 'gemini-flash-latest',
+        model: 'gemini-2.5-flash',
       },
       ollama: {
         baseUrl: 'http://host.docker.internal:11434/v1',
@@ -71,7 +78,7 @@ function AIConfigForm({
   };
 
   const loadModels = async () => {
-    if (!settings.apiKey || settings.provider !== 'gemini') return;
+    if (!settings.apiKey || settings.provider !== 'gemini' || isSynced) return;
     
     setIsLoadingModels(true);
     try {
@@ -132,7 +139,8 @@ function AIConfigForm({
           <select
             value={settings.provider}
             onChange={(e) => handleProviderChange(e.target.value as AIProvider)}
-            className="w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+            disabled={isSynced}
+            className={`w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent ${inputDisabledClass}`}
           >
             {providerOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -151,17 +159,18 @@ function AIConfigForm({
               type="password"
               value={settings.apiKey}
               onChange={(e) => onChange({ apiKey: e.target.value })}
+              disabled={isSynced}
               placeholder={settings.provider === 'ollama' ? 'ollama' : t('labels.apiKey') + '...'}
-              className="w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent ${inputDisabledClass}`}
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                {t('labels.model')}
+                {t('labels.model')} {modelHint && <span className="text-[9px] text-emerald-600 dark:text-emerald-400 lowercase ml-1">{modelHint}</span>}
               </label>
-              {settings.provider === 'gemini' && settings.apiKey && (
+              {settings.provider === 'gemini' && settings.apiKey && !isSynced && (
                 <button 
                   onClick={loadModels}
                   disabled={isLoadingModels}
@@ -177,7 +186,8 @@ function AIConfigForm({
               <select
                 value={settings.model}
                 onChange={(e) => onChange({ model: e.target.value })}
-                className="w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSynced}
+                className={`w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent ${inputDisabledClass}`}
               >
                 <option value={settings.model}>{settings.model} {t('labels.current')}</option>
                 {availableModels.filter(m => m !== settings.model).map(m => (
@@ -189,8 +199,9 @@ function AIConfigForm({
                 type="text"
                 value={settings.model}
                 onChange={(e) => onChange({ model: e.target.value })}
+                disabled={isSynced}
                 placeholder="Model name"
-                className="w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent ${inputDisabledClass}`}
               />
             )}
           </div>
@@ -204,8 +215,9 @@ function AIConfigForm({
             type="text"
             value={settings.baseUrl}
             onChange={(e) => onChange({ baseUrl: e.target.value })}
+            disabled={isSynced}
             placeholder="https://api.example.com/v1"
-            className="w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-2 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent ${inputDisabledClass}`}
           />
         </div>
 
@@ -266,14 +278,14 @@ export default function ConfigForm() {
   const { t } = useTranslation();
   const language = useLanguageStore((state) => state.language);
   const { 
-    primaryAI, importAI,
-    setPrimaryAI, setImportAI, 
+    primaryAI, importAI, editorAI, syncAllModels,
+    setPrimaryAI, setImportAI, setEditorAI, setSyncAllModels,
     resetToDefaults 
   } = useAISettingsStore();
   
-  const [activeTab, setActiveTab] = useState<'analysis' | 'import'>('analysis');
-  const [testLoading, setTestLoading] = useState<{ primary?: boolean; import?: boolean }>({});
-  const [testResult, setTestResult] = useState<{ primary?: { success: boolean; message: string; duration?: number }; import?: { success: boolean; message: string; duration?: number } }>({});
+  const [activeTab, setActiveTab] = useState<'analysis' | 'import' | 'editor'>('analysis');
+  const [testLoading, setTestLoading] = useState<{ primary?: boolean; import?: boolean; editor?: boolean; comparison?: boolean }>({});
+  const [testResult, setTestResult] = useState<{ primary?: { success: boolean; message: string; duration?: number }; import?: { success: boolean; message: string; duration?: number }; editor?: { success: boolean; message: string; duration?: number }; comparison?: { success: boolean; message: string; duration?: number } }>({});
   const [testLogs, setTestLogs] = useState<TestLog[]>([]);
   const [logId, setLogId] = useState(0);
   const [skillContent, setSkillContent] = useState<string>('');
@@ -281,6 +293,8 @@ export default function ConfigForm() {
   const [resumeEditorSummaryContent, setResumeEditorSummaryContent] = useState<string>('');
   const [resumeEditorRewriteContent, setResumeEditorRewriteContent] = useState<string>('');
   const [resumeEditorGrammarContent, setResumeEditorGrammarContent] = useState<string>('');
+  const [auditSkillContent, setAuditSkillContent] = useState<string>('');
+  const [uiSkillContent, setUiSkillContent] = useState<string>('');
 
   useEffect(() => {
     getSkillContent(language).then(setSkillContent);
@@ -288,10 +302,15 @@ export default function ConfigForm() {
     getResumeEditorSummaryContent(language).then(setResumeEditorSummaryContent);
     getResumeEditorRewriteContent(language).then(setResumeEditorRewriteContent);
     getResumeEditorGrammarContent(language).then(setResumeEditorGrammarContent);
+    getAuditSkillContent(language).then(setAuditSkillContent);
+    getUiSkillContent(language).then(setUiSkillContent);
   }, [language]);
 
-  const testAI = async (type: 'primary' | 'import') => {
-    const settings = { ...(type === 'primary' ? primaryAI : importAI), language };
+  const testAI = async (type: 'primary' | 'import' | 'editor') => {
+    const settings = { 
+      ...(type === 'primary' ? primaryAI : type === 'import' ? importAI : editorAI), 
+      language 
+    };
     const key = type;
     
     setTestLoading(prev => ({ ...prev, [key]: true }));
@@ -330,7 +349,7 @@ export default function ConfigForm() {
         baseUrl: settings.baseUrl,
         duration,
         message: result.message,
-        type: (type === 'primary' ? 'ATS' : 'UPLOAD') as 'ATS' | 'UPLOAD'
+        type: (type === 'primary' ? 'ATS' : (type === 'import' ? 'UPLOAD' : 'ATS')) as 'ATS' | 'UPLOAD'
       }, ...prev].slice(0, 20));
 
     } catch (error: any) {
@@ -428,6 +447,32 @@ export default function ConfigForm() {
           <FileUp className={`size-3 ${activeTab === 'import' ? 'text-white' : 'text-slate-400'}`} />
           {t('config.tabs.import')}
         </button>
+        <button
+          onClick={() => setActiveTab('editor')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+            activeTab === 'editor' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/30'
+          }`}
+        >
+           <Brain className={`size-3 ${activeTab === 'editor' ? 'text-white' : 'text-slate-400'}`} />
+           {t('config.tabs.editor')}
+         </button>
+        </div>
+
+      {/* Sync Models Checkbox */}
+      <div className="mb-4 flex items-center gap-2.5 p-2.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/60 rounded-md transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40">
+        <input 
+          type="checkbox" 
+          id="syncAllModels"
+          checked={syncAllModels}
+          onChange={(e) => setSyncAllModels(e.target.checked)}
+          className="rounded border-blue-300 dark:border-blue-700 text-blue-600 focus:ring-blue-500 size-3.5 cursor-pointer"
+        />
+        <label htmlFor="syncAllModels" className="flex items-center gap-1.5 text-[10px] font-black text-blue-800 dark:text-blue-300 uppercase tracking-widest cursor-pointer select-none">
+          <Link2 className="size-3" />
+          {t('config.syncModels')}
+        </label>
       </div>
 
       {testLogs.length > 0 && (
@@ -479,6 +524,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.primary}
               testResult={testResult.primary || null}
+              modelHint={t('labels.recommendedPro')}
             />
 
             <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
@@ -495,6 +541,53 @@ export default function ConfigForm() {
                   {skillContent || t('actions.loading')}
                 </div>
             </div>
+          </>
+        ) : activeTab === 'import' ? (
+          <>
+            <AIConfigForm
+              title={t('config.importAI')}
+              settings={importAI}
+              onChange={setImportAI}
+              onTest={async () => {
+                await testAI('import');
+                return { success: true, message: '' };
+              }}
+              testLoading={!!testLoading.import}
+              testResult={testResult.import || null}
+              modelHint={t('labels.recommendedFlash')}
+              isSynced={syncAllModels}
+            />
+
+            <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  <FileText className="size-3.5 inline mr-1 text-blue-600" />
+                  {t('config.skillParser')}
+                </h3>
+                <span className="text-[9px] font-black uppercase tracking-tighter text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                  {t('config.readOnly')}
+                </span>
+              </div>
+              <div className="w-full h-48 px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 font-mono text-[10px] leading-normal overflow-y-auto whitespace-pre-wrap select-none">
+                {parserSkillContent || t('actions.loading')}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <AIConfigForm
+              title={t('config.editorAI')}
+              settings={editorAI}
+              onChange={setEditorAI}
+              onTest={async () => {
+                await testAI('editor');
+                return { success: true, message: '' };
+              }}
+              testLoading={!!testLoading.editor}
+              testResult={testResult.editor || null}
+              modelHint={t('labels.recommendedFlash')}
+              isSynced={syncAllModels}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
@@ -511,6 +604,7 @@ export default function ConfigForm() {
                   {resumeEditorSummaryContent || t('actions.loading')}
                 </div>
               </div>
+
               <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
@@ -525,6 +619,7 @@ export default function ConfigForm() {
                   {resumeEditorRewriteContent || t('actions.loading')}
                 </div>
               </div>
+
               <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
@@ -541,37 +636,8 @@ export default function ConfigForm() {
               </div>
             </div>
           </>
-        ) : (
-          <>
-            <AIConfigForm
-              title={t('config.importAI')}
-              settings={importAI}
-              onChange={setImportAI}
-              onTest={async () => {
-                await testAI('import');
-                return { success: true, message: '' };
-              }}
-              testLoading={!!testLoading.import}
-              testResult={testResult.import || null}
-            />
-
-            <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  <FileUp className="size-3.5 inline mr-1 text-blue-600" />
-                  {t('config.skillParser')}
-                </h3>
-                <span className="text-[9px] font-black uppercase tracking-tighter text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                  {t('config.readOnly')}
-                </span>
-              </div>
-              <div className="w-full h-48 px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 font-mono text-[10px] leading-normal overflow-y-auto whitespace-pre-wrap select-none">
-                {parserSkillContent || t('actions.loading')}
-              </div>
-            </div>
-          </>
         )}
-
+        
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-none p-4 border border-blue-200 dark:border-blue-800">
           <h4 className="text-[10px] font-bold text-blue-900 dark:text-blue-300 mb-1 uppercase tracking-widest">{t('config.tips')}</h4>
           <ul className="text-[10px] text-blue-800 dark:text-blue-400 space-y-0.5 leading-tight">
