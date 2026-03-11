@@ -174,7 +174,26 @@ export default function ImportWizardClient() {
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const sel = e.target.files?.[0];
-        if (sel) await processFile(sel);
+        if (sel) {
+            try {
+                await processFile(sel);
+            } catch (err) {
+                console.error('[IMPORT] Fatal error:', err);
+                setError('Erro fatal. Tente novamente.');
+                setStep('UPLOAD');
+                setParsingBubbles([]);
+            }
+        }
+        // Reset input so same file can be selected again
+        if (e.target) e.target.value = '';
+    };
+
+    const resetToUpload = () => {
+        setStep('UPLOAD');
+        setError(null);
+        setParsingBubbles([]);
+        setParsedData(null);
+        setRows([]);
     };
 
     const processFile = async (selectedFile: File) => {
@@ -182,9 +201,6 @@ export default function ImportWizardClient() {
         setStep('PARSING');
         setError(null);
         setParsingBubbles([]);
-        
-        // Force re-render with a small delay to ensure state is updated
-        await new Promise(r => setTimeout(r, 50));
         
         console.log('[IMPORT] Starting processFile');
         console.log('[IMPORT] importAI settings:', importAI);
@@ -195,19 +211,12 @@ export default function ImportWizardClient() {
             { from: 'ai' as const, text: `🔄 Preparando...\nProvider: ${importAI?.provider || 'gemini'}\nModel: ${importAI?.model || 'gemini-2.0-flash'}\nURL: ${importAI?.baseUrl || 'padrão'}`, delay: 0 },
         ];
         
-        console.log('[IMPORT] Setting bubbles:', newBubbles);
         setParsingBubbles(newBubbles);
         
-        // Force another update
-        await new Promise(r => setTimeout(r, 100));
-        
-        // Timeout de 60 segundos
+        // Simple timeout using AbortController
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            console.log('[IMPORT] TIMEOUT TRIGGERED');
-            setError('Tempo limite excedido (60s). Verifique a conexão.');
-            setStep('UPLOAD');
-        }, 60000);
+        const timeoutMs = 60000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         try {
             const formData = new FormData();
@@ -231,45 +240,28 @@ export default function ImportWizardClient() {
             
             console.log('[IMPORT] Starting fetch to /api/parse-resume');
             
-            // Start streaming request with timeout
-            const responsePromise = fetch('/api/parse-resume', {
+            const response = await fetch('/api/parse-resume', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
             });
             
-            // Add timeout wrapper - cast to Response
-            let response: Response;
-            try {
-                response = await Promise.race<Response>([
-                    responsePromise,
-                    new Promise<Response>((_, reject) => 
-                        setTimeout(() => reject(new Error('Timeout: servidor não respondeu em 60s')), 60000)
-                    )
-                ]);
-            } catch (raceError: any) {
-                console.error('[IMPORT] Race error:', raceError);
-                setError(raceError.message || 'Tempo limite excedido');
-                setStep('UPLOAD');
-                return;
-            }
-
-            console.log('[IMPORT] Got response:', response.status);
-            
             clearTimeout(timeoutId);
+            
+            console.log('[IMPORT] Got response:', response.status);
             
             if (!response.ok) {
                 const errorText = await response.text();
                 console.log('[IMPORT] Error response:', response.status, errorText);
                 setError(`Erro ${response.status}: ${errorText.substring(0, 200)}`);
-                setStep('UPLOAD');
+                resetToUpload();
                 return;
             }
 
             const reader = response.body?.getReader();
             if (!reader) {
                 setError('Erro ao ler resposta do servidor');
-                setStep('UPLOAD');
+                resetToUpload();
                 return;
             }
 
@@ -277,7 +269,6 @@ export default function ImportWizardClient() {
             let extractedData: any = null;
             let aiMessage = '';
             
-            // Update to show we're processing
             setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
 
             while (true) {
@@ -328,7 +319,7 @@ export default function ImportWizardClient() {
 
             if (!extractedData?.personalInfo) {
                 setError('Dados inválidos recebidos da IA');
-                setStep('UPLOAD');
+                resetToUpload();
                 return;
             }
 
@@ -341,7 +332,7 @@ export default function ImportWizardClient() {
             clearTimeout(timeoutId);
             console.error('[IMPORT] Catch error:', err);
             setError(err.message || 'Erro desconhecido');
-            setStep('UPLOAD');
+            resetToUpload();
         }
     };
 
