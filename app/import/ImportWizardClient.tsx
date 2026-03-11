@@ -579,7 +579,33 @@ export default function ImportWizardClient() {
                     )}
 
                     {/* ── PARSING ─────────────────────────────── */}
-                    {step === 'PARSING' && <ChatView key="parsing" bubbles={parsingBubbles} title={t('import.parsingTitle')} t={t} />}
+                    {step === 'PARSING' && (
+                        <div className="flex flex-col min-h-[500px] bg-[#0d1117] border border-slate-800">
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
+                                <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{t('import.parsingTitle')}</span>
+                                <div className="ml-auto flex items-center gap-1.5">
+                                    <Brain className="size-3.5 text-blue-500 animate-pulse" />
+                                    <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">{t('import.processing')}</span>
+                                </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {parsingBubbles.length === 0 ? (
+                                    <div className="text-white text-sm">Aguardando resposta da IA...</div>
+                                ) : (
+                                    parsingBubbles.map((b, i) => (
+                                        <div key={i} className={`flex gap-3 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                            <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
+                                                {b.from === 'user' ? 'EU' : 'IA'}
+                                            </div>
+                                            <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap ${b.from === 'user' ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl' : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
+                                                {b.text}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* ── REVIEW ──────────────────────────────── */}
                     {step === 'REVIEW' && parsedData && (() => {
