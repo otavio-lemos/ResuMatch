@@ -11,8 +11,14 @@ export function robustJsonParse(text: string): any {
 
     let cleaned = text.trim();
 
+    // Remove markdown code blocks
     cleaned = cleaned.replace(/```json\n?|```/g, '').trim();
 
+    // Remove common prefixes that models add before JSON
+    // e.g., "Aqui está o JSON:", "Here is the JSON:", "```json"
+    cleaned = cleaned.replace(/^(?:Aqui está|Here is|The following is)(?:\s+o\s+)?(?:JSON|json|dados|data):?\s*/i, '');
+
+    // Try to find JSON between { and }
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
 
@@ -20,17 +26,32 @@ export function robustJsonParse(text: string): any {
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     }
 
+    // If no braces found, try to find JSON array
+    if (firstBrace === -1) {
+        const firstBracket = cleaned.indexOf('[');
+        const lastBracket = cleaned.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+        }
+    }
+
     try {
         return JSON.parse(cleaned);
     } catch (err: any) {
-        logger.warn('First JSON parse attempt failed. Attempting cleanup of trailing commas...', { error: err.message });
+        logger.warn('First JSON parse attempt failed. Attempting cleanup...', { error: err.message });
 
         try {
-            const withoutTrailingCommas = cleaned
+            // More aggressive cleanup
+            let fixed = cleaned
+                // Remove trailing commas
                 .replace(/,\s*}/g, '}')
-                .replace(/,\s*]/g, ']');
+                .replace(/,\s*]/g, ']')
+                // Fix common issues with keys without quotes
+                .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+                // Remove any remaining text before { or [
+                .replace(/^[^{\[]+/, '');
 
-            return JSON.parse(withoutTrailingCommas);
+            return JSON.parse(fixed);
         } catch (err2: any) {
             logger.error('Robust JSON parsing failed completely.', {
                 originalError: err.message,

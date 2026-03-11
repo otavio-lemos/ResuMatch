@@ -69,6 +69,12 @@ export async function POST(req: NextRequest) {
         });
     }
 
+    // Language instruction based on selected language
+    const language = currentLanguage || 'pt';
+    const languageInstruction = language === 'pt' 
+        ? 'Responda APENAS em português brasileiro. Use nomes de seções em Português.' 
+        : 'Respond ONLY in English. Use section names in English.';
+
     let aiConfig;
     try {
         aiConfig = await getAIClient(authSettings);
@@ -79,6 +85,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userInstructions = customPrompt ? `USER SPECIFIC RULES: ${customPrompt}\n\n` : '';
+    const fullLanguageInstruction = `${languageInstruction}\n\n${userInstructions}`;
     
     // Determine content for prompt based on provider
     let promptContent: string;
@@ -91,7 +98,7 @@ export async function POST(req: NextRequest) {
       promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}`;
     }
     
-    const finalPrompt = `${userInstructions}Execute a Fase 1 (Extração de Dados). ${promptContent}`;
+    const finalPrompt = `${fullLanguageInstruction}Execute a Fase 1 (Extração de Dados). ${promptContent}`;
 
     const encoder = new TextEncoder();
     
