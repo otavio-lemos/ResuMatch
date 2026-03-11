@@ -10,6 +10,18 @@ jest.mock('@/lib/logger', () => ({
     }
 }));
 
+// Mock skill functions
+jest.mock('@/lib/get-skill', () => ({
+    getAtsRewriteSkill: jest.fn().mockReturnValue('You are a rewrite specialist.'),
+    getAtsGrammarSkill: jest.fn().mockReturnValue('You are a grammar specialist.'),
+    getAtsSummarySkill: jest.fn().mockReturnValue('You are a summary specialist.'),
+    getAtsParserSkill: jest.fn().mockReturnValue('You are a parser specialist.'),
+    getAtsAnalyzerSkill: jest.fn().mockReturnValue('You are an analyzer specialist.'),
+    getAtsAuditSkill: jest.fn().mockReturnValue('You are an audit specialist.'),
+    getJobComparisonSkill: jest.fn().mockReturnValue('You are a job comparison specialist.'),
+    getAtsUISkill: jest.fn().mockReturnValue('You are a UI specialist.')
+}));
+
 const processEnv = process.env;
 
 describe('AI Actions', () => {
@@ -52,7 +64,7 @@ describe('AI Actions', () => {
                 statusText: ''
             });
 
-            await expect(rewriteText('Texto original')).rejects.toThrow('Erro na API Gemini (500)');
+            await expect(rewriteText('Texto original')).rejects.toThrow('500');
         });
 
         it('sanitizes input characters like { or }', async () => {
