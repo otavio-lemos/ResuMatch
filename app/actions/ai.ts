@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { ResumeData } from '@/store/useResumeStore';
 import { AISettings } from '@/store/useAISettingsStore';
 import { logger } from '@/lib/logger';
-import { getAtsAnalyzerSkill, getAtsParserSkill, getAtsSummarySkill, getAtsAuditSkill, getJobComparisonSkill, getAtsUISkill } from '@/lib/get-skill';
+import { getAtsAnalyzerSkill, getAtsParserSkill, getAtsSummarySkill, getAtsRewriteSkill, getAtsGrammarSkill, getAtsAuditSkill, getJobComparisonSkill, getAtsUISkill } from '@/lib/get-skill';
 import { robustJsonParse } from '@/lib/ai-utils';
 import { getTranslation } from '@/hooks/useTranslation';
 import { Language } from '@/lib/translations';
@@ -125,8 +125,8 @@ export async function rewriteText(text: string, authSettings?: AIAuthSettings & 
     const safeText = text.replace(/[{}]/g, '');
     const userPrompt = authSettings?.rewritePrompt ? `USER INSTRUCTION: ${authSettings.rewritePrompt}\n\n` : '';
     const finalPrompt = `${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
-    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
-    return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
+    // USA A SKILL DE REWRITE (SSSTTTAAARRRREEEwwwrrriiittteee)
+    return callAI(finalPrompt, aiConfig, undefined, getAtsRewriteSkill(language), language);
 }
 
 export async function correctGrammar(text: string, authSettings?: AIAuthSettings & { grammarPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
@@ -134,15 +134,15 @@ export async function correctGrammar(text: string, authSettings?: AIAuthSettings
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.grammarPrompt ? `USER INSTRUCTION: ${authSettings.grammarPrompt}\n\n` : '';
     const finalPrompt = `${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${text}"`;
-    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
-    return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
+    // USA A SKILL DE GRAMMAR (GGGRRRAAAMMMMMMAAARRRR)
+    return callAI(finalPrompt, aiConfig, undefined, getAtsGrammarSkill(language), language);
 }
 
 export async function generateSummaryAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { summaryPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.summaryPrompt ? `USER INSTRUCTION: ${authSettings.summaryPrompt}\n\n` : '';
     const finalPrompt = `${userPrompt}EXECUTE ACTION 1: GENERATE SUMMARY for this data: ${JSON.stringify(resumeData)}`;
-    // OBRIGATORIAMENTE USA A SKILL FASE 3 (EDITOR)
+    // USA A SKILL DE SUMMARY (SSSUMMMMAAARRRYYY)
     return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
 

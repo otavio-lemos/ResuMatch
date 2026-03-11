@@ -1,223 +1,203 @@
-import fs from 'fs';
-import path from 'path';
+/**
+ * ATS Skills Loader
+ *
+ * Loads and extracts skill prompts from .agent/skills/ directory
+ * Supports PT and EN languages
+ */
 
-const DEFAULT_LANGUAGE = 'pt';
+import * as fs from 'fs';
+import * as path from 'path';
 
-function getSkillPath(skillName: string, language: string = DEFAULT_LANGUAGE): string {
-  const langSuffix = language === 'en' ? '.en' : '';
-  return path.join(process.cwd(), '.agent', 'skills', skillName, `SKILL${langSuffix}.md`);
-}
+const SKILLS_DIR = path.join(process.cwd(), '.agent', 'skills');
 
-function getSkillContent(skillName: string, language: string = DEFAULT_LANGUAGE): string {
+/**
+ * Reads SKILL.md file for a given skill and language
+ */
+function readSkillFile(skillName: string, language: string = 'pt'): string {
+  const filePath = path.join(
+    SKILLS_DIR,
+    skillName,
+    `SKILL${language === 'en' ? '.en' : ''}.md`
+  );
+
   try {
-    const skillPath = getSkillPath(skillName, language);
-    if (!fs.existsSync(skillPath)) {
-      console.warn(`[Skill] ${skillPath} não encontrado, tentando PT...`);
-      if (language !== DEFAULT_LANGUAGE) {
-        const fallbackPath = getSkillPath(skillName, DEFAULT_LANGUAGE);
-        if (fs.existsSync(fallbackPath)) {
-          return fs.readFileSync(fallbackPath, 'utf-8');
+    if (!fs.existsSync(filePath)) {
+      console.warn(`[Skill] ${filePath} not found, trying PT...`);
+      // Fallback to PT if EN doesn't exist
+      if (language !== 'pt') {
+        const ptPath = path.join(SKILLS_DIR, skillName, 'SKILL.md');
+        if (fs.existsSync(ptPath)) {
+          return fs.readFileSync(ptPath, 'utf-8');
         }
       }
-      return "";
+      return '';
     }
-    return fs.readFileSync(skillPath, 'utf-8');
+    return fs.readFileSync(filePath, 'utf-8');
   } catch (error) {
-    console.error(`Erro ao ler o SKILL.md (${skillName}):`, error);
-    return "";
+    console.error(`Error reading SKILL.md (${skillName}):`, error);
+    return '';
   }
 }
 
-function extractFase(content: string, startMarker: string, endMarker: string): string {
-  const start = content.indexOf(startMarker);
-  const end = content.indexOf(endMarker);
+/**
+ * Extracts section between markers from skill content
+ */
+function extractSection(content: string, startMarker: string, endMarker: string): string {
+  const startIndex = content.indexOf(startMarker);
+  const endIndex = content.indexOf(endMarker);
 
-  if (start === -1 || end === -1) {
-    return "";
+  if (startIndex === -1 || endIndex === -1) {
+    return '';
   }
 
-  return content.substring(start + startMarker.length, end).trim();
+  return content.substring(startIndex + startMarker.length, endIndex).trim();
 }
 
-export function getAtsParserSkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('ats-analyzer', language);
-  const fase = extractFase(content, '########## PPPAAARRRSSSIIINNNGGG', '########## FIM PPPAAARRRSSSIIINNNGGG');
+/**
+ * Get ATS Parser Skill (Phase 1 - Import/Parsing)
+ * Extracts from PPPAAARRRSSSIIINNNGGG section
+ */
+export function getAtsParserSkill(language: string = 'pt'): string {
+  const content = readSkillFile('ats-parser', language);
+  const section = extractSection(content, '########## PPPAAARRRSSSIIINNNGGG', '########## FIM PPPAAARRRSSSIIINNNGGG');
 
-  if (!fase) {
-    console.warn(`[Skill] ats-analyzer: Fase PPPAAARRRSSSIIINNNGGG não encontrada para idioma ${language}`);
-    return language === 'en' 
-      ? "You are a resume data extractor." 
-      : "Você é um extrator de dados de currículos.";
-  }
-
-  const instructions = language === 'en'
-    ? `STRICT: Return ONLY valid JSON, with no additional text.
-MANDATORY JSON FORMAT:
-{
-  "_sectionHeaders": {
-    "personalInfo": "<exact header title for personal/contact info in PDF>",
-    "summary": "<exact header title for summary/profile/objective in PDF>",
-    "experiences": "<exact header title for work experience in PDF>",
-    "education": "<exact header title for education in PDF>",
-    "skills": "<exact header title for skills/competencies in PDF>",
-    "projects": "<exact header title for projects in PDF, or empty if none>",
-    "certifications": "<exact header title for certifications in PDF, or empty if none>",
-    "languages": "<exact header title for languages in PDF, or empty if none>",
-    "volunteer": "<exact header title for volunteering in PDF, or empty if none>"
-  },
-  "personalInfo": { "fullName": "", "title": "", "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" },
-  "summary": "",
-  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "", "endDate": "", "current": false, "description": "" } ],
-  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "", "endDate": "", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": [""] } ],
-  "projects": [ { "id": "proj-1", "title": "", "subtitle": "", "description": "", "startDate": "", "endDate": "", "current": false } ]
-}`
-    : `STRICTO: Retorne APENAS JSON válido, sem texto adicional.
-FORMATO JSON OBRIGATÓRIO:
-{
-  "_sectionHeaders": {
-    "personalInfo": "<título exato do cabeçalho de informações pessoais/contato no PDF>",
-    "summary": "<título exato do cabeçalho de resumo/perfil/objetivo no PDF>",
-    "experiences": "<título exato do cabeçalho de experiência profissional no PDF>",
-    "education": "<título exato do cabeçalho de formação/educação no PDF>",
-    "skills": "<título exato do cabeçalho de habilidades/competências no PDF>",
-    "projects": "<título exato do cabeçalho de projetos no PDF, ou vazio se não houver>",
-    "certifications": "<título exato do cabeçalho de certificações no PDF, ou vazio se não houver>",
-    "languages": "<título exato do cabeçalho de idiomas no PDF, ou vazio se não houver>",
-    "volunteer": "<título exato do cabeçalho de voluntariado no PDF, ou vazio se não houver>"
-  },
-  "personalInfo": { "fullName": "", "title": "", "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" },
-  "summary": "",
-  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "", "endDate": "", "current": false, "description": "" } ],
-  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "", "endDate": "", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": [""] } ],
-  "projects": [ { "id": "proj-1", "title": "", "subtitle": "", "description": "", "startDate": "", "endDate": "", "current": false } ]
-}`;
-
-  return `${fase}\n\n${instructions}`;
-}
-
-
-export function getAtsAnalyzerSkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('ats-analyzer', language);
-  const fase = extractFase(content, '########## AAAUUUDDDIIITTTOOORRRIIIAAA', '########## FIM AAAUUUDDDIIITTTOOORRRIIIAAA');
-
-  if (!fase) {
-    console.warn(`[Skill] ats-analyzer: Fase AAAUUUDDDIIITTTOOORRRIIIAAA não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] ats-parser: PPPAAARRRSSSIIINNNGGG section not found for language ${language}`);
     return language === 'en'
-      ? "You are an ATS specialist."
-      : "Você é um especialista em ATS.";
+      ? 'You are a resume data extractor.'
+      : 'Você é um extrator de dados de currículos.';
   }
 
-  const instructions = language === 'en'
-    ? `STRICT: Return ONLY valid JSON, with no additional text.
-IMPORTANT: ALL text values in the JSON (feedback, suggestions, reasons, etc.) MUST be written in ENGLISH.
-MANDATORY JSON FORMAT:
-{
-  "scores": { "design": 0, "structure": 0, "content": 0 },
-  "designChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
-  "structureChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
-  "contentMetrics": {
-    "wordCount": { "value": 0, "target": "330-573", "status": "good|warning|danger" },
-    "paragraphsPerSection": { "value": 0, "target": "3-5", "status": "good|warning|danger" },
-    "charsPerParagraph": { "value": 0, "target": "67-94", "status": "good|warning|danger" },
-    "experienceDescriptions": { "value": 0, "target": "4-7", "status": "good|warning|danger" },
-    "starBullets": { "value": 0, "target": ">70%", "status": "good|warning|danger" },
-    "keywordCount": { "value": 0, "target": "15-25", "status": "good|warning|danger" },
-    "pageCount": { "value": 0, "target": "1-2", "status": "good|warning|danger" }
-  },
-  "improvedBullets": [ { "section": "experience", "index": 0, "original": "string", "improved": "string", "reason": "string" } ],
-  "detailedSuggestions": [ { "type": "string", "field": "string", "original": "string", "issue": "string", "suggestion": "string", "impact": "high|medium|low" } ]
-}`
-    : `STRICTO: Retorne APENAS JSON válido, sem texto adicional.
-IMPORTANTE: TODOS os valores de texto no JSON (feedback, sugestões, motivos, etc.) DEVEM ser escritos em PORTUGUÊS.
-FORMATO JSON OBRIGATÓRIO:
-{
-  "scores": { "design": 0, "estrutura": 0, "conteudo": 0 },
-  "designChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
-  "estruturaChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
-  "conteudoMetrics": {
-    "wordCount": { "value": 0, "target": "330-573", "status": "good|warning|danger" },
-    "paragraphsPerSection": { "value": 0, "target": "3-5", "status": "good|warning|danger" },
-    "charsPerParagraph": { "value": 0, "target": "67-94", "status": "good|warning|danger" },
-    "experienceDescriptions": { "value": 0, "target": "4-7", "status": "good|warning|danger" },
-    "starBullets": { "value": 0, "target": ">70%", "status": "good|warning|danger" },
-    "keywordCount": { "value": 0, "target": "15-25", "status": "good|warning|danger" },
-    "pageCount": { "value": 0, "target": "1-2", "status": "good|warning|danger" }
-  },
-  "improvedBullets": [ { "section": "experience", "index": 0, "original": "string", "improved": "string", "reason": "string" } ],
-  "detailedSuggestions": [ { "type": "string", "field": "string", "original": "string", "issue": "string", "suggestion": "string", "impact": "high|medium|low" } ]
-}`;
-
-  return `${fase}\n\n${instructions}`;
+  return section;
 }
 
-export function getAtsSummarySkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('ats-analyzer', language);
-  const fase = extractFase(content, '########## EEEDDDIIITTTOOORRR', '########## FIM EEEDDDIIITTTOOORRR');
+/**
+ * Get ATS Analyzer Skill (Phase 2 - Audit/ATS)
+ * Extracts from AAAUUUDDDIIITTTOOORRRIIIAAA section
+ */
+export function getAtsAnalyzerSkill(language: string = 'pt'): string {
+  const content = readSkillFile('ats-auditor', language);
+  const section = extractSection(content, '########## AAAUUUDDDIIITTTOOORRRIIIAAA', '########## FIM AAAUUUDDDIIITTTOOORRRIIIAAA');
 
-  if (!fase) {
-    console.warn(`[Skill] getAtsSummarySkill: Fase SSSUMMMMAAARRRYYY não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] ats-auditor: AAAUUUDDDIIITTTOOORRRIIIAAA section not found for language ${language}`);
     return language === 'en'
-      ? "You are a professional writing specialist."
-      : "Você é um especialista em redação profissional.";
+      ? 'You are an ATS specialist.'
+      : 'Você é um especialista em ATS.';
   }
 
-  return fase;
+  return section;
 }
 
-export function getAtsUISkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('ats-analyzer', language);
-  const fase = extractFase(content, '########## UUUIII', '########## FIM UUUIII');
+/**
+ * Get ATS Summary Skill (for summary generation)
+ * Extracts from SSSUMMMMAAARRRYYY section
+ */
+export function getAtsSummarySkill(language: string = 'pt'): string {
+  const content = readSkillFile('resume-editor', language);
+  const section = extractSection(content, '########## SSSUMMMMAAARRRYYY', '########## FIM SSSUMMMMAAARRRYYY');
 
-  if (!fase) {
-    console.warn(`[Skill] getAtsUISkill: Fase UUUIII não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] resume-editor: SSSUMMMMAAARRRYYY section not found for language ${language}`);
     return language === 'en'
-      ? "UI Integration (Zustand) - Keep TypeScript types aligned with the JSON format defined in this skill."
-      : "Integração com UI (Zustand) - Mantenha os tipos TypeScript alinhados com o formato JSON definido nesta skill.";
+      ? 'You are a professional resume writer.'
+      : 'Você é um redator profissional de currículos.';
   }
 
-  return fase;
+  return section;
 }
 
-export function getResumeEditorSummarySkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('resume-editor', language);
-  const fase = extractFase(content, '########## SSSUMMMMAAARRRYYY', '########## FIM SSSUMMMMAAARRRYYY');
+/**
+ * Get ATS Rewrite Skill (for STAR reformulation)
+ * Extracts from SSSTTTAAARRRREEEwwwrrriiittteee section
+ */
+export function getAtsRewriteSkill(language: string = 'pt'): string {
+  const content = readSkillFile('resume-editor', language);
+  const section = extractSection(content, '########## SSSTTTAAARRRREEEwwwrrriiittteee', '########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE');
 
-  if (!fase) {
-    console.warn(`[Skill] getResumeEditorSummarySkill: Fase SSSUMMMMAAARRRYYY não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] resume-editor: SSSTTTAAARRRREEEwwwrrriiittteee section not found for language ${language}`);
     return language === 'en'
-      ? "You are an elite resume writer, specialized in ATS."
-      : "Você é um redator de currículos de elite, especializado em ATS.";
+      ? 'You are an ATS specialist for resume bullets.'
+      : 'Você é um especialista em bullets ATS.';
   }
 
-  return fase;
+  return section;
 }
 
-export function getResumeEditorRewriteSkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('resume-editor', language);
-  const fase = extractFase(content, '########## SSSTTTAAARRRREEEwwwrrriiittteee', '########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE');
+/**
+ * Get ATS Grammar Skill (for grammar correction)
+ * Extracts from GGGRRRAAAMMMMMMAAARRRR section
+ */
+export function getAtsGrammarSkill(language: string = 'pt'): string {
+  const content = readSkillFile('resume-editor', language);
+  const section = extractSection(content, '########## GGGRRRAAAMMMMMMAAARRRR', '########## FIM GGGRRRAAAMMMMMMAAARRRR');
 
-  if (!fase) {
-    console.warn(`[Skill] getResumeEditorRewriteSkill: Fase SSSTTTAAARRRREEEwwwrrriiittteee não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] resume-editor: GGGRRRAAAMMMMMMAAARRRR section not found for language ${language}`);
     return language === 'en'
-      ? "You are a career and ATS specialist."
-      : "Você é um especialista em carreira e ATS.";
+      ? 'You are a grammar correction specialist.'
+      : 'Você é um especialista em correção gramatical.';
   }
 
-  return fase;
+  return section;
 }
 
-export function getResumeEditorGrammarSkill(language: string = DEFAULT_LANGUAGE): string {
-  const content = getSkillContent('resume-editor', language);
-  const fase = extractFase(content, '########## GGGRRRAAAMMMMMMAAARRRR', '########## FIM GGGRRRAAAMMMMMMAAARRRR');
+/**
+ * Get ATS Audit Skill (for audit button)
+ * Extracts from AAAUUUDDDIIITTTAAATTTSSS section in resume-editor
+ */
+export function getAtsAuditSkill(language: string = 'pt'): string {
+  const content = readSkillFile('resume-editor', language);
+  const section = extractSection(content, '########## AAAUUUDDDIIITTTAAATTTSSS', '########## FIM AAAUUUDDDIIITTTAAATTTSSS');
 
-  if (!fase) {
-    console.warn(`[Skill] getResumeEditorGrammarSkill: Fase GGGRRRAAAMMMMMMAAARRRR não encontrada para idioma ${language}`);
+  if (!section) {
+    console.warn(`[Skill] resume-editor: AAAUUUDDDIIITTTAAATTTSSS section not found for language ${language}`);
     return language === 'en'
-      ? "You are a surgical grammar corrector specialized in professional and technical texts."
-      : "Você é um revisor gramatical cirúrgico especializado em textos profissionais e técnicos.";
+      ? 'You are an ATS analysis specialist.'
+      : 'Você é um especialista em análise ATS.';
   }
 
-  return fase;
+  return section;
 }
+
+/**
+ * Get Job Comparison Skill
+ * Extracts from CCOOMMPPAARRAAÇÃÃOO section
+ */
+export function getJobComparisonSkill(language: string = 'pt'): string {
+  const content = readSkillFile('job-comparison', language);
+  const section = extractSection(content, '########## CCOOMMPPAARRAAÇÃÃOO', '########## FIM CCOOMMPAAARRAAÇÃÃOO');
+
+  if (!section) {
+    console.warn(`[Skill] job-comparison: CCOOMMPPAARRAAÇÃÃOO section not found for language ${language}`);
+    return language === 'en'
+      ? 'You are a job matching specialist.'
+      : 'Você é um especialista em matching de vagas.';
+  }
+
+  return section;
+}
+
+/**
+ * Get ATS UI Skill (for UI integration)
+ * Extracts from UUUIII section in resume-editor
+ */
+export function getAtsUISkill(language: string = 'pt'): string {
+  const content = readSkillFile('resume-editor', language);
+  const section = extractSection(content, '########## UUUIII', '########## FIM UUUIII');
+
+  if (!section) {
+    console.warn(`[Skill] resume-editor: UUUIII section not found for language ${language}`);
+    return language === 'en'
+      ? 'UI integration guidelines for resume analysis.'
+      : 'Diretrizes de integração UI para análise de currículo.';
+  }
+
+  return section;
+}
+
+// Re-export for backward compatibility
+export { getAtsParserSkill as getParserSkillContent };
+export { getAtsAnalyzerSkill as getSkillContent };
+export { getAtsSummarySkill as getResumeEditorSummaryContent };

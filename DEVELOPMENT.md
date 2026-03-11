@@ -77,3 +77,10 @@ Make sure Ollama is running on your **host machine** (not inside the container).
 - Increase timeout in Config page or check Ollama logs
 
 **Debug:** Test connection in Config page → Click the test button (🧪)
+
+### Editor AI Skills
+
+The editor uses these 3 skills from `resume-editor` SKILL.md:
+- **Summary:** `SSSUMMMMAAARRRYYY` section
+- **Rewrite (STAR):** `SSSTTTAAARRRREEEwwwrrriiittteee` section  
+- **Grammar:** `GGGRRRAAAMMMMMMAAARRRR` section
