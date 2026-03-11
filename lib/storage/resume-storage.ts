@@ -1,10 +1,22 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
-const RESUME_DIR = join(process.cwd(), 'data', 'resumes');
+const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
+const RESUME_DIR = join(DATA_DIR, 'resumes');
 const MAX_RESUME_SIZE_BYTES = 10 * 1024 * 1024;
 
+console.log('[STORAGE] RESUME_DIR:', RESUME_DIR);
+console.log('[STORAGE] process.cwd():', process.cwd());
+
 export async function saveResume(resumeData: any, fileName?: string): Promise<string> {
+  console.log('[STORAGE] saveResume called, dir:', RESUME_DIR);
+  try {
+    await fs.mkdir(RESUME_DIR, { recursive: true });
+    console.log('[STORAGE] Directory created/verified');
+  } catch (mkdirErr) {
+    console.error('[STORAGE] Error creating directory:', mkdirErr);
+  }
+  
   const jsonString = JSON.stringify(resumeData, null, 2);
   
   if (jsonString.length > MAX_RESUME_SIZE_BYTES) {
@@ -14,8 +26,9 @@ export async function saveResume(resumeData: any, fileName?: string): Promise<st
   const id = fileName || Date.now().toString();
   const filePath = join(RESUME_DIR, `${id}.json`);
   
-  await fs.mkdir(RESUME_DIR, { recursive: true });
+  console.log('[STORAGE] Writing to:', filePath);
   await fs.writeFile(filePath, jsonString);
+  console.log('[STORAGE] File written successfully');
   
   return id;
 }

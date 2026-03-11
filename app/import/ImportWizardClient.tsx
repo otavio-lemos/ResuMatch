@@ -536,9 +536,20 @@ export default function ImportWizardClient() {
             }
 
             setStep('SAVING');
-            const res = await saveImportedResume(finalData, undefined, language);
-            if (res?.error) throw new Error(res.message);
-            router.push(`/dashboard/${res.id}`);
+            console.log('[IMPORT] Calling saveImportedResume...');
+            try {
+                const res = await saveImportedResume(finalData, undefined, language);
+                console.log('[IMPORT] saveImportedResume result:', res);
+                if (res?.error) throw new Error(res.message);
+                console.log('[IMPORT] Redirecting to:', `/dashboard/${res.id}`);
+                router.push(`/dashboard/${res.id}`);
+            } catch (saveErr: any) {
+                console.error('[IMPORT] Save error:', saveErr);
+                setError(saveErr.message || t('import.errorSaving'));
+                setStep('REVIEW');
+                setParsedData(null);
+                setRows([]);
+            }
         } catch (err: any) {
             setError(err.message || t('import.errorSaving'));
             setStep('REVIEW');
