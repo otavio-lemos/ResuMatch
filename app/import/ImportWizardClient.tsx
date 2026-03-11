@@ -143,6 +143,9 @@ export default function ImportWizardClient() {
     const [error, setError] = useState<string | null>(null);
     const [parsedData, setParsedData] = useState<ImportResumeData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    // Simple status message for debugging
+    const [statusMessage, setStatusMessage] = useState<string>('');
 
     const [rows, setRows] = useState<MapRow[]>([]);
     const [hasValidationResult, setHasValidationResult] = useState(false);
@@ -195,6 +198,7 @@ export default function ImportWizardClient() {
         setStep('PARSING');
         setError(null);
         setParsingBubbles([]);
+        setStatusMessage('Iniciando...');
         
         console.log('[IMPORT] Starting processFile');
         console.log('[IMPORT] importAI settings:', importAI);
@@ -202,10 +206,10 @@ export default function ImportWizardClient() {
         // Create conversation and set immediately
         const newBubbles = [
             { from: 'user' as const, text: `📄 Enviando arquivo: ${selectedFile.name}`, delay: 0 },
-            { from: 'ai' as const, text: `🔄 Preparando...\nProvider: ${importAI?.provider || 'gemini'}\nModel: ${importAI?.model || 'gemini-2.0-flash'}\nURL: ${importAI?.baseUrl || 'padrão'}`, delay: 0 },
         ];
         
         setParsingBubbles(newBubbles);
+        setStatusMessage(`Enviando para ${importAI?.provider || 'gemini'} (${importAI?.model || 'gemini-2.0-flash'})...`);
         
         // Simple timeout using AbortController
         const controller = new AbortController();
@@ -233,6 +237,7 @@ export default function ImportWizardClient() {
             }
             
             console.log('[IMPORT] Starting fetch to /api/parse-resume');
+            setStatusMessage('Enviando para IA...');
             
             const response = await fetch('/api/parse-resume', {
                 method: 'POST',
@@ -264,6 +269,7 @@ export default function ImportWizardClient() {
             let aiMessage = '';
             
             setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
+            setStatusMessage('Recebendo dados da IA...');
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -582,6 +588,9 @@ export default function ImportWizardClient() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {statusMessage && (
+                                    <div className="text-yellow-400 text-xs mb-2">{statusMessage}</div>
+                                )}
                                 {parsingBubbles.length === 0 ? (
                                     <div className="text-white text-sm">Aguardando resposta da IA...</div>
                                 ) : (
