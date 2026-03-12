@@ -14,6 +14,7 @@ type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING';
 const WIZARD_DELAYS = {
     PARSING_COMPLETE: 10500,
     REVALIDATION_BUFFER: 900,
+    IMPORT_TIMEOUT_MS: 60000,
 } as const;
 
 interface ATSAnalysis {
@@ -213,8 +214,7 @@ export default function ImportWizardClient() {
         
         // Simple timeout using AbortController
         const controller = new AbortController();
-        const timeoutMs = 60000;
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const timeoutId = setTimeout(() => controller.abort(), WIZARD_DELAYS.IMPORT_TIMEOUT_MS);
         
         try {
             const formData = new FormData();
@@ -250,72 +250,25 @@ export default function ImportWizardClient() {
             console.log('[IMPORT] Got response:', response.status);
             
             if (!response.ok) {
-                const errorText = await response.text();
-                console.log('[IMPORT] Error response:', response.status, errorText);
-                setError(`Erro ${response.status}: ${errorText.substring(0, 200)}`);
+                const errorData = await response.json();
+                console.log('[IMPORT] Error response:', response.status, errorData);
+                setError(`Erro ${response.status}: ${errorData.error || 'Erro desconhecido'}`);
                 resetToUpload();
                 return;
             }
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-                setError('Erro ao ler resposta do servidor');
-                resetToUpload();
-                return;
-            }
-
-            const decoder = new TextDecoder();
-            let extractedData: any = null;
-            let aiMessage = '';
-            
             setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
             setStatusMessage('Recebendo dados da IA...');
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            console.log('[IMPORT] Received data type:', data.type);
-                            
-                            if (data.type === 'progress' || data.type === 'skill' || data.type === 'prompt') {
-                                setParsingBubbles(prev => [...prev, { 
-                                    from: 'ai' as const, 
-                                    text: data.message || data.content || 'Processando...', 
-                                    delay: 0 
-                                }]);
-                            } else if (data.type === 'chunk') {
-                                aiMessage += data.content;
-                                setParsingBubbles(prev => {
-                                    const newBubbles = [...prev];
-                                    // Update last AI message
-                                    const lastAiIndex = newBubbles.findLastIndex(b => b.from === 'ai');
-                                    if (lastAiIndex >= 0) {
-                                        newBubbles[lastAiIndex] = { ...newBubbles[lastAiIndex], text: aiMessage };
-                                    }
-                                    return newBubbles;
-                                });
-                            } else if (data.type === 'complete') {
-                                extractedData = data.data;
-                                console.log('[IMPORT] Complete, data keys:', Object.keys(extractedData || {}));
-                            } else if (data.type === 'error') {
-                                console.log('[IMPORT] Error from server:', data.message);
-                                setError(data.message);
-                                setStep('UPLOAD');
-                                return;
-                            }
-                        } catch (e) {
-                            // Skip invalid JSON
-                        }
-                    }
-                }
+            const result = await response.json();
+            
+            if (result.error) {
+                setError(result.error);
+                resetToUpload();
+                return;
             }
+
+            const extractedData = result.data;
 
             if (!extractedData?.personalInfo) {
                 setError('Dados inválidos recebidos da IA');
@@ -325,6 +278,7 @@ export default function ImportWizardClient() {
 
             setParsedData(extractedData);
             setParsingBubbles(prev => [...prev, { from: 'ai', text: `✅ Concluído! Dados: ${Object.keys(extractedData).join(', ')}`, delay: 0 }]);
+            setStatusMessage('');
             await new Promise(r => setTimeout(r, 1000));
             setStep('REVIEW');
             
@@ -453,73 +407,14 @@ export default function ImportWizardClient() {
                     throw new Error(errorData.error || 'Erro na análise');
                 }
 
-                const reader = response.body?.getReader();
-                if (!reader) throw new Error('Erro ao ler resposta');
-
-                const decoder = new TextDecoder();
-                let atsResult: any = null;
-                let aiMessage = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                
-                                if (data.type === 'progress') {
-                                    const progressBubble: Bubble = {
-                                        from: 'ai',
-                                        text: data.message,
-                                        delay: 0
-                                    };
-                                    conversation.push(progressBubble);
-                                    setAnalysingBubbles([...conversation]);
-                            } else if (data.type === 'skill') {
-                                conversation.push({
-                                    from: 'ai',
-                                    text: `📋 SKILL USADA:\n${data.content.substring(0, 1000)}...`,
-                                    delay: 0
-                                });
-                                setParsingBubbles([...conversation]);
-                            } else if (data.type === 'prompt') {
-                                conversation.push({
-                                    from: 'user',
-                                    text: `📝 PROMPT ENVIADO:\n${data.content.substring(0, 1500)}...`,
-                                    delay: 0
-                                });
-                                setParsingBubbles([...conversation]);
-                            } else if (data.type === 'chunk') {
-                                    aiMessage += data.content;
-                                    const latestBubble: Bubble = {
-                                        from: 'ai',
-                                        text: aiMessage,
-                                        delay: 0
-                                    };
-                                    const lastIndex = conversation.length - 1;
-                                    if (conversation[lastIndex]?.from === 'ai') {
-                                        conversation[lastIndex] = latestBubble;
-                                    } else {
-                                        conversation.push(latestBubble);
-                                    }
-                                    setAnalysingBubbles([...conversation]);
-                                } else if (data.type === 'complete') {
-                                    atsResult = data.data;
-                                } else if (data.type === 'error') {
-                                    throw new Error(data.message);
-                                }
-                            } catch (e) {
-                                // Skip invalid JSON
-                            }
-                        }
-                    }
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
                 }
 
+                const atsResult = result.data;
+                
                 if (atsResult) finalData.atsScore = atsResult;
             }
 

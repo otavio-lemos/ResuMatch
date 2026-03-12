@@ -421,56 +421,26 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             }
 
             // Handle streaming response
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error('Erro ao ler resposta');
-
-            const decoder = new TextDecoder();
-            let fullResult = '';
-            const progressMessages: string[] = [];
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            
-                            if (data.type === 'progress') {
-                                progressMessages.push(data.message);
-                                set({ streamProgress: [...progressMessages] });
-                            } else if (data.type === 'chunk') {
-                                fullResult += data.content;
-                            } else if (data.type === 'complete') {
-                                fullResult = JSON.stringify(data.data);
-                            } else if (data.type === 'error') {
-                                throw new Error(data.message);
-                            }
-                        } catch (e) {
-                            // Skip invalid JSON
-                        }
-                    }
-                }
+            const result = await response.json();
+            
+            if (result.error) {
+                throw new Error(result.error);
             }
 
-            const result = normalizeApiResponse(JSON.parse(fullResult));
+            const parsedResult = normalizeApiResponse(result.data);
 
-            set({ debugInfo: { lastPayload: payload, lastResponse: result } });
+            set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
 
             if (jobDescription) {
                 set((state) => ({
-                    data: { ...state.data, jdAnalysis: result },
+                    data: { ...state.data, jdAnalysis: parsedResult },
                     isAnalyzing: false,
                     needsNewAnalysis: false,
                     streamProgress: []
                 }));
             } else {
                 set((state) => ({
-                    data: { ...state.data, aiAnalysis: result },
+                    data: { ...state.data, aiAnalysis: parsedResult },
                     isAnalyzing: false,
                     needsNewAnalysis: false,
                     streamProgress: []

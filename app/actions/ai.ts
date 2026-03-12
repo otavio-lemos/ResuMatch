@@ -125,7 +125,7 @@ export async function rewriteText(text: string, authSettings?: AIAuthSettings & 
     const safeText = text.replace(/[{}]/g, '');
     const userPrompt = authSettings?.rewritePrompt ? `USER INSTRUCTION: ${authSettings.rewritePrompt}\n\n` : '';
     const finalPrompt = `${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
-    // USA A SKILL DE REWRITE (SSSTTTAAARRRREEEwwwrrriiittteee)
+    // USA A SKILL DE REWRITE (SSSTTTAAARRRREEwwwrrriiittteee)
     return callAI(finalPrompt, aiConfig, undefined, getAtsRewriteSkill(language), language);
 }
 
@@ -215,7 +215,7 @@ export async function getResumeEditorSummaryContent(language: string = 'pt'): Pr
 }
 
 export async function getResumeEditorRewriteContent(language: string = 'pt'): Promise<string> {
-    return getAtsSummarySkill(language);
+    return getAtsRewriteSkill(language);
 }
 
 export async function getResumeEditorGrammarContent(language: string = 'pt'): Promise<string> {
