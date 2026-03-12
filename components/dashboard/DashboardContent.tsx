@@ -28,7 +28,7 @@ interface Resume {
 
 export default function DashboardContent({ initialResumes }: { initialResumes: Resume[] }) {
     const { t, language } = useTranslation();
-    const [resumes, setResumes] = useState(initialResumes);
+    const [resumes, setResumes] = useState<Resume[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadingAction, setLoadingAction] = useState<'create' | 'import' | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -40,11 +40,8 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
     const router = useRouter();
 
     useEffect(() => {
-        setResumes(initialResumes);
-        if (currentIndex >= initialResumes.length && initialResumes.length > 0) {
-            setCurrentIndex(Math.max(0, initialResumes.length - 1));
-        }
-    }, [initialResumes, currentIndex]);
+        setResumes(initialResumes || []);
+    }, [initialResumes]);
 
     const selectedResume = resumes[currentIndex] || resumes[0];
 
