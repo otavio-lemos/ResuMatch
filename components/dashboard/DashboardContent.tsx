@@ -1,13 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Upload, FileText, Calendar, ChevronLeft, ChevronRight, Loader2, BarChart3, Sparkles, CheckCircle2, AlertCircle, Trash2, Edit3, Save, Check, X, Info, Copy, Languages } from 'lucide-react';
-import { createNewResume, deleteResume, getResumeData, duplicateResume, translateResumeAction } from '@/app/dashboard/actions';
-import { ResumePreview } from '@/components/editor/ResumePreview';
-import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { FileText, Copy, Trash2, Loader2, ChevronDown, ChevronUp, ArrowRight, Sparkles } from 'lucide-react';
 
 interface Resume {
     id: string;
@@ -24,621 +20,286 @@ interface Resume {
         email?: string;
         phone?: string;
     };
+    aiAnalysis?: any;
+    jobDescription?: string;
 }
 
 export default function DashboardContent({ initialResumes }: { initialResumes: Resume[] }) {
     const { t, language } = useTranslation();
-    const [resumes, setResumes] = useState<Resume[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [loadingAction, setLoadingAction] = useState<'create' | 'import' | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [fullResume, setFullResume] = useState<any>(null);
-    const [isLoadingFullResume, setIsLoadingFullResume] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isDuplicating, setIsDuplicating] = useState(false);
-    const [isTranslating, setIsTranslating] = useState(false);
     const router = useRouter();
+    const [resumes, setResumes] = useState<Resume[]>(initialResumes || []);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
+    const [isLoadingFullResume, setIsLoadingFullResume] = useState(false);
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+        design: true,
+        estrutura: true,
+        conteudo: true,
+    });
+
+    const toggleSection = (section: string) => {
+        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
 
     useEffect(() => {
         setResumes(initialResumes || []);
     }, [initialResumes]);
 
-    const selectedResume = resumes[currentIndex] || resumes[0];
+    const currentResume = resumes[currentIndex] || resumes[0];
 
     useEffect(() => {
-        if (!selectedResume?.id) return;
+        if (!currentResume?.id) return;
 
         let isMounted = true;
         setIsLoadingFullResume(true);
-        getResumeData(selectedResume.id, language).then(data => {
-            if (isMounted) {
-                setFullResume(data);
-                setIsLoadingFullResume(false);
-            }
-        }).catch(err => {
-            console.error(err);
-            if (isMounted) setIsLoadingFullResume(false);
-        });
+
+        fetch(`/api/resumes/${currentResume.id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (isMounted) {
+                    setSelectedResume(data);
+                    localStorage.setItem('lastResumeId', data.id);
+                }
+            })
+            .catch(err => console.error('Failed to load resume:', err))
+            .finally(() => {
+                if (isMounted) setIsLoadingFullResume(false);
+            });
 
         return () => { isMounted = false; };
-    }, [selectedResume?.id, language]);
+    }, [currentResume?.id]);
 
-    const handleCreateNew = useCallback(async () => {
-        setLoadingAction('create');
-        try {
-            const result = await createNewResume();
-            if (result.success && result.id) {
-                router.push(`/editor/${result.id}`);
-            } else {
-                setError(result.message || t('templates.error'));
-            }
-        } catch (err) {
-            setError(t('templates.connectionError'));
-        } finally {
-            setLoadingAction(null);
-        }
-    }, [router, t]);
-
-    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const { importAI, importPrompt } = useAISettingsStore.getState();
-
-        if (!importAI.apiKey) {
-            setError(t('templates.errorNoApiKey'));
-            return;
-        }
-
-        setLoadingAction('import');
-        setError(null);
-
-        try {
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                try {
-                    const base64 = event.target?.result as string;
-                    const response = await fetch('/api/resumes', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            file: { base64, name: file.name, type: file.type },
-                            aiSettings: { provider: importAI.provider, apiKey: importAI.apiKey, baseUrl: importAI.baseUrl, model: importAI.model, temperature: importAI.temperature, importPrompt }
-                        })
-                    });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error || t('import.errorParsing'));
-                    router.push(`/editor/${result.resumeId}`);
-                } catch (err: any) {
-                    setError(err.message || t('import.errorImporting'));
-                    setLoadingAction(null);
-                }
-            };
-            reader.onerror = () => { setError(t('import.errorReading')); setLoadingAction(null); };
-            reader.readAsDataURL(file);
-        } catch (err: any) {
-            setError(t('import.errorSaving'));
-            setLoadingAction(null);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!selectedResume) return;
-        if (confirm(t('actions.confirmDelete') || 'Tem certeza que deseja excluir o currículo selecionado? Ele será deletado permanentemente do painel.')) {
-            setIsDeleting(true);
-            try {
-                await deleteResume(selectedResume.id, language);
-
-                // If it was the last resume, redirect to /modelos
-                if (resumes.length === 1) {
-                    router.push('/modelos');
-                    return;
-                }
-
-                // Update local state for immediate feedback
-                const updatedResumes = resumes.filter(r => r.id !== selectedResume.id);
-                setResumes(updatedResumes);
-
-                // Adjust current index if we deleted the last item in the list
-                if (currentIndex >= updatedResumes.length) {
-                    setCurrentIndex(Math.max(0, updatedResumes.length - 1));
-                }
-
-                // Force page refresh to update the UI
-                router.refresh();
-            } catch (err) {
-                setError(t('templates.error'));
-            } finally {
-                setIsDeleting(false);
-            }
-        }
-    };
-
-    const handleDuplicate = async () => {
-        if (!selectedResume) return;
-        setIsDuplicating(true);
-        setError(null);
-        try {
-            const result = await duplicateResume(selectedResume.id, language);
-            if (result.success && result.id) {
-                router.push(`/editor/${result.id}`);
-            } else {
-                setError(result.message || t('templates.error'));
-            }
-        } catch (err) {
-            setError(t('templates.error'));
-        } finally {
-            setIsDuplicating(false);
-        }
-    };
-
-    const handleTranslate = async () => {
-        if (!selectedResume) return;
+    const handleDelete = async (id: string) => {
+        if (!confirm(t('dashboard.confirmDelete'))) return;
         
-        const { primaryAI } = useAISettingsStore.getState();
-        if (!primaryAI.apiKey) {
-            setError(t('templates.errorNoApiKey'));
-            return;
-        }
-
-        const targetLang = language === 'en' ? 'pt' : 'en';
-        setIsTranslating(true);
-        setError(null);
         try {
-            const result = await translateResumeAction(selectedResume.id, targetLang, primaryAI);
-            if (result.success && result.id) {
-                router.push(`/editor/${result.id}`);
-            } else {
-                setError(result.message || t('templates.error'));
+            await fetch(`/api/resumes/${id}`, { method: 'DELETE' });
+            const newResumes = resumes.filter(r => r.id !== id);
+            setResumes(newResumes);
+            if (currentIndex >= newResumes.length) {
+                setCurrentIndex(Math.max(0, newResumes.length - 1));
             }
         } catch (err) {
-            setError(t('templates.error'));
-        } finally {
-            setIsTranslating(false);
+            console.error('Delete failed:', err);
         }
     };
 
-    const getScoreColor = (score?: number) => {
-        if (score === undefined) return 'text-slate-400';
-        if (score >= 92) return 'text-emerald-500';
-        if (score >= 60) return 'text-amber-500';
-        return 'text-red-500';
+    const handleClone = async (resume: Resume) => {
+        try {
+            const res = await fetch('/api/resumes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...resume,
+                    id: undefined,
+                    createdAt: undefined,
+                    title: `${resume.title || t('dashboard.copy')} ${new Date().toLocaleString()}`
+                })
+            });
+            const newResume = await res.json();
+            setResumes(prev => [newResume, ...prev]);
+            router.push(`/editor/${newResume.id}`);
+        } catch (err) {
+            console.error('Clone failed:', err);
+        }
     };
 
-    const getScoreBgColor = (score?: number) => {
-        if (score === undefined) return 'bg-slate-100 dark:bg-slate-800';
-        if (score >= 92) return 'bg-emerald-100 dark:bg-emerald-900/30';
-        if (score >= 60) return 'bg-amber-100 dark:bg-amber-900/30';
-        return 'bg-red-100 dark:bg-red-900/30';
+    const handleTranslate = (resume: Resume) => {
+        router.push(`/editor/${resume.id}?action=translate`);
     };
 
-    // Not rendering an empty state here because Home (page.tsx) handles redirect to /modelos
     if (!resumes || resumes.length === 0) {
         return (
-            <div className="p-8 text-center">
-                <p className="text-slate-500">Nenhum currículo encontrado.</p>
-                <Link href="/modelos" className="text-blue-600 hover:underline">Criar novo currículo</Link>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <FileText className="w-16 h-16 text-slate-300 dark:text-slate-600" />
+                <h2 className="text-xl font-semibold text-slate-600 dark:text-slate-300">{t('dashboard.noResumes')}</h2>
+                <button
+                    onClick={() => router.push('/modelos')}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    <PlusSquare className="w-4 h-4" />
+                    {t('dashboard.createFirst')}
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="w-full">
-            <input
-                id="import-file"
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={handleImport}
-                className="hidden"
-            />
-            {error && (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 flex items-center justify-between">
-                    <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>
-                    <button onClick={() => setError(null)} aria-label={t('actions.close') || "Fechar"} className="text-red-400 hover:text-red-600">✕</button>
-                </div>
-            )}
+        <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-140px)]">
+            {/* Resume List */}
+            <div className="w-full lg:w-80 shrink-0">
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+                    <h2 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        {t('dashboard.myResumes')}
+                    </h2>
 
-            {/* Main Content: Resume Preview + ATS Analysis */}
-            <div className="flex gap-6 min-h-[600px] flex-col lg:flex-row">
-                {/* Left Side - Realistic Resume Preview */}
-                <div className="w-full lg:w-[350px] shrink-0 flex flex-col">
-                    <div
-                        className="flex-1 bg-slate-100 dark:bg-[#0b1219] border border-slate-200 dark:border-slate-700 overflow-hidden relative flex flex-col group cursor-pointer hover:border-blue-500/50 transition-all border-none"
-                        onClick={() => router.push(`/editor/${selectedResume?.id}`)}
-                    >
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-between items-center group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors z-10 relative">
-                            <div>
-                                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                    {t('dashboard.realPreview')}
-                                </h3>
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.clickToEdit')}</p>
-                            </div>
-                            {selectedResume?.score !== undefined && (
-                                <div className={`px-2 py-1 ${getScoreBgColor(selectedResume.score)} border ${selectedResume.score >= 80 ? 'border-emerald-200 dark:border-emerald-800' : selectedResume.score >= 50 ? 'border-amber-200 dark:border-amber-800' : 'border-red-200 dark:border-red-800'}`}>
-                                    <span className={`text-sm font-black ${getScoreColor(selectedResume.score)}`}>{selectedResume.score}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex-1 flex items-start justify-center p-0 relative overflow-hidden bg-slate-200/50 dark:bg-slate-900" style={{ minHeight: '460px' }}>
-                            {isLoadingFullResume || !fullResume ? (
-                                <div className="absolute inset-0 flex flex-col justify-center items-center z-10">
-                                    <Loader2 className="size-6 animate-spin text-blue-600 mb-2" />
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('editor.loadingModel')}</span>
-                                </div>
-                            ) : (
-                                <div className="absolute top-6 left-1/2 -translate-x-1/2">
-                                    <div
-                                        className="shadow-2xl transition-all duration-500 bg-white"
-                                        style={{
-                                            transform: 'scale(0.35)',
-                                            transformOrigin: 'top center',
-                                            width: '210mm',
-                                            height: 'auto',
-                                            pointerEvents: 'none',
-                                        }}
-                                    >
-                                        <ResumePreview data={fullResume as any} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Overlay de Hover para Edição */}
-                            <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-all flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 z-20">
-                                    <div className="bg-blue-600 text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2">
-                                        <Sparkles className="size-3" />
-                                        {t('actions.openEditor')}
-                                    </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Side - ATS Analysis */}
-                <div className="flex-1 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-6 flex flex-col">
-                    {/* Enterprise Action Header (Globally on Right Side) */}
-                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-slate-700">
-                        <div>
-                            <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                {t('dashboard.workspaceTitle')}
-                            </h2>
-                            <p className="text-[10px] text-slate-500 mt-1">{t('dashboard.workspaceSubtitle')}</p>
-                        </div>
-
-                        <div className="flex xl:items-center gap-3 mt-4 xl:mt-0">
-                            {/* Enterprise Header Option Select */}
-                            <div className="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 py-2 border-r border-slate-200 dark:border-slate-700 hidden sm:block">{t('dashboard.resumeLabel')}</span>
-                                <select
-                                    value={currentIndex}
-                                    onChange={(e) => setCurrentIndex(Number(e.target.value))}
-                                    className="bg-transparent text-xs font-bold font-sans text-slate-700 dark:text-slate-300 px-3 py-2 outline-none cursor-pointer w-[200px] truncate border-none appearance-none"
-                                >
-                                    {resumes.map((r, i) => {
-                                        const suffix = r.id.endsWith('bra') ? 'bra' : r.id.endsWith('usa') ? 'usa' : '';
-                                        return (
-                                            <option key={r.id} value={i} className="bg-white dark:bg-slate-900">
-                                                {i + 1} - {r.title || t('dashboard.untitled')} [{suffix}]
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
-
-                            {/* Actions Group */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={handleTranslate}
-                                    disabled={isTranslating}
-                                    title={t('actions.translate') || (language === 'en' ? 'Traduza para Português' : 'Translate to English')}
-                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all disabled:opacity-50"
-                                >
-                                    {isTranslating ? <Loader2 className="size-3.5 animate-spin" /> : <Languages className="size-3.5" />}
-                                </button>
-                                
-                                <button
-                                    onClick={handleDuplicate}
-                                    disabled={isDuplicating}
-                                    title={t('actions.duplicate')}
-                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 transition-all disabled:opacity-50"
-                                >
-                                    {isDuplicating ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
-                                </button>
-
-                                {/* Standardized Delete Action Header */}
-                                <button
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    title={t('actions.delete')}
-                                    className="flex items-center justify-center size-8 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 transition-all disabled:opacity-50"
-                                >
-                                    {isDeleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
-                                </button>
-                            </div>
-                        </div>
+                    {/* Resume Selector */}
+                    <div className="relative mb-4">
+                        <select
+                            value={currentIndex}
+                            onChange={(e) => setCurrentIndex(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded appearance-none cursor-pointer text-sm"
+                        >
+                            {resumes.map((r, i) => {
+                                const suffix = r.id.endsWith('bra') ? 'bra' : r.id.endsWith('usa') ? 'usa' : '';
+                                return (
+                                    <option key={r.id} value={i} className="bg-white dark:bg-slate-900">
+                                        {i + 1} - {r.title || t('dashboard.untitled')} [{suffix}]
+                                    </option>
+                                );
+                            })}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
 
-                    {selectedResume?.score === undefined ? (
-                        <div className="h-full flex flex-col items-center justify-center py-10">
-                            <div className="size-20 bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center mb-6 border border-amber-200 dark:border-amber-800">
-                                <Sparkles className="size-10 text-amber-500" />
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                        <button
+                            onClick={() => handleTranslate(currentResume)}
+                            disabled={!currentResume}
+                            className="flex flex-col items-center gap-1 p-2 text-[10px] font-medium bg-slate-100 dark:bg-slate-800 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span className="text-lg">🌐</span>
+                            {t('dashboard.translate')}
+                        </button>
+                        <button
+                            onClick={() => handleClone(currentResume)}
+                            disabled={!currentResume}
+                            className="flex flex-col items-center gap-1 p-2 text-[10px] font-medium bg-slate-100 dark:bg-slate-800 rounded hover:bg-green-50 dark:hover:bg-green-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Copy className="w-4 h-4" />
+                            {t('dashboard.clone')}
+                        </button>
+                        <button
+                            onClick={() => currentResume && handleDelete(currentResume.id)}
+                            disabled={!currentResume}
+                            className="flex flex-col items-center gap-1 p-2 text-[10px] font-medium bg-slate-100 dark:bg-slate-800 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {t('dashboard.delete')}
+                        </button>
+                    </div>
+
+                    {/* Resume Preview */}
+                    {currentResume && (
+                        <div 
+                            onClick={() => router.push(`/editor/${currentResume.id}`)}
+                            className="p-3 bg-slate-50 dark:bg-slate-800 rounded cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                    {currentResume.title || t('dashboard.untitled')}
+                                </span>
+                                <ArrowRight className="w-3 h-3 text-slate-400" />
                             </div>
-                            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">{t('dashboard.atsAnalysisTitle')}</h3>
-                            <p className="text-sm text-slate-500 max-w-md text-center mb-6">{t('dashboard.atsAnalysisDescription')}</p>
-                                        <Link
-                                            href={`/dashboard/${selectedResume?.id}`}
-                                            className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider transition-all"
-                                        >
-                                            {t('actions.fullAnalysis')}
-                                        </Link>
-                        </div>
-                    ) : (
-                        <div>
-                            {/* Header Status */}
-                            <div className="flex items-center justify-end mb-4">
-                                <div className="flex items-center gap-2">
-                                    {selectedResume.score >= 80 ? (
-                                        <span className="flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5" role="status" aria-label={`Status: ${t('dashboard.statusApproved')}`}>
-                                            <CheckCircle2 className="size-4" aria-hidden="true" />
-                                            {t('dashboard.statusApproved')}
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-1 text-[10px] font-black uppercase text-amber-600 border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5" role="status" aria-label={`Status: ${t('dashboard.statusImprove')}`}>
-                                            <AlertCircle className="size-4" aria-hidden="true" />
-                                            {t('dashboard.statusImprove')}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Scores Grid */}
-                            <div className="grid grid-cols-4 gap-4 mb-8">
-                                <div className={`p-6 ${getScoreBgColor(selectedResume.score)} border-2 ${selectedResume.score >= 80 ? 'border-emerald-500' : selectedResume.score >= 50 ? 'border-amber-500' : 'border-red-500'}`}>
-                                    <div className={`text-4xl font-black ${getScoreColor(selectedResume.score)} mb-2`}>
-                                        {selectedResume.score}
-                                    </div>
-                                    <div className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('dashboard.generalScore')}</div>
-                                </div>
-
-                                <div className={`p-6 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700`}>
-                                    <div className={`text-3xl font-black ${getScoreColor(selectedResume.scores?.design)} mb-2`}>
-                                        {selectedResume.scores?.design ?? '-'}
-                                    </div>
-                                    <div className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('dashboard.designScore')}</div>
-                                </div>
-
-                                <div className={`p-6 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700`}>
-                                    <div className={`text-3xl font-black ${getScoreColor(selectedResume.scores?.estrutura)} mb-2`}>
-                                        {selectedResume.scores?.estrutura ?? '-'}
-                                    </div>
-                                    <div className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('dashboard.structureScore')}</div>
-                                </div>
-
-                                <div className={`p-6 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700`}>
-                                    <div className={`text-3xl font-black ${getScoreColor(selectedResume.scores?.conteudo)} mb-2`}>
-                                        {selectedResume.scores?.conteudo ?? '-'}
-                                    </div>
-                                    <div className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('dashboard.contentScore')}</div>
-                                </div>
-                            </div>
-
-                            {/* Analysis Details */}
-                            <div className="space-y-4">
-                                <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">{t('analysis.details')}</h4>
-
-                                <div className="space-y-3">
-                                    {selectedResume.scores?.design !== undefined && (
-                                        <details className="group">
-                                            <summary className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('dashboard.visualDesign')}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-32 h-2 bg-slate-200 dark:bg-slate-700">
-                                                        <div
-                                                            className={`h-full ${selectedResume.scores.design >= 80 ? 'bg-emerald-500' : selectedResume.scores.design >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                                            style={{ width: `${selectedResume.scores.design}%` }}
-                                                        />
-                                                    </div>
-                                                    <span className={`text-sm font-black ${getScoreColor(selectedResume.scores.design)}`}>
-                                                        {selectedResume.scores.design}%
-                                                    </span>
-                                                    <ChevronRight className="size-4 text-slate-400 group-open:rotate-90 transition-transform" />
-                                                </div>
-                                            </summary>
-                                            <div className="p-4 bg-white dark:bg-slate-900/30 border-x border-b border-slate-200 dark:border-slate-700">
-                                                <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                                                    {selectedResume.scores.design >= 80 ? (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.whitespace')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.typography')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.balancedLayout')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 font-bold">
-                                                                {t('dashboard.feedback.designExcellent')}
-                                                            </p>
-                                                        </>
-                                                    ) : selectedResume.scores.design >= 50 ? (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.fontConsistency')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.sectionSpacing')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-amber-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.moreWhitespace')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-slate-500 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                                                                {t('dashboard.feedback.designGood')}
-                                                            </p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.clutteredLayout')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.inconsistentFonts')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-amber-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.cleanerTemplate')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-red-600 dark:text-red-400 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 font-bold">
-                                                                {t('dashboard.feedback.designAttention')}
-                                                            </p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </details>
-                                    )}
-
-                                    {selectedResume.scores?.estrutura !== undefined && (
-                                        <details className="group">
-                                            <summary className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('dashboard.resumeStructure')}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-32 h-2 bg-slate-200 dark:bg-slate-700">
-                                                        <div
-                                                            className={`h-full ${selectedResume.scores.estrutura >= 80 ? 'bg-emerald-500' : selectedResume.scores.estrutura >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                                            style={{ width: `${selectedResume.scores.estrutura}%` }}
-                                                        />
-                                                    </div>
-                                                    <span className={`text-sm font-black ${getScoreColor(selectedResume.scores.estrutura)}`}>
-                                                        {selectedResume.scores.estrutura}%
-                                                    </span>
-                                                    <ChevronRight className="size-4 text-slate-400 group-open:rotate-90 transition-transform" />
-                                                </div>
-                                            </summary>
-                                            <div className="p-4 bg-white dark:bg-slate-900/30 border-x border-b border-slate-200 dark:border-slate-700">
-                                                <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                                                    {selectedResume.scores.estrutura >= 80 ? (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.organizedSections')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.atsOptimized')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.relevantInfo')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 font-bold">
-                                                                {t('dashboard.feedback.structureExcellent')}
-                                                            </p>
-                                                        </>
-                                                    ) : selectedResume.scores.estrutura >= 50 ? (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.clearSections')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.logicalOrder')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-amber-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.addProjects')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-slate-500 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                                                                {t('dashboard.feedback.structureGood')}
-                                                            </p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.disorganized')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
-                                                                <span>{t('dashboard.checks.badOrder')}</span>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="size-4 text-amber-500 mt-0.5 shrink-0" />
-                                                                <span>{t('messages.experienceNotTop')}</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-red-600 dark:text-red-400 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 font-bold">
-                                                                {t('dashboard.feedback.structureAttention')}
-                                                            </p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </details>
-                                    )}
-
-                                    {selectedResume.scores?.conteudo !== undefined && (
-                                        <details className="group">
-                                            <summary className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('dashboard.contentQuality')}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-32 h-2 bg-slate-200 dark:bg-slate-700">
-                                                        <div
-                                                            className={`h-full ${selectedResume.scores.conteudo >= 80 ? 'bg-emerald-500' : selectedResume.scores.conteudo >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                                            style={{ width: `${selectedResume.scores.conteudo}%` }}
-                                                        />
-                                                    </div>
-                                                    <span className={`text-sm font-black ${getScoreColor(selectedResume.scores.conteudo)}`}>
-                                                        {selectedResume.scores.conteudo}%
-                                                    </span>
-                                                    <ChevronRight className="size-4 text-slate-400 group-open:rotate-90 transition-transform" />
-                                                </div>
-                                            </summary>
-                                            <div className="p-4 bg-white dark:bg-slate-900/30 border-x border-b border-slate-200 dark:border-slate-700">
-                                                <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                                                    <div className="flex items-start gap-2">
-                                                        <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                        <span>{t('dashboard.checks.actionVerbs')}</span>
-                                                    </div>
-                                                    <div className="flex items-start gap-2">
-                                                        <CheckCircle2 className="size-4 text-emerald-500 mt-0.5 shrink-0" />
-                                                        <span>{t('dashboard.checks.quantifiedResults')}</span>
-                                                    </div>
-                                                    <div className="flex items-start gap-2">
-                                                        <AlertCircle className="size-4 text-amber-500 mt-0.5 shrink-0" />
-                                                        <span>{t('dashboard.checks.moreKeywords')}</span>
-                                                    </div>
-                                                    <p className="text-[10px] text-slate-500 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                                                        {t('dashboard.feedback.contentAdvice')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </details>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* CTA */}
-                            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
-                                    <Link
-                                        href={`/dashboard/${selectedResume.id}`}
-                                        className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider transition-all"
-                                    >
-                                        {t('actions.viewFullAnalysis')}
-                                    </Link>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                {new Date(currentResume.createdAt).toLocaleDateString()}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+                {isLoadingFullResume ? (
+                    <div className="flex items-center justify-center h-64">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    </div>
+                ) : selectedResume ? (
+                    <div className="space-y-6">
+                        {/* ATS Scores */}
+                        {(selectedResume.aiAnalysis || selectedResume.score) && (
+                            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+                                <h2 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-blue-600" />
+                                    {t('analysis.title')}
+                                </h2>
+                                
+                                <div className="grid grid-cols-3 gap-4">
+                                    {/* Design */}
+                                    <div className="border border-slate-200 dark:border-slate-700 rounded p-3">
+                                        <button 
+                                            onClick={() => toggleSection('design')}
+                                            className="flex items-center justify-between w-full mb-2"
+                                        >
+                                            <span className="text-[10px] font-black text-slate-500 uppercase">Design</span>
+                                            {expandedSections.design ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                        </button>
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            {selectedResume.aiAnalysis?.designScore || selectedResume.scores?.design || selectedResume.score || 0}
+                                        </div>
+                                        {expandedSections.design && selectedResume.aiAnalysis?.designFeedback && (
+                                            <p className="text-[10px] text-slate-500 mt-2">{selectedResume.aiAnalysis.designFeedback}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Estrutura */}
+                                    <div className="border border-slate-200 dark:border-slate-700 rounded p-3">
+                                        <button 
+                                            onClick={() => toggleSection('estrutura')}
+                                            className="flex items-center justify-between w-full mb-2"
+                                        >
+                                            <span className="text-[10px] font-black text-slate-500 uppercase">Estrutura</span>
+                                            {expandedSections.estrutura ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                        </button>
+                                        <div className="text-2xl font-bold text-green-600">
+                                            {selectedResume.aiAnalysis?.structureScore || selectedResume.scores?.estrutura || 0}
+                                        </div>
+                                        {expandedSections.estrutura && selectedResume.aiAnalysis?.structureFeedback && (
+                                            <p className="text-[10px] text-slate-500 mt-2">{selectedResume.aiAnalysis.structureFeedback}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Conteúdo */}
+                                    <div className="border border-slate-200 dark:border-slate-700 rounded p-3">
+                                        <button 
+                                            onClick={() => toggleSection('conteudo')}
+                                            className="flex items-center justify-between w-full mb-2"
+                                        >
+                                            <span className="text-[10px] font-black text-slate-500 uppercase">Conteúdo</span>
+                                            {expandedSections.conteudo ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                        </button>
+                                        <div className="text-2xl font-bold text-purple-600">
+                                            {selectedResume.aiAnalysis?.contentScore || selectedResume.scores?.conteudo || 0}
+                                        </div>
+                                        {expandedSections.conteudo && selectedResume.aiAnalysis?.contentFeedback && (
+                                            <p className="text-[10px] text-slate-500 mt-2">{selectedResume.aiAnalysis.contentFeedback}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Resume Preview - Click to edit */}
+                        <div 
+                            onClick={() => router.push(`/editor/${selectedResume.id}`)}
+                            className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 cursor-pointer hover:border-blue-500 transition-colors"
+                        >
+                            <div className="text-center text-slate-500 dark:text-slate-400">
+                                <p className="text-lg font-semibold mb-2">{selectedResume.personalInfo?.fullName || t('dashboard.untitled')}</p>
+                                <p className="text-sm">{selectedResume.personalInfo?.email}</p>
+                                <p className="text-xs mt-4 text-blue-600">Clique para editar →</p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-64 text-slate-400">
+                        {t('dashboard.selectResume')}
+                    </div>
+                )}
+            </div>
         </div>
+    );
+}
+
+function PlusSquare({ className }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
     );
 }
