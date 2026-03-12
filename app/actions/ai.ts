@@ -219,7 +219,7 @@ export async function getResumeEditorRewriteContent(language: string = 'pt'): Pr
 }
 
 export async function getResumeEditorGrammarContent(language: string = 'pt'): Promise<string> {
-    return getAtsSummarySkill(language);
+    return getAtsGrammarSkill(language);
 }
 
 export async function getAuditSkillContent(language: string = 'pt'): Promise<string> {
