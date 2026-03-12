@@ -310,11 +310,14 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
                                     onChange={(e) => setCurrentIndex(Number(e.target.value))}
                                     className="bg-transparent text-xs font-bold font-sans text-slate-700 dark:text-slate-300 px-3 py-2 outline-none cursor-pointer w-[200px] truncate border-none appearance-none"
                                 >
-                                    {resumes.map((r, i) => (
-                                        <option key={r.id} value={i} className="bg-white dark:bg-slate-900">
-                                            {i + 1} - {r.title || t('dashboard.untitled')}
-                                        </option>
-                                    ))}
+                                    {resumes.map((r, i) => {
+                                        const suffix = r.id.endsWith('bra') ? 'bra' : r.id.endsWith('usa') ? 'usa' : '';
+                                        return (
+                                            <option key={r.id} value={i} className="bg-white dark:bg-slate-900">
+                                                {i + 1} - {r.title || t('dashboard.untitled')} [{suffix}]
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
 
