@@ -64,6 +64,9 @@ export function EditorPanel() {
     const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
     const [photoError, setPhotoError] = useState<string | null>(null);
     const [localTitle, setLocalTitle] = useState<{ id: string, value: string } | null>(null);
+    
+    // ATS Analysis bubbles for transparency
+    const [atsBubbles, setAtsBubbles] = useState<{from: 'user' | 'ai', text: string}[]>([]);
 
     const { t } = useTranslation();
     const language = useLanguageStore((state) => state.language);
@@ -135,12 +138,28 @@ export function EditorPanel() {
     const handleATSVerify = async () => {
         setIsAnalyzingATS(true);
         setAiError(null);
+        setAtsBubbles([{ from: 'user', text: '🔄 Iniciando análise ATS...' }]);
         const authSettings = {
             ...primaryAI,
             atsPrompt
         };
         try {
              const result = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
+             
+             // Adicionar transparência total - skill, prompt e resposta
+             const debugInfo = (result as any).debug;
+             if (debugInfo) {
+                 setAtsBubbles(prev => [
+                     ...prev,
+                     { from: 'ai', text: '🎯 SKILL (System Instruction):' },
+                     { from: 'ai', text: debugInfo.skill?.substring(0, 500) + (debugInfo.skill?.length > 500 ? '...[TRUNCATED]' : '') || 'N/A' },
+                     { from: 'ai', text: '📤 USER PROMPT:' },
+                     { from: 'ai', text: debugInfo.userPrompt?.substring(0, 500) + (debugInfo.userPrompt?.length > 500 ? '...[TRUNCATED]' : '') || 'N/A' },
+                     { from: 'ai', text: '📥 RAW LLM RESPONSE:' },
+                     { from: 'ai', text: debugInfo.rawResponse?.substring(0, 1000) + (debugInfo.rawResponse?.length > 1000 ? '...[TRUNCATED]' : '') || 'N/A' }
+                 ]);
+             }
+             
              console.log('[ATS ANALYSIS] === TRANSPARÊNCIA TOTAL ===');
              console.log('[ATS ANALYSIS] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
              console.log('[ATS ANALYSIS] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
@@ -151,6 +170,7 @@ export function EditorPanel() {
         } catch (error: any) {
             console.error(error);
             setAiError(error.message || 'Erro na análise ATS com IA');
+            setAtsBubbles(prev => [...prev, { from: 'ai', text: `❌ Erro: ${error.message}` }]);
         } finally {
             setIsAnalyzingATS(false);
         }
@@ -266,8 +286,21 @@ export function EditorPanel() {
                             <h4 className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                 <Sparkles className="size-3 text-blue-600" /> {t('analysis.title')}
                             </h4>
-                            <button onClick={() => setShowATSDetails(false)} className="text-slate-400 hover:text-slate-600"><X className="size-3" /></button>
+                            <button onClick={() => { setShowATSDetails(false); setAtsBubbles([]); }} className="text-slate-400 hover:text-slate-600"><X className="size-3" /></button>
                         </div>
+
+                        {/* ATS Transparency Bubbles */}
+                        {atsBubbles.length > 0 && (
+                            <div className="mb-3 p-2 bg-blue-900/20 border border-blue-800/30 rounded text-[9px] max-h-40 overflow-y-auto">
+                                <div className="text-[9px] font-black text-blue-400 uppercase mb-1">🔍 Debug Info:</div>
+                                {atsBubbles.map((b, i) => (
+                                    <div key={i} className={`flex gap-2 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
+                                        <span className={b.from === 'user' ? 'text-emerald-400' : 'text-amber-400'}>{b.from === 'user' ? '👤' : '🤖'}</span>
+                                        <span className="text-slate-300 whitespace-pre-wrap break-all">{b.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-3 gap-2 mb-4">
                             {[
