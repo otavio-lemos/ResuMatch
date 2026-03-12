@@ -11,9 +11,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
     const resumesList = await listResumes();
+    
+    console.log('[DASHBOARD PAGE] resumesList:', resumesList.length);
 
     const resumes = resumesList
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+    console.log('[DASHBOARD PAGE] sorted resumes:', resumes.length);
+    
     return <DashboardContent initialResumes={resumes} />;
 }

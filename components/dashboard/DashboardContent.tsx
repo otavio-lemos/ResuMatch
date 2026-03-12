@@ -216,7 +216,14 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
     };
 
     // Not rendering an empty state here because Home (page.tsx) handles redirect to /modelos
-    if (resumes.length === 0) return null;
+    if (!resumes || resumes.length === 0) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-slate-500">Nenhum currículo encontrado.</p>
+                <Link href="/modelos" className="text-blue-600 hover:underline">Criar novo currículo</Link>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full">
