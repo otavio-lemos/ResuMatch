@@ -47,8 +47,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [resumesCount, setResumesCount] = useState<number | null>(null);
-  console.log('[NAVBAR] resumesCount:', resumesCount, 'pathname:', pathname);
   const isEditorPage = pathname.startsWith('/editor/');
+
+  const resumeId = useMemo(() => {
+    const id = getResumeIdFromPathname(pathname);
+    return id || null;
+  }, [pathname]);
+
+  const atsHref = resumeId ? `/dashboard/${resumeId}` : '/modelos';
+  const editHref = resumeId ? `/editor/${resumeId}` : '/modelos';
 
   // Check resumes existence on mount and pathname changes
   // Use useCallback with empty deps + useEffect to avoid sync setState in effect
@@ -80,18 +87,7 @@ export default function Navbar() {
   }, [checkResumes]);
 
   const hasResumes = resumesCount !== null ? resumesCount > 0 : false;
-  console.log('[NAVBAR] hasResumes:', hasResumes);
-
-  const resumeId = useMemo(() => {
-    const id = getResumeIdFromPathname(pathname);
-    if (id) return id;
-    return getLastResumeId();
-  }, [pathname]);
-
-  const editHref = hasResumes && resumeId ? `/editor/${resumeId}` : '/modelos';
-  const atsHref = hasResumes && resumeId ? `/dashboard/${resumeId}` : '/modelos';
   const dashboardHref = hasResumes ? '/dashboard' : '/modelos';
-  console.log('[NAVBAR] dashboardHref:', dashboardHref);
   const importHref = '/import'; // Import is always accessible
 
   const handleDownload = useCallback(() => {
