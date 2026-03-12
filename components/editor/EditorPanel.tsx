@@ -83,12 +83,20 @@ export function EditorPanel() {
          try {
             if (type === 'refresh') {
                 setIsGeneratingRefine(expId);
-                const { response } = await rewriteText(text, authSettings, language);
-                updateExperience(expId, { description: response });
+                const result = await rewriteText(text, authSettings, language);
+                console.log('[EDITOR REWRITE] === TRANSPARÊNCIA TOTAL ===');
+                console.log('[EDITOR REWRITE] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
+                console.log('[EDITOR REWRITE] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
+                console.log('[EDITOR REWRITE] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
+                updateExperience(expId, { description: result.response });
             } else {
                 setIsGeneratingGrammar(expId);
-                const { response } = await correctGrammar(text, authSettings, language);
-                updateExperience(expId, { description: response });
+                const result = await correctGrammar(text, authSettings, language);
+                console.log('[EDITOR GRAMMAR] === TRANSPARÊNCIA TOTAL ===');
+                console.log('[EDITOR GRAMMAR] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
+                console.log('[EDITOR GRAMMAR] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
+                console.log('[EDITOR GRAMMAR] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
+                updateExperience(expId, { description: result.response });
             }
         } catch (error: any) {
             console.error(error);
@@ -109,8 +117,12 @@ export function EditorPanel() {
         };
         setUndoHistory(prev => ({ ...prev, ['summary']: summary }));
          try {
-            const { response } = await generateSummaryAI(data, authSettings, language);
-            updateSummary(response);
+            const result = await generateSummaryAI(data, authSettings, language);
+            console.log('[EDITOR SUMMARY] === TRANSPARÊNCIA TOTAL ===');
+            console.log('[EDITOR SUMMARY] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
+            console.log('[EDITOR SUMMARY] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
+            console.log('[EDITOR SUMMARY] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
+            updateSummary(result.response);
         } catch (error: any) {
             console.error(error);
             setAiError(error.message || 'Erro ao gerar resumo com IA');
@@ -128,8 +140,12 @@ export function EditorPanel() {
             atsPrompt
         };
         try {
-             const { response } = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
-            setAiAnalysis(response);
+             const result = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
+             console.log('[ATS ANALYSIS] === TRANSPARÊNCIA TOTAL ===');
+             console.log('[ATS ANALYSIS] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
+             console.log('[ATS ANALYSIS] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
+             console.log('[ATS ANALYSIS] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
+            setAiAnalysis(result.response);
             setShowATSDetails(true);
             await saveLocalResume();
         } catch (error: any) {

@@ -269,11 +269,24 @@ export default function ImportWizardClient() {
             }
 
             const extractedData = result.data;
+            const debugInfo = result.debug;
 
             if (!extractedData?.personalInfo) {
                 setError('Dados inválidos recebidos da IA');
                 resetToUpload();
                 return;
+            }
+
+            // Adicionar transparência total - skill, prompt e resposta
+            if (debugInfo) {
+                setParsingBubbles(prev => [...prev, 
+                    { from: 'ai', text: '🎯 SKILL (System Instruction):', delay: 0 },
+                    { from: 'ai', text: debugInfo.skill.substring(0, 500) + (debugInfo.skill.length > 500 ? '...[TRUNCATED]' : ''), delay: 0 },
+                    { from: 'ai', text: '📤 USER PROMPT:', delay: 0 },
+                    { from: 'ai', text: debugInfo.userPrompt.substring(0, 500) + (debugInfo.userPrompt.length > 500 ? '...[TRUNCATED]' : ''), delay: 0 },
+                    { from: 'ai', text: '📥 RAW LLM RESPONSE:', delay: 0 },
+                    { from: 'ai', text: debugInfo.rawResponse.substring(0, 1000) + (debugInfo.rawResponse.length > 1000 ? '...[TRUNCATED]' : ''), delay: 0 }
+                ]);
             }
 
             setParsedData(extractedData);

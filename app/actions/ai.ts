@@ -63,7 +63,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
     }
 };
 
-async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
+async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string; debug: { skill: string; userPrompt: string; rawResponse: string } }> {
     // A Skill é OBRIGATÓRIA. Se não for passada, usamos o Analyzer como fallback padrão de segurança.
     const systemInstruction = skill || getAtsAnalyzerSkill(language);
     
@@ -99,19 +99,28 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
             }
             const data = await res.json();
             const response = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            return { prompt, response };
+            return { 
+                prompt, 
+                response,
+                debug: { skill: systemInstruction, userPrompt: prompt, rawResponse: response }
+            };
         } else {
-            const response = await aiConfig.client.chat.completions.create({
+            const responseObj = await aiConfig.client.chat.completions.create({
                 model: aiConfig.model,
                 messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
                 temperature: aiConfig.temperature || 0.1,
                 response_format: responseFormat ? { type: responseFormat } : undefined,
             });
-            const firstChoice = response.choices?.[0];
+            const firstChoice = responseObj.choices?.[0];
             if (!firstChoice) {
                 throw new Error('A IA não retornou nenhuma escolha.');
             }
-            return { prompt, response: firstChoice.message?.content || '' };
+            const response = firstChoice.message?.content || '';
+            return { 
+                prompt, 
+                response,
+                debug: { skill: systemInstruction, userPrompt: prompt, rawResponse: response }
+            };
         }
     } catch (error: any) {
         logger.error('AI Call failed', error);

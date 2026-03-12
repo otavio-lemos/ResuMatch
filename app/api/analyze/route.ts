@@ -18,6 +18,11 @@ const analyzeSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  let skillUsed = '';
+  let userPrompt = '';
+  let rawResponse = '';
+  let finalData: any;
+
   try {
     const body = await req.json();
     const validated = analyzeSchema.parse(body);
@@ -43,7 +48,8 @@ export async function POST(req: NextRequest) {
     const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
     const finalPrompt = `${userInstructions}${basePrompt}`;
 
-    let finalData: any;
+    skillUsed = getAtsAnalyzerSkill(language);
+    userPrompt = finalPrompt;
 
     if (aiConfig.type === 'gemini') {
       const response = await fetch(aiConfig.endpoint, {
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: finalPrompt }] }],
-          systemInstruction: { parts: [{ text: getAtsAnalyzerSkill(language) }] },
+          systemInstruction: { parts: [{ text: skillUsed }] },
           generationConfig: { temperature: 0.2 }
         })
       });
@@ -87,30 +93,46 @@ export async function POST(req: NextRequest) {
         fullText = finalJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
       }
       
+      rawResponse = fullText;
       finalData = robustJsonParse(fullText);
 
     } else {
       const stream = await aiConfig.client.chat.completions.create({
         model: aiConfig.model,
         messages: [
-          { role: 'system', content: getAtsAnalyzerSkill(language) },
-          { role: 'user', content: finalPrompt }
+          { role: 'system', content: skillUsed },
+          { role: 'user', content: userPrompt }
         ],
         temperature: aiConfig.temperature,
         stream: false,
       });
 
       const content = stream.choices[0]?.message?.content || '';
+      rawResponse = content;
       finalData = robustJsonParse(content);
     }
 
-    return NextResponse.json({ data: finalData });
+    return NextResponse.json({ 
+      data: finalData,
+      debug: {
+        skill: skillUsed,
+        userPrompt: userPrompt,
+        rawResponse: rawResponse
+      }
+    });
 
   } catch (error: any) {
     console.error("Error in analyze:", error);
     if (error instanceof ZodError) {
       return NextResponse.json({ error: 'Validation error', details: error.issues }, { status: 400 });
     }
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error',
+      debug: {
+        skill: skillUsed || 'N/A',
+        userPrompt: userPrompt || 'N/A',
+        rawResponse: rawResponse || 'N/A'
+      }
+    }, { status: 500 });
   }
 }

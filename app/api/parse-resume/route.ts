@@ -7,6 +7,11 @@ import { getAIClient, AIAuthSettings } from '@/app/actions/ai';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
+  let skillUsed = '';
+  let userPrompt = '';
+  let rawResponse = '';
+  let finalData: any;
+
   try {
     const formData = await req.formData();
     const currentLanguage = (formData.get('language') as string) || 'pt';
@@ -37,11 +42,9 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    let contentToAnalyze: any;
     let pdfTextContent: string = '';
 
     if (mimeType === 'application/pdf') {
-      contentToAnalyze = { inlineData: { data: buffer.toString('base64'), mimeType: 'application/pdf' } };
       try {
         const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
         const pdfData = await pdfParse(buffer);
@@ -50,11 +53,9 @@ export async function POST(req: NextRequest) {
         console.error("PDF parse error:", e);
       }
     } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      contentToAnalyze = (await mammoth.extractRawText({ buffer })).value;
-      pdfTextContent = contentToAnalyze;
+      pdfTextContent = (await mammoth.extractRawText({ buffer })).value;
     } else {
-      contentToAnalyze = buffer.toString('utf-8');
-      pdfTextContent = contentToAnalyze;
+      pdfTextContent = buffer.toString('utf-8');
     }
 
     const authSettings: AIAuthSettings = aiSettings || {};
@@ -84,7 +85,8 @@ export async function POST(req: NextRequest) {
       promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}`;
     }
 
-    let finalData: any;
+    skillUsed = getAtsParserSkill(currentLanguage) + '\n\n' + fullLanguageInstruction;
+    userPrompt = promptContent;
 
     if (aiConfig.type === 'gemini') {
       const response = await fetch(aiConfig.endpoint, {
@@ -95,7 +97,7 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: promptContent }] }],
-          systemInstruction: { parts: [{ text: getAtsParserSkill(currentLanguage) + '\n\n' + fullLanguageInstruction }] },
+          systemInstruction: { parts: [{ text: skillUsed }] },
           generationConfig: { temperature: 0.2 }
         })
       });
@@ -129,27 +131,43 @@ export async function POST(req: NextRequest) {
         fullText = finalJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
       }
       
+      rawResponse = fullText;
       finalData = robustJsonParse(fullText);
 
     } else {
       const stream = await aiConfig.client.chat.completions.create({
         model: aiConfig.model,
         messages: [
-          { role: 'system', content: getAtsParserSkill(currentLanguage) + '\n\n' + fullLanguageInstruction },
-          { role: 'user', content: promptContent }
+          { role: 'system', content: skillUsed },
+          { role: 'user', content: userPrompt }
         ],
         temperature: aiConfig.temperature,
         stream: false,
       });
 
       const content = stream.choices[0]?.message?.content || '';
+      rawResponse = content;
       finalData = robustJsonParse(content);
     }
 
-    return NextResponse.json({ data: finalData });
+    return NextResponse.json({ 
+      data: finalData,
+      debug: {
+        skill: skillUsed,
+        userPrompt: userPrompt,
+        rawResponse: rawResponse
+      }
+    });
 
   } catch (error: any) {
     console.error("Error in parse-resume:", error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error',
+      debug: {
+        skill: skillUsed || 'N/A',
+        userPrompt: userPrompt || 'N/A',
+        rawResponse: rawResponse || 'N/A'
+      }
+    }, { status: 500 });
   }
 }
