@@ -17,21 +17,21 @@ export function getMockDataForTemplate(templateId: string): Partial<ResumeData> 
         id: "exp-1",
         position: "Tech Lead",
         company: "TechNova Solutions",
-        location: "São Paulo, SP (Híbrido)",
-        startDate: "2021-03",
-        endDate: "",
+        location: "São Paulo, SP",
+        startDate: "03/2021",
+        endDate: "Present",
         current: true,
-        description: "• Liderou equipe de 6 desenvolvedores na refatoração do principal produto SaaS da empresa, migrando de Vue.js para Next.js 14.\n• Reduziu o tempo de carregamento da página em 40% e aumentou a taxa de conversão em 15% após otimizações de Core Web Vitals.\n• Arquitetou e implementou pipeline de CI/CD no GitHub Actions, reduzindo o tempo de deploy de 45 minutos para 12 minutos.\n• Mentorou desenvolvedores júniores e conduziu code reviews semanais focados em boas práticas e segurança."
+        description: "- Liderou equipe de 6 desenvolvedores na refatoração do principal produto SaaS da empresa, migrando de Vue.js para Next.js 14.\n- Reduziu o tempo de carregamento da página em 40% e aumentou a taxa de conversão em 15% após otimizações de Core Web Vitals.\n- Arquitetou e implementou pipeline de CI/CD no GitHub Actions, reduzindo o tempo de deploy de 45 minutos para 12 minutos.\n- Mentorou desenvolvedores júniores e conduziu code reviews semanais focados em boas práticas e segurança."
       },
       {
         id: "exp-2",
         position: "Desenvolvedor Front-end Sênior",
         company: "Innovate Digital",
         location: "Remoto",
-        startDate: "2018-06",
-        endDate: "2021-02",
+        startDate: "06/2018",
+        endDate: "02/2021",
         current: false,
-        description: "• Desenvolveu a interface completa do novo portal de e-commerce utilizando React, Redux e Styled Components, faturando mais de R$ 2M no primeiro trimestre.\n• Integrou APIs RESTful complexas e sistemas de pagamento (Stripe, PayPal) com foco em resiliência e tratamento de erros.\n• Criou biblioteca interna de componentes UI padronizados, adotada por 3 times diferentes, economizando cerca de 20% do tempo de desenvolvimento de novas features."
+        description: "- Desenvolveu a interface completa do novo portal de e-commerce utilizando React, Redux e Styled Components, faturando mais de R$ 2M no primeiro trimestre.\n- Integrou APIs RESTful complexas e sistemas de pagamento (Stripe, PayPal) com foco em resiliência e tratamento de erros.\n- Criou biblioteca interna de componentes UI padronizados, adotada por 3 times diferentes, economizando cerca de 20% do tempo de desenvolvimento de novas features."
       }
     ],
     education: [
@@ -40,8 +40,8 @@ export function getMockDataForTemplate(templateId: string): Partial<ResumeData> 
         degree: "Bacharelado em Ciência da Computação",
         institution: "Universidade de São Paulo (USP)",
         location: "São Paulo, SP",
-        startDate: "2013-02",
-        endDate: "2017-12",
+        startDate: "02/2013",
+        endDate: "12/2017",
         current: false,
         description: "Bolsista de iniciação científica em Inteligência Artificial. Trabalho de Conclusão de Curso: \"Otimização de Algoritmos de Busca em Grafos Complexos\" aprovado com nota máxima."
       }
