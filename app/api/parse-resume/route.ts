@@ -13,31 +13,44 @@ function extractSectionHeadersFromText(text: string): Record<string, string> {
   
   // Common section name patterns to detect (case insensitive)
   const sectionPatterns: Record<string, string[]> = {
-    personalInfo: ['contact', 'personal', 'dados pessoais', 'informações de contato', 'informacoes de contato'],
-    summary: ['summary', 'profile', 'about', 'resumo', 'objetivo', 'professional summary'],
-    experiences: ['experience', 'employment', 'work history', 'professional experience', 'trabalho', 'experiência', 'career'],
-    education: ['education', 'academic', 'formação', 'formacao', 'escolaridade'],
-    skills: ['skills', 'competencies', 'competências', 'habilidades', 'technical skills', 'knowledge'],
-    certifications: ['certifications', 'certificates', 'certificados', 'certificações', 'certifications'],
-    projects: ['projects', 'projetos', 'portfolio'],
-    languages: ['languages', 'idiomas', 'language proficiency'],
-    volunteer: ['volunteer', 'voluntariado', 'volunteering']
+    summary: ['summary', 'profile', 'about me', 'about', 'resumo', 'objetivo', 'professional summary'],
+    experiences: ['experience', 'employment', 'work history', 'professional experience', 'trabalho', 'experiência', 'career', 'career history'],
+    education: ['education', 'academic', 'formação', 'formacao', 'escolaridade', 'academic background'],
+    skills: ['skills', 'competencies', 'competências', 'habilidades', 'technical skills', 'knowledge', 'technologies'],
+    certifications: ['certifications', 'certificates', 'certificados', 'certificações', 'certifications', 'certifications and courses'],
+    projects: ['projects', 'projetos', 'portfolio', 'personal projects'],
+    languages: ['languages', 'idiomas', 'language proficiency', 'spoken languages'],
+    volunteer: ['volunteer', 'voluntariado', 'volunteering', 'community']
   };
   
-  // Find lines that are likely section headers (short, standalone, followed by content)
+  // Skip lines that contain certain patterns (likely content, not headers)
+  const isContentLine = (line: string): boolean => {
+    const lower = line.toLowerCase();
+    // Skip if line has date patterns
+    if (/\d{4}\s*[-–]\s*\d{4}|\d{4}\s*[-–]\s*present|present/i.test(line)) return true;
+    // Skip if line has | (pipe often indicates content, not header)
+    if (line.includes('|')) return true;
+    // Skip if line has email, phone, url
+    if (/\S+@\S+\.\S+|\b\d{10,}|linkedin|github|http/i.test(line)) return true;
+    // Skip if line is very long (probably content)
+    if (line.length > 60) return true;
+    return false;
+  };
+  
+  // Find lines that are likely section headers (standalone, short, followed by content)
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lowerLine = line.toLowerCase();
     
-    // Skip lines that are too long (probably content, not headers)
-    if (line.length > 50) continue;
+    // Skip content lines
+    if (isContentLine(line)) continue;
     
     // Check if line matches any section pattern
     for (const [sectionKey, patterns] of Object.entries(sectionPatterns)) {
       for (const pattern of patterns) {
-        // Exact or near match
-        if (lowerLine === pattern || lowerLine.includes(pattern)) {
-          // Only set if not already set and line looks like a header (not in the middle of content)
+        // Exact match or line starts with pattern
+        if (lowerLine === pattern || lowerLine.startsWith(pattern + ' ') || lowerLine === ' ' + pattern) {
+          // Only set if not already set
           if (!headers[sectionKey]) {
             headers[sectionKey] = line;
           }
