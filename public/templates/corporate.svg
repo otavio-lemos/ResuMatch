@@ -1,27 +1,25 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
   
-  <rect x="40" y="35" width="320" height="60" fill="white"/>
-  <text x="40" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#111827">SEU NOME</text>
-  <text x="40" y="72" font-family="Arial, sans-serif" font-size="10" font-weight="500" fill="#4B5563">SEU CARGO ATUAL</text>
-  <text x="40" y="85" font-family="Arial, sans-serif" font-size="7" fill="#6B7280">Localização • Email • Telefone • LinkedIn</text>
+  <text x="40" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#111827">MARINA OLIVEIRA</text>
+  <text x="40" y="72" font-family="Arial, sans-serif" font-size="10" font-weight="500" fill="#4B5563">SENIOR HR BUSINESS PARTNER</text>
+  <text x="40" y="85" font-family="Arial, sans-serif" font-size="7" fill="#6B7280">Curitiba, PR • marina.hr@email.com • (41) 97777-6666 • in/marina-hr</text>
   
   <text x="40" y="115" font-family="Arial, sans-serif" font-size="8" font-weight="800" fill="#111827" text-transform="uppercase">RESUMO</text>
-  <rect x="40" y="122" width="320" height="3.5" fill="#F3F4F6"/>
-  <rect x="40" y="128" width="280" height="3.5" fill="#F3F4F6"/>
+  <text x="40" y="128" font-family="Arial, sans-serif" font-size="7.5" fill="#374151">Especialista em Gestão de Pessoas com foco em cultura organizacional e clima.</text>
+  <text x="40" y="138" font-family="Arial, sans-serif" font-size="7.5" fill="#374151">Experiência em empresas Fortune 500 liderando ciclos de performance.</text>
   
-  <text x="40" y="155" font-family="Arial, sans-serif" font-size="8" font-weight="800" fill="#111827" text-transform="uppercase">EXPERIÊNCIA</text>
+  <text x="40" y="165" font-family="Arial, sans-serif" font-size="8" font-weight="800" fill="#111827" text-transform="uppercase">EXPERIÊNCIA</text>
   
-  <text x="40" y="172" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#111827">Position Title</text>
-  <text x="100" y="172" font-family="Arial, sans-serif" font-size="8" fill="#9CA3AF">|</text>
-  <text x="110" y="172" font-family="Arial, sans-serif" font-size="8" font-weight="500" fill="#4B5563">Company Name</text>
-  <text x="360" y="172" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#6B7280">2021 – Present</text>
-  
-  <rect x="40" y="182" width="310" height="3" fill="#F3F4F6"/>
-  <rect x="40" y="188" width="320" height="3" fill="#F3F4F6"/>
-  <rect x="40" y="194" width="290" height="3" fill="#F3F4F6"/>
+  <text x="40" y="182" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#111827">HR Manager | Amazon</text>
+  <text x="360" y="182" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#6B7280">2019 – Presente</text>
+  <text x="45" y="195" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">• Desenvolveu estratégia de retenção reduzindo turnover em 18%.</text>
+  <text x="45" y="205" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">• Liderou recrutamento de 200+ posições técnicas em 12 meses.</text>
 
-  <text x="40" y="220" font-family="Arial, sans-serif" font-size="8" font-weight="800" fill="#111827" text-transform="uppercase">EDUCAÇÃO</text>
-  <text x="40" y="235" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#111827">Degree Title</text>
-  <text x="40" y="245" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">Institution Name, Year</text>
+  <text x="40" y="235" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#111827">HR Analyst | Unilever</text>
+  <text x="360" y="235" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#6B7280">2016 – 2018</text>
+  
+  <text x="40" y="265" font-family="Arial, sans-serif" font-size="8" font-weight="800" fill="#111827" text-transform="uppercase">EDUCAÇÃO</text>
+  <text x="40" y="280" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#111827">MBA em Gestão Estratégica de Pessoas</text>
+  <text x="40" y="290" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">Fundação Getulio Vargas (FGV), 2018</text>
 </svg>

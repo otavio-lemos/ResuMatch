@@ -1,24 +1,30 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
-  <text x="200" y="45" font-family="'Times New Roman', serif" font-size="14" font-weight="bold" text-anchor="middle" fill="black">SEU NOME COMPLETO</text>
-  <text x="200" y="58" font-family="'Times New Roman', serif" font-size="7" text-anchor="middle" fill="black">São Paulo, SP | (11) 99999-9999 | seu.email@exemplo.com</text>
+  <text x="200" y="45" font-family="'Times New Roman', serif" font-size="14" font-weight="bold" text-anchor="middle" fill="black">OTÁVIO AUGUSTO LEMOS</text>
+  <text x="200" y="58" font-family="'Times New Roman', serif" font-size="7" text-anchor="middle" fill="black">Brasília, DF | (61) 99999-9999 | otavio.lemos@email.com</text>
   
   <text x="40" y="85" font-family="'Times New Roman', serif" font-size="9" font-weight="bold" fill="black">RESUMO PROFISSIONAL</text>
   <line x1="40" y1="88" x2="360" y2="88" stroke="black" stroke-width="1"/>
-  <rect x="40" y="95" width="320" height="4" fill="#EEEEEE"/>
-  <rect x="40" y="102" width="280" height="4" fill="#EEEEEE"/>
+  <text x="40" y="100" font-family="'Times New Roman', serif" font-size="7.5" fill="black">Arquiteto de Soluções com mais de 10 anos de experiência em transformação digital e IA.</text>
+  <text x="40" y="110" font-family="'Times New Roman', serif" font-size="7.5" fill="black">Especialista em arquitetura cloud nativa e liderança de equipes multidisciplinares.</text>
   
-  <text x="40" y="125" font-family="'Times New Roman', serif" font-size="9" font-weight="bold" fill="black">EXPERIÊNCIA PROFISSIONAL</text>
-  <line x1="40" y1="128" x2="360" y2="128" stroke="black" stroke-width="1"/>
+  <text x="40" y="135" font-family="'Times New Roman', serif" font-size="9" font-weight="bold" fill="black">EXPERIÊNCIA PROFISSIONAL</text>
+  <line x1="40" y1="138" x2="360" y2="138" stroke="black" stroke-width="1"/>
   
-  <text x="40" y="142" font-family="'Times New Roman', serif" font-size="8" font-weight="bold" fill="black">Senior Designer</text>
-  <text x="360" y="142" font-family="'Times New Roman', serif" font-size="7" text-anchor="end" fill="black">2021 – Present</text>
-  <text x="40" y="150" font-family="'Times New Roman', serif" font-size="7" font-style="italic" fill="#333333">TechFlow Inc.</text>
-  <circle cx="45" cy="160" r="1.5" fill="black"/><rect x="50" y="158" width="260" height="3.5" fill="#EEEEEE"/>
-  <circle cx="45" cy="168" r="1.5" fill="black"/><rect x="50" y="166" width="240" height="3.5" fill="#EEEEEE"/>
+  <text x="40" y="152" font-family="'Times New Roman', serif" font-size="8" font-weight="bold" fill="black">Senior Solutions Architect</text>
+  <text x="360" y="152" font-family="'Times New Roman', serif" font-size="7" text-anchor="end" fill="black">Jan 2021 – Presente</text>
+  <text x="40" y="160" font-family="'Times New Roman', serif" font-size="7" font-style="italic" fill="#333333">TechCorp Global Solutions</text>
+  <text x="40" y="170" font-family="'Times New Roman', serif" font-size="7.5" fill="black">• Liderou migração multi-cloud reduzindo custos operacionais em 35%.</text>
+  <text x="40" y="180" font-family="'Times New Roman', serif" font-size="7.5" fill="black">• Implementou pipeline de CI/CD automatizado para 15 times de dev.</text>
 
-  <text x="40" y="190" font-family="'Times New Roman', serif" font-size="9" font-weight="bold" fill="black">FORMAÇÃO ACADÊMICA</text>
-  <line x1="40" y1="193" x2="360" y2="193" stroke="black" stroke-width="1"/>
-  <rect x="40" y="202" width="200" height="4" fill="#EEEEEE"/>
-  <rect x="40" y="210" width="150" height="4" fill="#EEEEEE"/>
+  <text x="40" y="205" font-family="'Times New Roman', serif" font-size="8" font-weight="bold" fill="black">Full Stack Developer</text>
+  <text x="360" y="205" font-family="'Times New Roman', serif" font-size="7" text-anchor="end" fill="black">Mar 2018 – Dez 2020</text>
+  <text x="40" y="213" font-family="'Times New Roman', serif" font-size="7" font-style="italic" fill="#333333">Inova Softwares Ltda.</text>
+  <text x="40" y="223" font-family="'Times New Roman', serif" font-size="7.5" fill="black">• Desenvolveu plataforma de e-commerce escalável para 1M de usuários.</text>
+
+  <text x="40" y="250" font-family="'Times New Roman', serif" font-size="9" font-weight="bold" fill="black">FORMAÇÃO ACADÊMICA</text>
+  <line x1="40" y1="253" x2="360" y2="253" stroke="black" stroke-width="1"/>
+  <text x="40" y="265" font-family="'Times New Roman', serif" font-size="8" font-weight="bold" fill="black">Bacharel em Ciência da Computação</text>
+  <text x="360" y="265" font-family="'Times New Roman', serif" font-size="7" text-anchor="end" fill="black">Concluído em 2017</text>
+  <text x="40" y="273" font-family="'Times New Roman', serif" font-size="7.5" fill="black">Universidade de Brasília (UnB)</text>
 </svg>

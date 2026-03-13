@@ -1,21 +1,21 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="#0F172A"/>
   
-  <text x="40" y="55" font-family="monospace" font-size="14" font-weight="900" fill="#3B82F6">SEU NOME</text>
-  <text x="40" y="70" font-family="monospace" font-size="6" fill="#94A3B8">email // linkedin // github // telefone</text>
+  <text x="40" y="55" font-family="monospace" font-size="14" font-weight="900" fill="#3B82F6">PEDRO_HENRIQUE.js</text>
+  <text x="40" y="70" font-family="monospace" font-size="6" fill="#94A3B8">const contact = { email: "pedro@dev.io", github: "github.com/pedro" }</text>
   
-  <text x="40" y="105" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/summary</text>
-  <rect x="40" y="115" width="300" height="3" fill="#1E293B"/>
-  <rect x="40" y="122" width="280" height="3" fill="#1E293B"/>
+  <text x="40" y="105" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/profile</text>
+  <text x="40" y="120" font-family="monospace" font-size="7" fill="#94A3B8">Software Engineer focado em sistemas distribuídos e performance.</text>
+  <text x="40" y="130" font-family="monospace" font-size="7" fill="#94A3B8">Especialista em ecossistema Node.js, Go e Kubernetes.</text>
   
-  <text x="40" y="155" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/experience</text>
+  <text x="40" y="160" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/work_history</text>
   
-  <text x="40" y="172" font-family="monospace" font-size="7" font-weight="bold" fill="#3B82F6">Senior Dev @ TechCorp</text>
-  <text x="40" y="180" font-family="monospace" font-size="6" fill="#64748B">&gt; 2021 - Present</text>
-  <rect x="40" y="188" width="290" height="2.5" fill="#1E293B"/>
-  <rect x="40" y="194" width="310" height="2.5" fill="#1E293B"/>
+  <text x="40" y="175" font-family="monospace" font-size="7" font-weight="bold" fill="#3B82F6">Lead Backend Dev @ Mercado Livre</text>
+  <text x="40" y="185" font-family="monospace" font-size="6" fill="#64748B">&gt; 2020 - Present</text>
+  <text x="40" y="195" font-family="monospace" font-size="6.5" fill="#CBD5E1">- Refatoração de microserviços reduzindo latência em 200ms.</text>
+  <text x="40" y="205" font-family="monospace" font-size="6.5" fill="#CBD5E1">- Implementação de arquitetura orientada a eventos com Kafka.</text>
 
-  <text x="40" y="230" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/skills</text>
-  <text x="40" y="245" font-family="monospace" font-size="7" fill="#3B82F6">tech:</text>
-  <text x="80" y="245" font-family="monospace" font-size="7" fill="#94A3B8">React, TS, Node, Docker</text>
+  <text x="40" y="235" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/tech_stack</text>
+  <text x="40" y="250" font-family="monospace" font-size="7" fill="#3B82F6">languages:</text>
+  <text x="110" y="250" font-family="monospace" font-size="7" fill="#94A3B8">["TypeScript", "Go", "Rust", "Python"]</text>
 </svg>

@@ -1,29 +1,25 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
   
-  <rect x="40" y="30" width="320" height="40" fill="white"/>
-  <text x="40" y="50" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#0F172A">SEU NOME</text>
-  <text x="40" y="65" font-family="Arial, sans-serif" font-size="8" font-weight="700" fill="#475569" text-transform="uppercase">SEU CARGO ATUAL</text>
+  <text x="40" y="50" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#0F172A">RICARDO ALMEIDA</text>
+  <text x="40" y="65" font-family="Arial, sans-serif" font-size="8" font-weight="700" fill="#475569" text-transform="uppercase">DIRETOR DE OPERAÇÕES FINANCEIRAS</text>
   
   <line x1="40" y1="75" x2="360" y2="75" stroke="#1E293B" stroke-width="2"/>
   
   <text x="40" y="95" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Resumo</text>
-  <rect x="40" y="102" width="320" height="3" fill="#F1F5F9"/>
-  <rect x="40" y="108" width="300" height="3" fill="#F1F5F9"/>
+  <text x="40" y="108" font-family="Arial, sans-serif" font-size="7.5" fill="#334155">Líder executivo com sólida trajetória na gestão de P&amp;L e reestruturação de ativos.</text>
+  <text x="40" y="118" font-family="Arial, sans-serif" font-size="7.5" fill="#334155">Expertise em M&amp;A e expansão internacional em mercados emergentes.</text>
   
-  <text x="40" y="130" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Experiência</text>
-  <line x1="40" y1="135" x2="360" y2="135" stroke="#E2E8F0" stroke-width="0.5"/>
+  <text x="40" y="140" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Experiência</text>
+  <line x1="40" y1="145" x2="360" y2="145" stroke="#E2E8F0" stroke-width="0.5"/>
   
-  <text x="40" y="150" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Senior Product Designer</text>
-  <text x="360" y="150" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2021 – Present</text>
-  <text x="40" y="160" font-family="Arial, sans-serif" font-size="7" font-style="italic" fill="#475569">TechFlow Solutions, São Paulo</text>
-  
-  <rect x="40" y="170" width="310" height="3" fill="#F1F5F9"/>
-  <rect x="40" y="176" width="280" height="3" fill="#F1F5F9"/>
-  
-  <text x="40" y="200" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Product Designer</text>
-  <text x="360" y="200" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2018 – 2021</text>
-  
-  <text x="40" y="230" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Educação</text>
-  <line x1="40" y1="235" x2="360" y2="235" stroke="#E2E8F0" stroke-width="0.5"/>
+  <text x="40" y="160" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Managing Director | Premier Finance</text>
+  <text x="360" y="160" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2015 – Presente</text>
+  <text x="40" y="170" font-family="Arial, sans-serif" font-size="7" font-style="italic" fill="#475569">São Paulo, Brazil</text>
+  <text x="45" y="182" font-family="Arial, sans-serif" font-size="7" fill="#334155">• Gerenciou ativos superiores a R$ 2 bilhões com retorno anual de 12%.</text>
+  <text x="45" y="192" font-family="Arial, sans-serif" font-size="7" fill="#334155">• Liderou equipe de 50 analistas em operações de alta complexidade.</text>
+
+  <text x="40" y="215" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Finance Manager | Global Bank</text>
+  <text x="360" y="215" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2010 – 2014</text>
+  <text x="45" y="227" font-family="Arial, sans-serif" font-size="7" fill="#334155">• Otimizou processos fiscais resultando em economia de R$ 5M/ano.</text>
 </svg>

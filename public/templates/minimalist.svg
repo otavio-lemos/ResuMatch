@@ -1,24 +1,24 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
   
-  <text x="200" y="55" font-family="Arial, sans-serif" font-size="16" font-weight="300" text-anchor="middle" letter-spacing="0.2em" fill="#111827">SEU NOME</text>
-  <text x="200" y="72" font-family="Arial, sans-serif" font-size="7" text-anchor="middle" letter-spacing="0.1em" fill="#6B7280">Email | Telefone | Localização | LinkedIn</text>
+  <text x="200" y="55" font-family="Arial, sans-serif" font-size="16" font-weight="300" text-anchor="middle" letter-spacing="0.2em" fill="#111827">SOFIA MARTINS</text>
+  <text x="200" y="72" font-family="Arial, sans-serif" font-size="7" text-anchor="middle" letter-spacing="0.1em" fill="#6B7280">sofia.martins@email.com | (21) 98888-5555 | Rio de Janeiro, RJ</text>
   
   <line x1="100" y1="85" x2="300" y2="85" stroke="#D1D5DB" stroke-width="1"/>
   
-  <text x="200" y="115" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-anchor="middle" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">SUMMARY</text>
-  <rect x="60" y="125" width="280" height="3" fill="#F9FAFB"/>
-  <rect x="60" y="132" width="280" height="3" fill="#F9FAFB"/>
+  <text x="200" y="115" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-anchor="middle" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">RESUMO</text>
+  <text x="60" y="130" font-family="Arial, sans-serif" font-size="7" fill="#374151">Arquiteta com foco em design sustentável e urbanismo social.</text>
+  <text x="60" y="140" font-family="Arial, sans-serif" font-size="7" fill="#374151">Paixão por transformar espaços através da luz e materiais naturais.</text>
   
-  <rect x="40" y="160" width="320" height="1" fill="#E5E7EB"/>
-  <text x="40" y="175" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">EXPERIENCE</text>
+  <rect x="40" y="165" width="320" height="1" fill="#E5E7EB"/>
+  <text x="40" y="180" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">EXPERIÊNCIA</text>
   
-  <line x1="45" y1="190" x2="45" y2="230" stroke="#E5E7EB" stroke-width="2"/>
-  <text x="55" y="195" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#111827">Position Title — Company</text>
-  <text x="360" y="195" font-family="Arial, sans-serif" font-size="6" text-anchor="end" fill="#9CA3AF">2021 – Pres.</text>
-  <rect x="55" y="205" width="280" height="3" fill="#F9FAFB"/>
-  <rect x="55" y="212" width="260" height="3" fill="#F9FAFB"/>
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="7.5" font-weight="bold" fill="#111827">Arquiteta Sênior — Studio Arq</text>
+  <text x="360" y="200" font-family="Arial, sans-serif" font-size="6" text-anchor="end" fill="#9CA3AF">2019 – Presente</text>
+  <text x="40" y="212" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">• Responsável por projetos residenciais de alto padrão no RJ.</text>
+  <text x="40" y="222" font-family="Arial, sans-serif" font-size="7" fill="#4B5563">• Coordenação de obras e gestão de fornecedores.</text>
 
   <rect x="40" y="250" width="320" height="1" fill="#E5E7EB"/>
-  <text x="40" y="265" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">EDUCATION</text>
+  <text x="40" y="265" font-family="Arial, sans-serif" font-size="6" font-weight="600" text-transform="uppercase" letter-spacing="0.15em" fill="#6B7280">FORMAÇÃO</text>
+  <text x="40" y="280" font-family="Arial, sans-serif" font-size="7.5" font-weight="bold" fill="#111827">Arquitetura e Urbanismo — UFRJ</text>
 </svg>

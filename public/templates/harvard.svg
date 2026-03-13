@@ -1,26 +1,29 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
-  <text x="200" y="45" font-family="'Georgia', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">SEU NOME COMPLETO</text>
-  <text x="200" y="58" font-family="'Georgia', serif" font-size="7" text-anchor="middle" fill="black">Cidade, Estado • (11) 99999-9999 • seu.email@exemplo.com • linkedin.com/in/perfil</text>
+  <text x="200" y="45" font-family="'Georgia', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">LUCAS MENEZES SILVA</text>
+  <text x="200" y="58" font-family="'Georgia', serif" font-size="7" text-anchor="middle" fill="black">São Paulo, Brasil • +55 11 98888-7777 • lucas.silva@email.com • linkedin.com/in/lucasms</text>
   
-  <text x="40" y="85" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">SUMMARY</text>
+  <text x="40" y="85" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EDUCATION</text>
   <line x1="40" y1="88" x2="360" y2="88" stroke="black" stroke-width="0.5"/>
-  <rect x="40" y="95" width="320" height="3.5" fill="#EEEEEE"/>
-  <rect x="40" y="102" width="290" height="3.5" fill="#EEEEEE"/>
+  <text x="40" y="100" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">Harvard Business School</text>
+  <text x="360" y="100" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">Boston, MA</text>
+  <text x="40" y="108" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Master of Business Administration (MBA)</text>
+  <text x="360" y="108" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">May 2022</text>
+  <text x="45" y="118" font-family="'Georgia', serif" font-size="7" fill="black">• Honors: Baker Scholar (Top 5% of graduating class).</text>
+  <text x="45" y="126" font-family="'Georgia', serif" font-size="7" fill="black">• Leadership: President of the Management Consulting Club.</text>
   
-  <text x="40" y="125" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EXPERIENCE</text>
-  <line x1="40" y1="128" x2="360" y2="128" stroke="black" stroke-width="0.5"/>
+  <text x="40" y="145" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EXPERIENCE</text>
+  <line x1="40" y1="148" x2="360" y2="148" stroke="black" stroke-width="0.5"/>
   
-  <text x="40" y="142" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">Position Title</text>
-  <text x="360" y="142" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2021 – Present</text>
-  <text x="40" y="150" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Company Name</text>
-  <text x="360" y="150" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">Location</text>
-  <text x="40" y="160" font-family="'Georgia', serif" font-size="7" fill="#333333">• Key achievement with metrics and STAR method.</text>
-  <text x="40" y="168" font-family="'Georgia', serif" font-size="7" fill="#333333">• Optimized operational efficiency by 20%.</text>
+  <text x="40" y="160" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">McKinsey &amp; Company</text>
+  <text x="360" y="160" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2022 – Present</text>
+  <text x="40" y="168" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Engagement Manager</text>
+  <text x="360" y="168" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">New York, NY</text>
+  <text x="45" y="178" font-family="'Georgia', serif" font-size="7" fill="#333333">• Orchestrated a strategic turnaround for a Fortune 100 retail client.</text>
+  <text x="45" y="186" font-family="'Georgia', serif" font-size="7" fill="#333333">• Identified $500M in annual efficiency gains through AI implementation.</text>
 
-  <text x="40" y="190" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EDUCATION</text>
-  <line x1="40" y1="193" x2="360" y2="193" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="205" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">University Name</text>
-  <text x="360" y="205" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2019 – 2021</text>
-  <text x="40" y="213" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Degree Name</text>
+  <text x="40" y="210" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">SKILLS &amp; INTERESTS</text>
+  <line x1="40" y1="213" x2="360" y2="213" stroke="black" stroke-width="0.5"/>
+  <text x="40" y="225" font-family="'Georgia', serif" font-size="7.5" fill="black"><tspan font-weight="bold">Languages:</tspan> English (Native), Portuguese (Fluent), Spanish (Basic).</text>
+  <text x="40" y="235" font-family="'Georgia', serif" font-size="7.5" fill="black"><tspan font-weight="bold">Technical:</tspan> Python, SQL, Tableau, Strategic Financial Modeling.</text>
 </svg>
