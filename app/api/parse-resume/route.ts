@@ -279,6 +279,15 @@ export async function POST(req: NextRequest) {
           rawResponse = fullContent;
           finalData = robustJsonParse(fullContent);
         }
+        
+        // Merge detected section headers with the AI response
+        // This ensures the frontend gets the detected headers even if AI didn't include them
+        if (Object.keys(sectionHeadersFromText).length > 0) {
+          finalData._sectionHeaders = {
+            ...(finalData._sectionHeaders || {}),
+            ...sectionHeadersFromText
+          };
+        }
 
         // Send final result
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
