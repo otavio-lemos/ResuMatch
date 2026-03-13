@@ -1268,9 +1268,11 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 @media print {
                     @page { 
                         size: ${size.width} ${size.minHeight}; 
-                        margin: 0; 
+                        margin: 15mm;
                     }
                     .page-break-indicator { display: none !important; }
+                    body { margin: 0; }
+                    .resume-container { padding: 0 !important; }
                 }
                 .page-break-indicator {
                     position: absolute;
