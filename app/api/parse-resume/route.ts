@@ -6,63 +6,6 @@ import { getAIClient, AIAuthSettings } from '@/app/actions/ai';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-// Extract section headers from raw text by detecting lines that look like section titles
-function extractSectionHeadersFromText(text: string): Record<string, string> {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const headers: Record<string, string> = {};
-  
-  // Common section name patterns to detect (case insensitive)
-  const sectionPatterns: Record<string, string[]> = {
-    summary: ['summary', 'profile', 'about me', 'about', 'resumo', 'objetivo', 'professional summary'],
-    experiences: ['experience', 'employment', 'work history', 'professional experience', 'trabalho', 'experiência', 'career', 'career history'],
-    education: ['education', 'academic', 'formação', 'formacao', 'escolaridade', 'academic background'],
-    skills: ['skills', 'competencies', 'competências', 'habilidades', 'technical skills', 'knowledge', 'technologies'],
-    certifications: ['certifications', 'certificates', 'certificados', 'certificações', 'certifications', 'certifications and courses'],
-    projects: ['projects', 'projetos', 'portfolio', 'personal projects'],
-    languages: ['languages', 'idiomas', 'language proficiency', 'spoken languages'],
-    volunteer: ['volunteer', 'voluntariado', 'volunteering', 'community']
-  };
-  
-  // Skip lines that contain certain patterns (likely content, not headers)
-  const isContentLine = (line: string): boolean => {
-    const lower = line.toLowerCase();
-    // Skip if line has date patterns
-    if (/\d{4}\s*[-–]\s*\d{4}|\d{4}\s*[-–]\s*present|present/i.test(line)) return true;
-    // Skip if line has | (pipe often indicates content, not header)
-    if (line.includes('|')) return true;
-    // Skip if line has email, phone, url
-    if (/\S+@\S+\.\S+|\b\d{10,}|linkedin|github|http/i.test(line)) return true;
-    // Skip if line is very long (probably content)
-    if (line.length > 60) return true;
-    return false;
-  };
-  
-  // Find lines that are likely section headers (standalone, short, followed by content)
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const lowerLine = line.toLowerCase();
-    
-    // Skip content lines
-    if (isContentLine(line)) continue;
-    
-    // Check if line matches any section pattern
-    for (const [sectionKey, patterns] of Object.entries(sectionPatterns)) {
-      for (const pattern of patterns) {
-        // Exact match or line starts with pattern
-        if (lowerLine === pattern || lowerLine.startsWith(pattern + ' ') || lowerLine === ' ' + pattern) {
-          // Only set if not already set
-          if (!headers[sectionKey]) {
-            headers[sectionKey] = line;
-          }
-          break;
-        }
-      }
-    }
-  }
-  
-  return headers;
-}
-
 export async function POST(req: NextRequest) {
   let skillUsed = '';
   let userPrompt = '';
@@ -113,34 +56,20 @@ export async function POST(req: NextRequest) {
             const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
             const pdfData = await pdfParse(buffer);
             pdfTextContent = pdfData.text;
-            console.log('[PARSE-RESUME] PDF extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
           } catch (e) {
             console.error("PDF parse error:", e);
           }
         } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
           pdfTextContent = (await mammoth.extractRawText({ buffer })).value;
-          console.log('[PARSE-RESUME] DOCX extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
         } else {
           pdfTextContent = buffer.toString('utf-8');
         }
 
-        // Extract section headers from the raw text BEFORE sending to AI
-        // This helps both Gemini and Ollama get the section names
-        const sectionHeadersFromText = extractSectionHeadersFromText(pdfTextContent);
-        console.log('[PARSE-RESUME] Detected section headers from text:', sectionHeadersFromText);
-
         const authSettings: AIAuthSettings = aiSettings || {};
-        if (!authSettings.provider && !authSettings.apiKey && !process.env.GEMINI_API_KEY) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No provider or API key specified' })}\n\n`));
-          controller.close();
-          return;
-        }
-
         const language = currentLanguage || 'pt';
-        // Force explicit language instruction for local/Ollama models
         const languageInstruction = language === 'pt' 
-          ? 'Responda APENAS em português brasileiro. PRESTAÇÃO DE CONTAS: Você DEVE capturar os NOMES EXATOS das seções no _sectionHeaders - use o texto original do documento, não traduza.'
-          : 'Respond ONLY in English. IMPORTANT: You MUST capture the EXACT section names in _sectionHeaders - use the original text from the document, do NOT translate.';
+          ? 'Extraia os dados do currículo rigorosamente para JSON. Use os nomes ORIGINAIS das seções em _sectionHeaders.'
+          : 'Extract resume data strictly to JSON. Use ORIGINAL section names in _sectionHeaders.';
 
         let aiConfig;
         try {
@@ -153,83 +82,59 @@ export async function POST(req: NextRequest) {
 
         const userInstructions = customPrompt ? `USER SPECIFIC RULES: ${customPrompt}\n\n` : '';
         
-        // Include detected section headers in the prompt to help the AI
-        const detectedHeadersStr = Object.keys(sectionHeadersFromText).length > 0
-          ? `\n\nSection headers found in document: ${Object.values(sectionHeadersFromText).join(', ')}`
-          : '';
-          
-        const fullLanguageInstruction = `${languageInstruction}\n\n${userInstructions}${detectedHeadersStr}`;
-        
         let promptContent: string;
         let filePart: any = null;
         
-        // For Gemini with PDF, send the PDF directly as base64
         if (aiConfig.type === 'gemini' && mimeType === 'application/pdf') {
-          const base64Data = Buffer.from(await file.arrayBuffer()).toString('base64');
-          const mimeTypePdf = 'application/pdf';
+          const base64Data = buffer.toString('base64');
           filePart = {
             inlineData: {
               data: base64Data,
-              mimeType: mimeTypePdf
+              mimeType: 'application/pdf'
             }
           };
-          promptContent = 'Analyze this resume PDF and extract all information to JSON format. Pay special attention to section headers - use the EXACT section names from the document.' + detectedHeadersStr;
-        } else if (aiConfig.type === 'gemini') {
-          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}`;
+          promptContent = 'Analyze this resume PDF and extract all information to JSON format. Follow the system instructions strictly.';
         } else {
-          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}`;
+          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}`;
         }
 
-        skillUsed = getAtsParserSkill(currentLanguage) + '\n\n' + fullLanguageInstruction;
+        skillUsed = getAtsParserSkill(currentLanguage) + '\n\n' + languageInstruction + '\n\n' + userInstructions;
         userPrompt = promptContent;
 
-        // Send skill and prompt info immediately
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: skillUsed, prompt: userPrompt })}\n\n`));
 
         if (aiConfig.type === 'gemini') {
-          // Build contents with file part if PDF
           const contents: any[] = [];
           if (filePart) {
-            contents.push({
-              parts: [
-                filePart,
-                { text: promptContent }
-              ]
-            });
+            contents.push({ parts: [filePart, { text: promptContent }] });
           } else {
-            contents.push({
-              parts: [{ text: promptContent }]
-            });
+            contents.push({ parts: [{ text: promptContent }] });
           }
           
-          // Use streaming endpoint for Gemini
           const streamingEndpoint = aiConfig.endpoint.replace(':generateContent', ':streamGenerateContent');
           const response = await fetch(streamingEndpoint, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': aiConfig.apiKey
-            },
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': aiConfig.apiKey },
             body: JSON.stringify({
               contents,
               systemInstruction: { parts: [{ text: skillUsed }] },
-              generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+              generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
             })
           });
 
           if (!response.ok) {
             if (response.status === 429) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Too many requests. Please wait a moment before trying again.' })}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Too many requests. Please wait a moment.' })}\n\n`));
             } else {
               const errorText = await response.text();
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: `AI Provider Error (${response.status}): ${errorText}` })}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: `AI Error: ${errorText}` })}\n\n`));
             }
             controller.close();
             return;
           }
 
           const reader = response.body?.getReader();
-          if (!reader) throw new Error("No reader available");
+          if (!reader) throw new Error("No reader");
 
           const decoder = new TextDecoder();
           let bufferStr = '';
@@ -240,7 +145,6 @@ export async function POST(req: NextRequest) {
             if (done) break;
             bufferStr += decoder.decode(value, { stream: true });
             
-            // Gemini stream handling: extract valid JSON objects from buffer
             let startIdx = bufferStr.indexOf('{');
             while (startIdx !== -1) {
               let endIdx = -1;
@@ -249,10 +153,7 @@ export async function POST(req: NextRequest) {
                 if (bufferStr[i] === '{') stack++;
                 else if (bufferStr[i] === '}') {
                   stack--;
-                  if (stack === 0) {
-                    endIdx = i;
-                    break;
-                  }
+                  if (stack === 0) { endIdx = i; break; }
                 }
               }
 
@@ -267,47 +168,33 @@ export async function POST(req: NextRequest) {
                   }
                   bufferStr = bufferStr.substring(endIdx + 1);
                   startIdx = bufferStr.indexOf('{');
-                } catch (e) {
-                  break; 
-                }
-              } else {
-                break; 
-              }
+                } catch (e) { break; }
+              } else { break; }
             }
           }
-          
           rawResponse = fullText;
           finalData = robustJsonParse(fullText);
-
         } else {
-          // Ollama/OpenAI with streaming
           const stream = await aiConfig.client.chat.completions.create({
             model: aiConfig.model,
-            messages: [
-              { role: 'system', content: skillUsed },
-              { role: 'user', content: userPrompt }
-            ],
-            temperature: aiConfig.temperature,
+            messages: [{ role: 'system', content: skillUsed }, { role: 'user', content: userPrompt }],
+            temperature: 0.1,
             stream: true,
             response_format: { type: 'json_object' },
           });
 
           let fullContent = '';
-          
           for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || '';
             if (content) {
               fullContent += content;
-              // Send streaming chunk
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: content })}\n\n`));
             }
           }
-          
           rawResponse = fullContent;
           finalData = robustJsonParse(fullContent);
         }
         
-        // Convert description arrays back to strings if AI returned arrays
         if (finalData) {
           ['experiences', 'education', 'projects'].forEach(section => {
             if (Array.isArray(finalData[section])) {
@@ -320,36 +207,12 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Merge detected section headers with the AI response
-        // This ensures the frontend gets the detected headers even if AI didn't include them
-        if (Object.keys(sectionHeadersFromText).length > 0) {
-          finalData._sectionHeaders = {
-            ...(finalData._sectionHeaders || {}),
-            ...sectionHeadersFromText
-          };
-        }
-
-        // Send final result
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
-          type: 'done', 
-          data: finalData,
-          debug: {
-            skill: skillUsed,
-            userPrompt: userPrompt,
-            rawResponse: rawResponse
-          }
-        })}\n\n`));
-
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', data: finalData })}\n\n`));
         controller.close();
 
       } catch (error: any) {
-        console.error("Error in parse-resume:", error);
         let errorMessage = error.message || 'Internal server error';
-        
-        if (error.status === 429 || errorMessage.toLowerCase().includes('too many requests') || errorMessage.toLowerCase().includes('rate limit')) {
-          errorMessage = 'Too many requests. Please wait a moment before trying again.';
-        }
-
+        if (error.status === 429) errorMessage = 'Too many requests.';
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
         controller.close();
       }
@@ -357,10 +220,6 @@ export async function POST(req: NextRequest) {
   });
 
   return new NextResponse(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    },
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' },
   });
 }
