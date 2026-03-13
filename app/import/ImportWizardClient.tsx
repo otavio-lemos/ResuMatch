@@ -159,12 +159,14 @@ export default function ImportWizardClient() {
         const checkHydration = () => {
             if (useImportStore.persist.hasHydrated()) {
                 setHasHydrated(true);
+                // Reset processing state on hydration to avoid stuck states
+                setIsProcessing(false);
             } else {
                 setTimeout(checkHydration, 100);
             }
         };
         checkHydration();
-    }, []);
+    }, [setIsProcessing]);
 
     const [hasValidationResult, setHasValidationResult] = useState(false);
 
@@ -221,6 +223,7 @@ export default function ImportWizardClient() {
         // Reset state FIRST
         setStep('PARSING');
         setError(null);
+        setIsProcessing(true);
         
         abortControllerRef.current = new AbortController();
         const controller = abortControllerRef.current;
