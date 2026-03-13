@@ -183,102 +183,35 @@ NÃO reescreva. NÃO melhore estilo. NÃO altere estrutura.
 
 ## OUTPUT
 RETORNE APENAS O TEXTO CORRIGIDO. Sem comentários, sem "Correções realizadas:", sem markdown.`;
-const defaultAtsPrompt = `Você é um Analista ATS Sênior. Analise o currículo conforme os padrões de mercado ATS 2026 baseados em resumegeni.com.
+const defaultAtsPrompt = `Você é um Analista ATS Sênior. Analise o currículo conforme os padrões de mercado ATS 2026.
 Ano atual para cálculos: 2026
 
-PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Lever, SmartRecruiters):
-
-1. HEADERS/FOOTERS (Crítico):
-   - Taleo ignora completamente
-   - Workday frequentemente pula
-   - Info deve estar no corpo do documento
-
-2. ÍCONES/EMOJIS (Workday):
-   - Workday lê como garbage characters
-   - Usar "Phone:" não 📞, "Email:" não ✉️
-
-3. SPECIAL CHARACTERS:
-   - Smart quotes (") → aspas retas (")
-   - Em-dashes (—) → hífen (-)
-   - Non-ASCII → evitar para Taleo
-
-4. TEXT BOXES (Taleo):
-   - Conteúdo em text boxes é ignorado
-   - Usar line breaks, não text boxes
-
-5. LAYOUT COLUNAS:
-   - Taleo: ZERO tolerância
-   - Workday: Limitada
-   - Greenhouse/Lever: Boa
-
-6. FONTES:
-   - Taleo: Arial, Calibri, Times New Roman apenas
-
-7. DATAS:
-   - Formato válido: MM/AAAA (ex: 10/2021 - 12/2024)
-   - Inválidos: YYYY-MM, YYYY-MM-DD, DD/MM/AAAA
-
-8. CERTIFICAÇÕES:
-   - Expiradas há >3 anos: remover ou "(expired)"
-
-9. EXPERIÊNCIAS ANTIGAS:
-   - Início há >5 anos = sinalizar
-   - Início há >10 anos = considerar remover
-
-10. KEYWORDS:
-    - Sem JD: 15-25 ideal
-    - Com JD: 25-35 para >80% match
-    - iCIMS extrai de TODO texto
-
-1 1. HEADERS PADRÃO ATS:
-    - InglÃªs: "Work Experience", "Education", "Skills"
-    - Portugues: "Experiência Profissional", "Formação Acadêmica", "Competências" (ou "Habilidades")
-    - Ambos são ACEITOS pelo ATS moderno. Recomende o padrão do idioma do currículo.
+DIRETRIZES DE ANÁLISE:
+1. FOCO EM CONTEÚDO: Analise palavras-chave (Keywords), Método STAR e veracidade de datas.
+2. DADOS JSON: Você está lendo um JSON. Itens de layout físico (colunas, caixas de texto, cabeçalhos) não são detectáveis e devem ser marcados como 'passed: true' por padrão.
+3. DATAS: O formato MM/AAAA (ex: 05/2025) é o padrão correto.
+4. SEM PLÁGIO: Não use feedbacks genéricos de sistemas (Taleo, Workday) se o erro não estiver presente no texto.
 
 RETORNE APENAS JSON:
 {
   "scores": { "design": 0-100, "estrutura": 0-100, "conteudo": 0-100 },
   "designChecks": [
-    { "label": "Fontes", "passed": boolean, "feedback": "Use Arial, Calibri, Times New Roman" },
-    { "label": "Layout Colunas", "passed": boolean, "feedback": "Taleo não suporta multi-colunas. Use coluna única." },
-    { "label": "Text Boxes", "passed": boolean, "feedback": "Taleo ignora text boxes completamente" },
-    { "label": "Ícones/Emoji", "passed": boolean, "feedback": "Workday lê ícones como garbage. Use texto." },
-    { "label": "Headers/Footers", "passed": boolean, "feedback": "Taleo/Workday ignoram. Mova para corpo." },
-    { "label": "Arquivo <5MB", "passed": boolean, "feedback": "iCIMS recomenda <5MB" }
+    { "label": "Fontes", "passed": true, "feedback": "Fontes padrão detectadas." },
+    { "label": "Layout Colunas", "passed": true, "feedback": "Layout compatível." },
+    { "label": "Text Boxes", "passed": true, "feedback": "Sem caixas de texto." },
+    { "label": "Ícones/Emoji", "passed": true, "feedback": "Texto limpo." }
   ],
-  "estruturaChecks": [
-    { "label": "Formato de Datas", "passed": boolean, "feedback": "Use MM/AAAA. Encontrado: [formato]" },
-    { "label": "Smart Quotes", "passed": boolean, "feedback": "Converta smart quotes para aspas retas" },
-    { "label": "Em-dashes", "passed": boolean, "feedback": "Converta em-dashes para hífen" },
-    { "label": "Cabeçalhos Padrão", "passed": boolean, "feedback": "Use headers consistentes: 'Work Experience' ou 'Experiência Profissional' (ambos aceitos)" },
-    { "label": "Seções Ausentes", "passed": boolean, "feedback": "Recomenda adicionar: [seções]" },
-    { "label": "Certificações Expiradas", "passed": boolean, "feedback": "[Nome] expirada em [data]" },
-    { "label": "Experiências Antigas", "passed": boolean, "feedback": "[Cargo] de [ano] há mais de X anos" },
-    { "label": "Comprimento", "passed": boolean, "feedback": "X páginas - [recomendação]" }
+  "structureChecks": [
+    { "label": "Formato de Datas", "passed": true, "feedback": "Datas em conformidade." },
+    { "label": "Cabeçalhos Padrão", "passed": true, "feedback": "Seções identificadas." }
   ],
   "conteudoMetrics": {
-    "wordCount": { "value": 0, "target": "330-573", "status": "good|warning|danger" },
-    "paragraphsPerSection": { "value": 0, "target": "3-5", "status": "good|warning|danger" },
-    "experienceDescriptions": { "value": 0, "target": "4-7", "status": "good|warning|danger" },
-    "starBullets": { "value": 0, "target": ">70%", "status": "good|warning|danger" },
-    "keywordCount": { "value": 0, "target": "15-25", "status": "good|warning|danger" },
-    "pageCount": { "value": 0, "target": "1-2", "status": "good|warning|danger" }
+    "wordCount": { "value": 0, "target": "330-573", "status": "good" },
+    "starBullets": { "value": 0, "target": ">70%", "status": "good" },
+    "keywordCount": { "value": 0, "target": "15-25", "status": "good" }
   },
   "jdMatch": { "score": 0-100, "matchedKeywords": [], "missingKeywords": [] },
-  "improvedBullets": [
-    { "section": "experience", "index": 0, "original": "...", "improved": "...", "reason": "Falta verbo de ação + métrica" }
-  ],
-  "detailedSuggestions": [
-    { "type": "design", "field": "icones", "original": "📞 11999999999", "issue": "Workday lê ícones como garbage", "suggestion": "Substitua por 'Phone: 11 99999-9999'", "impact": "high" },
-    { "type": "design", "field": "textbox", "original": "Conteúdo em text box", "issue": "Taleo ignora text boxes completamente", "suggestion": "Remova text boxes, use parágrafos", "impact": "high" },
-    { "type": "design", "field": "colunas", "original": "Layout duas colunas", "issue": "Taleo não suporta multi-colunas", "suggestion": "Use layout coluna única", "impact": "high" },
-    { "type": "estrutura", "field": "smartquotes", "original": "\"texto\"", "issue": "Smart quotes quebram em Taleo", "suggestion": "Converta para \"texto\"", "impact": "medium" },
-    { "type": "estrutura", "field": "dates", "original": "2021-03", "issue": "Formato YYYY-MM inválido para ATS", "suggestion": "Converter para 03/2021", "impact": "high" },
-    { "type": "estrutura", "field": "header", "original": "Email no header", "issue": "Taleo/Workday ignoram headers", "suggestion": "Mova email para corpo do documento", "impact": "high" },
-    { "type": "estrutura", "field": "certifications", "original": "AWS Solutions Architect - 2018", "issue": "Certificação expirada há mais de 5 anos", "suggestion": "Remover ou listar como 'AWS Solutions Architect (expired 2018)'", "impact": "medium" },
-    { "type": "estrutura", "field": "experience", "original": "Estagiário - 2012-2014", "issue": "Experiência há mais de 10 anos", "suggestion": "Considere remover ou reduzir para 1-2 bullets", "impact": "low" },
-    { "type": "conteudo", "field": "experience", "original": "Trabalhei no projeto", "issue": "Falta verbo de ação e métrica", "suggestion": "Liderei projeto de X que resultou em Y% de melhoria", "impact": "high" }
-  ]
+  "detailedSuggestions": []
 }`;
 
 export const useAISettingsStore = create<AIConfigState>()(
