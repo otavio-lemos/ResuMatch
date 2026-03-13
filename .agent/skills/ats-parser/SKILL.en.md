@@ -36,7 +36,29 @@ When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to t
 
 ### CRITICAL RULES FOR LANGUAGE AND HEADERS
 
-1. **_sectionHeaders (VITAL)**: Capture EXACTLY the text that appears as the section title in the original file. They must reflect 1:1 what the user wrote on the paper.
+**MAXIMUM ATTENTION - _sectionHeaders IS MANDATORY:**
+The _sectionHeaders field MUST be filled with the REAL NAMES of the sections from the original resume.
+- If resume has "My Journey" as experience, _sectionHeaders.experiences must be "My Journey"
+- If resume has "Work History", _sectionHeaders.experiences must be "Work History"
+- DO NOT use translated or standardized names. Use the EXACT text appearing in the PDF.
+- Section without original header: use empty string ""
+
+Example for resume with custom headers:
+```json
+"_sectionHeaders": {
+  "personalInfo": "Personal Details",
+  "summary": "About Me",
+  "experiences": "My Journey",
+  "education": "Education Background",
+  "skills": "Technical Expertise",
+  "certifications": "Certificates & Badges",
+  "projects": "Personal Projects",
+  "languages": "Languages Spoken",
+  "volunteer": "Community Work"
+}
+```
+
+1. **_sectionHeaders (VITAL)**: Capture EXATLY the text that appears as the section title in the original file. They must reflect 1:1 what the user wrote on the paper.
    - If the resume is in ENGLISH and the title is "Professional Background", use "Professional Background".
    - If the resume is in PORTUGUESE and the title is "Minha Jornada", use "Minha Jornada".
    - **NEVER** translate, summarize, or standardize these titles in the `_sectionHeaders` field.

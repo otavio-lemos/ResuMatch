@@ -36,12 +36,42 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
 
 ### REGRAS CRÍTICAS DE IDIOMA E CABEÇALHOS
 
-139. **_sectionHeaders (VITAL)**: Capture EXATAMENTE o texto que aparece como título da seção no arquivo original. Eles devem refletir 1:1 o que o usuário escreveu no papel.
-    - Se o currículo está em INGLÊS e o título é "Work Experience", use "Work Experience".
-    - Se o currículo está em PORTUGUÊS e o título é "Minha Jornada", use "Minha Jornada".
-    - **NUNCA** traduza, resuma ou padronize esses títulos no campo `_sectionHeaders`. Use o que está no PDF.
-    - **IGNORE** qualquer cabeçalho genérico residual como "Experience", "Education", "Certificates" que apareça isolado no fim do documento sem conteúdo associado. Estes são muitas vezes artefatos do processo de extração e NÃO devem ser incluídos nos dados parseados.
-    - **NUNCA** inclua esses labels genéricos como parte do conteúdo da seção se forem apenas palavras soltas originadas da extração.
+**ATENÇÃO MÁXIMA - _sectionHeaders É OBRIGATÓRIO:**
+O campo _sectionHeaders DEVE ser preenchido com os NOMES REAIS das seções do currículo original.
+- Se o currículo tem "Minha Jornada" como experiência, _sectionHeaders.experiences deve ser "Minha Jornada"
+- Se o currículo tem "Work History", _sectionHeaders.experiences deve ser "Work History"
+- NÃO use nomes traduzidos ou padronizados. Use o texto EXATO que aparece no PDF.
+- Seção sem cabeçalho no original: use string vazia ""
+
+Exemplo para currículo brasileiro com nomes personalizados:
+```json
+"_sectionHeaders": {
+  "personalInfo": "Dados Pessoais",
+  "summary": "Sobre Mim",
+  "experiences": "Minha Jornada",
+  "education": "Formação",
+  "skills": "O que sei fazer",
+  "certifications": "Certificados",
+  "projects": "Projetos Pessoais",
+  "languages": "Idiomas",
+  "volunteer": "Trabalho Voluntário"
+}
+```
+
+Exemplo para currículo inglês:
+```json
+"_sectionHeaders": {
+  "personalInfo": "Personal Details",
+  "summary": "About Me",
+  "experiences": "Work History",
+  "education": "Education",
+  "skills": "Technical Skills",
+  "certifications": "Certifications",
+  "projects": "Projects",
+  "languages": "Languages",
+  "volunteer": "Volunteering"
+}
+```
 
 2. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie.
 3. **description** em experiences: inclua TODOS os bullets e parágrafos.
