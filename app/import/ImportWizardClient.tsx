@@ -282,8 +282,11 @@ export default function ImportWizardClient() {
             }
 
             const extractedData = result.data;
+            const debugInfo = result.debug;
+            
             console.log('[IMPORT] Extracted data keys:', Object.keys(extractedData || {}));
             console.log('[IMPORT] personalInfo:', extractedData?.personalInfo);
+            console.log('[IMPORT] Section headers:', extractedData?._sectionHeaders);
 
             if (!extractedData?.personalInfo) {
                 console.log('[IMPORT] Invalid data - no personalInfo:', extractedData);
@@ -292,9 +295,25 @@ export default function ImportWizardClient() {
                 return;
             }
 
+            // Show complete debug info in chat
+            const skillPreview = debugInfo?.skill?.substring(0, 500) || 'N/A';
+            const promptPreview = debugInfo?.userPrompt?.substring(0, 800) || 'N/A';
+            const rawPreview = debugInfo?.rawResponse?.substring(0, 1500) || 'N/A';
+            
+            setParsingBubbles(prev => [
+                ...prev,
+                { from: 'ai', text: '⏳ Processando resposta...', delay: 0 },
+                { from: 'ai', text: `📋 SKILL USADA:\n\n${skillPreview}...`, delay: 0 },
+                { from: 'user', text: `📝 PROMPT ENVIADO:\n\n${promptPreview}...`, delay: 0 },
+                { from: 'ai', text: `📄 RESPOSTA DA IA:\n\n${rawPreview}...`, delay: 0 },
+                { from: 'ai', text: `✅ Concluído! Dados extraídos:\n${Object.keys(extractedData).join(', ')}`, delay: 0 }
+            ]);
+
+            // Store debug info for later use
+            (window as any).__importDebug = debugInfo;
+
             setParsedData(extractedData);
-            setParsingBubbles(prev => [...prev, { from: 'ai', text: `✅ Concluído! Dados: ${Object.keys(extractedData).join(', ')}`, delay: 0 }]);
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1500));
             setStep('REVIEW');
             
         } catch (err: any) {
