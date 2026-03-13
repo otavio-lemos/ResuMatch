@@ -56,11 +56,13 @@ export async function POST(req: NextRequest) {
             const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
             const pdfData = await pdfParse(buffer);
             pdfTextContent = pdfData.text;
+            console.log('[PARSE-RESUME] PDF extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
           } catch (e) {
             console.error("PDF parse error:", e);
           }
         } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
           pdfTextContent = (await mammoth.extractRawText({ buffer })).value;
+          console.log('[PARSE-RESUME] DOCX extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
         } else {
           pdfTextContent = buffer.toString('utf-8');
         }
