@@ -16,3 +16,4 @@ k8s/secret.yaml
 
 .odo
 .aider*
+data/
