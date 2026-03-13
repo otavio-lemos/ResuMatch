@@ -69,7 +69,7 @@ function ChatView({ bubbles, title, t, isProcessing, onAbort }: { bubbles: ChatB
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {bubbles.map((b, i) => (
+                {bubbles.map((b: ChatBubble) => (
                     <div key={b.id} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.sender === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
                             {b.sender === 'user' ? t('labels.me') || 'EU' : t('labels.ai') || 'IA'}
@@ -81,7 +81,6 @@ function ChatView({ bubbles, title, t, isProcessing, onAbort }: { bubbles: ChatB
                         </div>
                     </div>
                 ))}
-                {/* Show typing indicator only when processing */}
                 {isProcessing && (
                     <div className="flex gap-3">
                         <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">{t('labels.ai') || 'IA'}</div>
@@ -151,40 +150,28 @@ export default function ImportWizardClient() {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
-    
-    // No persistence anymore - always ready
     const hasHydrated = true;
 
     const [hasValidationResult, setHasValidationResult] = useState(false);
 
-    // Auto-scroll when bubbles change
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-        // Also scroll the parent container (entire page)
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, [parsingBubbles, analysingBubbles]);
 
-    // chip drag: the atsKey being dragged from the pool
     const [chipDrag, setChipDrag] = useState<string | null>(null);
-    // row drag: the row id being dragged for reorder
     const [rowDragId, setRowDragId] = useState<string | null>(null);
     const [rowDragOver, setRowDragOver] = useState<string | null>(null);
 
-    // ── Derived ──────────────────────────────────────────────────────────────
-
-    const assignedKeys = new Set(mappingRows.map(r => r.atsKey).filter(Boolean) as string[]);
+    const assignedKeys = new Set(mappingRows.map((r: MappingRow) => r.atsKey).filter(Boolean) as string[]);
     const poolChips = ATS_SECTIONS.filter(s => !assignedKeys.has(s.key));
-    const mappedRows = mappingRows.filter(r => r.userLabel.trim() && r.atsKey);
-    const allValidated = mappedRows.length > 0 && mappedRows.every(r => r.validated);
+    const mappedRows = mappingRows.filter((r: MappingRow) => r.userLabel.trim() && r.atsKey);
+    const allValidated = mappedRows.length > 0 && mappedRows.every((r: MappingRow) => r.validated);
 
-    // Curriculum sections assigned to rows
-    const assignedCurriculumLabels = new Set(mappingRows.map(r => r.userLabel.toLowerCase().trim()));
-    // Available curriculum chips (not yet mapped)
+    const assignedCurriculumLabels = new Set(mappingRows.map((r: MappingRow) => r.userLabel.toLowerCase().trim()));
     const availableCurriculumChips = curriculumChips.filter(c => !assignedCurriculumLabels.has(c.label.toLowerCase()));
-
-    // ── Upload ───────────────────────────────────────────────────────────────
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const sel = e.target.files?.[0];
@@ -198,7 +185,6 @@ export default function ImportWizardClient() {
                 setParsingBubbles([]);
             }
         }
-        // Reset input so same file can be selected again
         if (e.target) e.target.value = '';
     };
 
@@ -235,13 +221,8 @@ export default function ImportWizardClient() {
                 baseUrl: primaryAI.baseUrl
             } : null;
             
-            if (aiSettings) {
-                formData.append('aiSettings', JSON.stringify(aiSettings));
-            }
-            
-            if (importPrompt) {
-                formData.append('importPrompt', importPrompt);
-            }
+            if (aiSettings) formData.append('aiSettings', JSON.stringify(aiSettings));
+            if (importPrompt) formData.append('importPrompt', importPrompt);
             
             const response = await fetch('/api/parse-resume', {
                 method: 'POST',
@@ -282,13 +263,14 @@ export default function ImportWizardClient() {
                     try {
                         const data = JSON.parse(trimmedLine.slice(6));
                         if (data.type === 'info') {
-                            addParsingBubble({ sender: 'user', text: `PROMPT:\n${data.prompt}`, type: 'text' });
+                            addParsingBubble({ sender: 'user' as const, text: `PROMPT:\n${data.prompt}`, type: 'text' as const });
                         } else if (data.type === 'progress') {
-                            addParsingBubble({ sender: 'ai', text: data.message, type: 'progress' });
+                            addParsingBubble({ sender: 'ai' as const, text: data.message, type: 'progress' as const });
                         } else if (data.type === 'chunk') {
                             rawResponse += data.content;
-                            setParsingBubbles((prev: ChatBubble[]) => [
-                                ...prev.filter(b => b.id !== 'parsing-response'),
+                            const currentBubbles = useImportStore.getState().parsingBubbles;
+                            setParsingBubbles([
+                                ...currentBubbles.filter(b => b.id !== 'parsing-response'),
                                 { id: 'parsing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
                             ]);
                         } else if (data.type === 'done') {
@@ -318,8 +300,6 @@ export default function ImportWizardClient() {
         }
     };
 
-    // ── Row editing ───────────────────────────────────────────────────────────
-
     const updateRowLabel = (id: string, value: string) => {
         setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));
         setHasValidationResult(false);
@@ -334,8 +314,6 @@ export default function ImportWizardClient() {
         setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, atsKey: null, validated: false } : r));
         setHasValidationResult(false);
     };
-
-    // ── Chip drop ─────────────────────────────────────────────────────────────
 
     const handleChipDrop = (rowId: string, chipType?: 'ats' | 'curriculum') => {
         if (!chipDrag || rowDragId) return;
@@ -412,7 +390,7 @@ export default function ImportWizardClient() {
                 abortControllerRef.current = new AbortController();
                 const controller = abortControllerRef.current;
 
-                addAnalysingBubble({ sender: 'user', text: t('import.wantsAudit'), type: 'text' });
+                addAnalysingBubble({ sender: 'user' as const, text: t('import.wantsAudit'), type: 'text' as const });
                 
                 const aiSettings = primaryAI?.provider ? {
                     provider: primaryAI.provider,
@@ -456,8 +434,9 @@ export default function ImportWizardClient() {
                             const data = JSON.parse(trimmedLine.slice(6));
                             if (data.type === 'chunk') {
                                 rawResponse += data.content;
-                                setAnalysingBubbles((prev: ChatBubble[]) => [
-                                    ...prev.filter(b => b.id !== 'analysing-response'),
+                                const currentBubbles = useImportStore.getState().analysingBubbles;
+                                setAnalysingBubbles([
+                                    ...currentBubbles.filter(b => b.id !== 'analysing-response'),
                                     { id: 'analysing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
                                 ]);
                             } else if (data.type === 'done') {
@@ -600,7 +579,7 @@ export default function ImportWizardClient() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {mappingRows.map((row) => {
+                                            {mappingRows.map((row: MappingRow) => {
                                                 const atsSection = ATS_SECTIONS.find(s => s.key === row.atsKey);
                                                 const isMapped = row.userLabel.trim() && row.atsKey;
                                                 const isChipOver = rowDragOver === row.id && chipDrag;
@@ -608,7 +587,7 @@ export default function ImportWizardClient() {
                                                 return (
                                                     <tr key={row.id} className={`border-b border-slate-100 dark:border-slate-800 last:border-0 transition-all ${!row.userLabel.trim() && !row.atsKey ? 'opacity-40' : ''} ${isRowOver ? 'bg-blue-50 dark:bg-blue-900/10 border-t-2 border-t-blue-400' : ''} ${isChipOver ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''} ${rowDragId === row.id ? 'opacity-50' : ''}`} onDragOver={e => { e.preventDefault(); setRowDragOver(row.id); }} onDragLeave={() => setRowDragOver(null)} onDrop={(e) => { if (rowDragId) handleRowDrop(row.id); else if (chipDrag) handleChipDrop(row.id, e.dataTransfer.getData('chipType') as 'ats' | 'curriculum' || 'ats'); }}>
                                                         <td className="pl-3 pr-1 py-3 w-8"><div draggable onDragStart={() => setRowDragId(row.id)} onDragEnd={() => { setRowDragId(null); setRowDragOver(null); }} className="cursor-grab text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 flex items-center justify-center py-1 select-none" title={t('import.dragToReorder')}><GripVertical className="size-4" /></div></td>
-                                                        <td className="px-5 py-3"><div className="flex items-center gap-2"><span className={`size-2 rounded-full shrink-0 transition-colors ${isMapped ? (row.validated ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-300 dark:bg-slate-600'}`} /><div className="flex-1 flex items-center gap-2 min-w-0"><input type="text" value={row.userLabel} onChange={e => updateRowLabel(row.id, e.target.value)} placeholder={t('import.exactSectionName')} className="flex-1 text-sm text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-400 focus:outline-none py-0.5 placeholder:text-slate-300 dark:placeholder:text-slate-600 min-w-0 overflow-hidden text-ellipsis" />{row.isAiSuggestion && <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/40 text-[8px] font-black text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 uppercase tracking-tighter shrink-0 select-none">{t('import.aiSuggestion')}</span>}</div>{row.userLabel.trim() && <button onClick={() => row.isAiSuggestion ? setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r)) : clearRowLabel(row.id)} className="text-slate-300 hover:text-red-400 transition-colors shrink-0"><X className="size-3.5" /></button>}</div></td>
+                                                        <td className="px-5 py-3"><div className="flex items-center gap-2"><span className={`size-2 rounded-full shrink-0 transition-colors ${isMapped ? (row.validated ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-300 dark:bg-slate-600'}`} /><div className="flex-1 flex items-center gap-2 min-w-0"><input type="text" value={row.userLabel} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRowLabel(row.id, e.target.value)} placeholder={t('import.exactSectionName')} className="flex-1 text-sm text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-400 focus:outline-none py-0.5 placeholder:text-slate-300 dark:placeholder:text-slate-600 min-w-0 overflow-hidden text-ellipsis" />{row.isAiSuggestion && <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/40 text-[8px] font-black text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 uppercase tracking-tighter shrink-0 select-none">{t('import.aiSuggestion')}</span>}</div>{row.userLabel.trim() && <button onClick={() => row.isAiSuggestion ? setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r)) : clearRowLabel(row.id)} className="text-slate-300 hover:text-red-400 transition-colors shrink-0"><X className="size-3.5" /></button>}</div></td>
                                                         <td className={`px-5 py-3 border-l border-slate-100 dark:border-slate-800 transition-colors ${isChipOver ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>{atsSection ? <div className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight"><ArrowRight className="size-3.5 text-blue-500 shrink-0" />{atsSection.label}</span><button onClick={() => clearRowAts(row.id)} className="text-slate-300 hover:text-red-400 transition-colors"><X className="size-4" /></button></div> : <span className={`text-xs italic ${isChipOver ? 'text-blue-500 font-bold' : 'text-slate-400'}`}>{isChipOver ? t('import.dropHere') : t('import.dragAtsChip')}</span>}</td>
                                                     </tr>
                                                 );
@@ -619,12 +598,12 @@ export default function ImportWizardClient() {
                                 <div className="px-8 py-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-4">
                                     <button onClick={handleRevalidate} disabled={hasValidationResult && allValidated} className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all transition-colors flex items-center gap-3 shadow-lg shadow-orange-500/10 ${(!hasValidationResult || !allValidated) ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}><RefreshCw className={`size-4 ${!hasValidationResult ? 'animate-spin-once' : ''}`} />{t('import.validateSections')}</button>
                                     <button onClick={() => handleContinue(true)} disabled={!hasValidationResult || allValidated} className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-blue-500/10 ${hasValidationResult && !allValidated ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}>{t('import.editManually')}</button>
-                                    <button onClick={() => handleContinue(false)} disabled={!hasValidationResult || !allValidated} className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-emerald-500/10 ${hasValidationResult && allValidated ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}>{t('import.analyzeAts')}<ArrowRight className="size-4" /></button>
+                                    <button onClick={() => handleContinue(false)} disabled={!hasValidationResult || !allValidated} className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all items-center gap-3 shadow-lg shadow-emerald-500/10 ${hasValidationResult && allValidated ? 'bg-emerald-600 hover:bg-emerald-700 text-white flex' : 'hidden'}`}>{t('import.analyzeAts')}<ArrowRight className="size-4" /></button>
                                 </div>
                             </div>
                         );
                     })()}
-                    {step === 'ANALYSING' && <ChatView key="analysing" bubbles={analysingBubbles} title={t('import.analysingTitle')} t={t} isProcessing={isProcessing} onAbort={handleAbort} />}
+                    {step === 'ANALYSING' && <ChatView bubbles={analysingBubbles} title={t('import.analysingTitle')} t={t} isProcessing={isProcessing} onAbort={handleAbort} />}
                     {step === 'SAVING' && (
                         <div className="flex flex-col items-center justify-center p-16 text-center min-h-[480px]">
                             <div className="size-16 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-full flex items-center justify-center mb-6 animate-pulse"><Check className="size-7" /></div>
