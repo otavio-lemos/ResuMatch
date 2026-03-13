@@ -117,4 +117,17 @@ export const TEMPLATES: Template[] = [
         dateAdded: '2025-03-09',
         recommended: true,
     },
+    {
+        id: 'ats-optimal',
+        name: 'ATS Optimal Max',
+        style: 'ATS Estrito',
+        description: 'Template projetado especificamente para 100% de precisão de leitura em parsers modernos e antigos. Layout de coluna única sem ruídos.',
+        ats: 100,
+        imageSrc: '/templates/ats-optimal.svg',
+        sector: ['Todos'],
+        experience: ['Qualquer'],
+        popularity: 250,
+        dateAdded: '2025-03-13',
+        recommended: true,
+    },
 ];

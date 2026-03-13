@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
         let fileData: { buffer: Buffer, name: string, type: string } | null = null;
 
         const contentType = request.headers.get('content-type') || '';
-        console.log(`[Import] Request Content-Type: ${contentType}`);
 
         if (contentType.includes('application/json')) {
             const body = await request.json();
@@ -56,7 +55,6 @@ export async function POST(request: NextRequest) {
                     type: body.file.type || 'application/pdf'
                 };
             }
-            console.log('[Import] Method: JSON (New)');
         } else {
             const formData = await request.formData();
             const file = formData.get('file') as File;
@@ -72,7 +70,6 @@ export async function POST(request: NextRequest) {
                     type: file.type
                 };
             }
-            console.log(`[Import] Method: FormData (Old/Cached). Keys: ${Array.from(formData.keys()).join(', ')}`);
         }
 
         if (!fileData) {
@@ -81,9 +78,9 @@ export async function POST(request: NextRequest) {
 
         if (aiSettings) {
             const maskedKey = aiSettings.apiKey ? `${aiSettings.apiKey.substring(0, 4)}...(${aiSettings.apiKey.length} chars)` : 'EMPTY';
-            console.log(`[Import] AI Settings: Provider=${aiSettings.provider}, Key=${maskedKey}`);
+            logger.info(`Import AI Settings: Provider=${aiSettings.provider}, Key=${maskedKey}`);
         } else {
-            console.warn('[Import] NO AI SETTINGS FOUND IN REQUEST');
+            logger.warn('Import: No AI settings found in request');
         }
 
         // Extract text from file
@@ -107,14 +104,12 @@ export async function POST(request: NextRequest) {
         }
 
         const { parseResumeFromText } = await import('@/app/actions/ai');
-        console.log(`[Import] Text extracted (${text.length} chars). Starting IA parsing...`);
 
         // IA Extraction
         const { response: extractedData } = await parseResumeFromText(text, {
             ...aiSettings,
             importPrompt: aiSettings?.importPrompt
         }, language);
-        console.log(`[Import] IA parsing done. Extracted fields:`, Object.keys(extractedData));
 
         const isEn = language === 'en';
         const headers = (extractedData as any)._sectionHeaders || {};
@@ -148,7 +143,6 @@ export async function POST(request: NextRequest) {
         };
 
         const resumeId = await saveResume(finalData);
-        console.log(`[Import] Created local resume ${resumeId}. Content length check: exps=${finalData.experiences.length}`);
 
         return NextResponse.json({ success: true, resumeId, data: finalData }, { status: 201 });
     } catch (error: any) {

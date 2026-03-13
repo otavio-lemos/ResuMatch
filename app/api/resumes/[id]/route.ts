@@ -6,6 +6,14 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
+        
+        if (!id || id === 'undefined' || id === 'null') {
+            return NextResponse.json(
+                { error: 'ID inválido' },
+                { status: 400 }
+            );
+        }
+        
         const resume = await loadResume(id);
         
         if (!resume) {
@@ -17,8 +25,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         return NextResponse.json(resume);
     } catch (error: any) {
+        console.error('[API] Error loading resume:', error);
         return NextResponse.json(
-            { error: 'Erro ao carregar currículo' },
+            { error: 'Erro ao carregar currículo', details: error.message },
             { status: 500 }
         );
     }

@@ -78,7 +78,7 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
                         <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
                             {b.from === 'user' ? t('labels.me') || 'EU' : t('labels.ai') || 'IA'}
                         </div>
-                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap ${b.from === 'user'
+                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user'
                             ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl'
                             : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
                             {b.text}
@@ -142,6 +142,7 @@ export default function ImportWizardClient() {
     const [step, setStep] = useState<WizardStep>('UPLOAD');
     const [error, setError] = useState<string | null>(null);
     const [parsedData, setParsedData] = useState<ImportResumeData | null>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
     // Simple status message for debugging
@@ -156,6 +157,15 @@ export default function ImportWizardClient() {
     // Empty initial bubbles - will be populated when needed
     const [parsingBubbles, setParsingBubbles] = useState<Bubble[]>([]);
     const [analysingBubbles, setAnalysingBubbles] = useState<Bubble[]>([]);
+
+    // Auto-scroll when bubbles change
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+        // Also scroll the parent container (entire page)
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, [parsingBubbles, analysingBubbles]);
 
     // chip drag: the atsKey being dragged from the pool
     const [chipDrag, setChipDrag] = useState<string | null>(null);
@@ -205,19 +215,9 @@ export default function ImportWizardClient() {
         // Reset state FIRST
         setStep('PARSING');
         setError(null);
-        setParsingBubbles([]);
-        setStatusMessage('Iniciando...');
         
-        console.log('[IMPORT] Starting processFile');
-        console.log('[IMPORT] importAI settings:', importAI);
-        
-        // Start with empty chat - will be populated as conversation happens
-        setParsingBubbles([]);
-        setStatusMessage(`Enviando para ${importAI?.provider || 'gemini'} (${importAI?.model || 'gemini-2.0-flash'})...`);
-        
-        // Simple timeout using AbortController
         const controller = new AbortController();
-        const timeoutMs = 60000;
+        const timeoutMs = 300000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         try {
@@ -225,14 +225,14 @@ export default function ImportWizardClient() {
             formData.append('file', selectedFile);
             formData.append('language', language);
             
-            const aiSettings = (importAI?.provider && importAI?.apiKey) ? {
+            const aiSettings = (importAI?.provider) ? {
                 provider: importAI.provider,
-                apiKey: importAI.apiKey,
+                apiKey: importAI.apiKey || '',
                 model: importAI.model,
                 baseUrl: importAI.baseUrl
-            } : (primaryAI?.provider && primaryAI?.apiKey) ? {
+            } : (primaryAI?.provider) ? {
                 provider: primaryAI.provider,
-                apiKey: primaryAI.apiKey,
+                apiKey: primaryAI.apiKey || '',
                 model: primaryAI.model,
                 baseUrl: primaryAI.baseUrl
             } : null;
@@ -245,18 +245,13 @@ export default function ImportWizardClient() {
                 formData.append('importPrompt', importPrompt);
             }
             
-            console.log('[IMPORT] Starting fetch to /api/parse-resume');
-            setStatusMessage('Enviando para IA...');
+            console.log('[IMPORT] Starting fetch to /api/parse-resume (SSE)');
             
             const response = await fetch('/api/parse-resume', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
             });
-            
-            clearTimeout(timeoutId);
-            
-            console.log('[IMPORT] Got response:', response.status);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -266,55 +261,87 @@ export default function ImportWizardClient() {
                 return;
             }
 
-            // API returns JSON directly, not SSE stream
-            setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
-            setStatusMessage('Recebendo dados da IA...');
-            console.log('[IMPORT] Parsing JSON response...');
-
-            const result = await response.json();
-            console.log('[IMPORT] Response keys:', Object.keys(result));
+            // Handle SSE stream
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let skillInfo = '';
+            let promptInfo = '';
+            let rawResponse = '';
             
-            if (result.error) {
-                console.log('[IMPORT] API error:', result.error);
-                setError(result.error);
+            if (!reader) {
+                setError('Erro ao ler resposta');
                 resetToUpload();
                 return;
             }
 
-            const extractedData = result.data;
-            const debugInfo = result.debug;
-            
-            console.log('[IMPORT] Extracted data keys:', Object.keys(extractedData || {}));
-            console.log('[IMPORT] personalInfo:', extractedData?.personalInfo);
-            console.log('[IMPORT] Section headers:', extractedData?._sectionHeaders);
-
-            if (!extractedData?.personalInfo) {
-                console.log('[IMPORT] Invalid data - no personalInfo:', extractedData);
-                setError('Dados inválidos recebidos da IA');
-                resetToUpload();
-                return;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'info') {
+                                skillInfo = data.skill;
+                                promptInfo = data.prompt;
+                                setParsingBubbles(prev => [
+                                    ...prev,
+                                    { from: 'user', text: `PROMPT:\n${promptInfo}`, delay: 0 }
+                                ]);
+                            } else if (data.type === 'progress') {
+                                setParsingBubbles(prev => [
+                                    ...prev,
+                                    { from: 'ai', text: data.message, delay: 0 }
+                                ]);
+                            } else if (data.type === 'chunk') {
+                                rawResponse += data.content;
+                                // Update streaming response in real-time
+                                setParsingBubbles(prev => {
+                                    const filtered = prev.filter(b => !b.text.startsWith('RESPONSE:'));
+                                    return [
+                                        ...filtered,
+                                        { from: 'ai', text: `RESPONSE:\n${rawResponse}`, delay: 0 }
+                                    ];
+                                });
+                            } else if (data.type === 'done') {
+                                clearTimeout(timeoutId);
+                                const extractedData = data.data;
+                                const debugInfo = data.debug;
+                                
+                                console.log('[IMPORT] Extracted data keys:', Object.keys(extractedData || {}));
+                                
+                                if (!extractedData?.personalInfo) {
+                                    setError('Dados inválidos recebidos da IA');
+                                    resetToUpload();
+                                    return;
+                                }
+                                
+                                (window as any).__importDebug = debugInfo;
+                                setParsedData(extractedData);
+                                setStep('REVIEW');
+                                return;
+                            } else if (data.error) {
+                                setError(data.error);
+                                resetToUpload();
+                                return;
+                            }
+                        } catch (e) {
+                            console.log('[IMPORT] SSE parse error:', e);
+                        }
+                    }
+                }
             }
-
-            // Show complete debug info in chat
-            const skillPreview = debugInfo?.skill?.substring(0, 500) || 'N/A';
-            const promptPreview = debugInfo?.userPrompt?.substring(0, 800) || 'N/A';
-            const rawPreview = debugInfo?.rawResponse?.substring(0, 1500) || 'N/A';
             
-            setParsingBubbles(prev => [
-                ...prev,
-                { from: 'ai', text: '⏳ Processando resposta...', delay: 0 },
-                { from: 'ai', text: `📋 SKILL USADA:\n\n${skillPreview}...`, delay: 0 },
-                { from: 'user', text: `📝 PROMPT ENVIADO:\n\n${promptPreview}...`, delay: 0 },
-                { from: 'ai', text: `📄 RESPOSTA DA IA:\n\n${rawPreview}...`, delay: 0 },
-                { from: 'ai', text: `✅ Concluído! Dados extraídos:\n${Object.keys(extractedData).join(', ')}`, delay: 0 }
-            ]);
-
-            // Store debug info for later use
-            (window as any).__importDebug = debugInfo;
-
-            setParsedData(extractedData);
-            await new Promise(r => setTimeout(r, 1500));
-            setStep('REVIEW');
+            clearTimeout(timeoutId);
+            setError('Resposta incompleta');
+            resetToUpload();
             
         } catch (err: any) {
             clearTimeout(timeoutId);
@@ -436,8 +463,9 @@ export default function ImportWizardClient() {
                 ];
                 setAnalysingBubbles([...conversation]);
                 
-                const aiSettings = primaryAI ? {
-                    apiKey: primaryAI.apiKey,
+                const aiSettings = primaryAI?.provider ? {
+                    provider: primaryAI.provider,
+                    apiKey: primaryAI.apiKey || '',
                     model: primaryAI.model,
                     baseUrl: primaryAI.baseUrl
                 } : null;
@@ -454,22 +482,55 @@ export default function ImportWizardClient() {
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro na análise');
+                    const errorText = await response.text();
+                    throw new Error(`Erro ${response.status}: ${errorText}`);
                 }
 
-                // API returns JSON directly, not SSE
-                const result = await response.json();
-                console.log('[IMPORT] Analyze response keys:', Object.keys(result));
+                // Handle SSE stream for analyze
+                const reader = response.body?.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let rawResponse = '';
                 
-                if (result.error) {
-                    throw new Error(result.error);
+                if (!reader) {
+                    throw new Error('Erro ao ler resposta');
                 }
 
-                const atsResult = result.data;
-                console.log('[IMPORT] ATS Result:', atsResult);
-
-                if (atsResult) finalData.atsScore = atsResult;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.type === 'chunk') {
+                                    rawResponse += data.content;
+                                    setAnalysingBubbles(prev => {
+                                        const filtered = prev.filter(b => !b.text.startsWith('RESPONSE:'));
+                                        return [
+                                            ...filtered,
+                                            { from: 'ai', text: `RESPONSE:\n${rawResponse}`, delay: 0 }
+                                        ];
+                                    });
+                                } else if (data.type === 'done') {
+                                    const atsResult = data.data;
+                                    console.log('[IMPORT] ATS Result:', atsResult);
+                                    if (atsResult) finalData.atsScore = atsResult;
+                                } else if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (e) {
+                                console.log('[ANALYZE] SSE parse error:', e);
+                            }
+                        }
+                    }
+                }
             }
 
             setStep('SAVING');
@@ -602,7 +663,7 @@ export default function ImportWizardClient() {
                                     <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">{t('import.processing')}</span>
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                                 {statusMessage && (
                                     <div className="text-yellow-400 text-xs mb-2">{statusMessage}</div>
                                 )}
@@ -614,7 +675,7 @@ export default function ImportWizardClient() {
                                             <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
                                                 {b.from === 'user' ? 'EU' : 'IA'}
                                             </div>
-                                            <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap ${b.from === 'user' ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl' : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
+                                            <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user' ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl' : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
                                                 {b.text}
                                             </div>
                                         </div>

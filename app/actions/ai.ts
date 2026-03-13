@@ -56,7 +56,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
         return {
             type: 'openai' as const,
             client: new OpenAI({ baseURL, apiKey }),
-            model: authSettings?.model || (provider === 'ollama' ? 'llama3.2:3b' : 'gpt-3.5-turbo'),
+            model: authSettings?.model || (provider === 'ollama' ? 'qwen2.5:7b' : 'gpt-3.5-turbo'),
             temperature: authSettings?.temperature ?? 0.1,
             maxTokens: authSettings?.maxTokens ?? 4096
         };

@@ -39,7 +39,7 @@ function getScoreColorClassBg(score: number): string {
 
 interface Bubble { from: 'user' | 'ai'; text: string; delay: number; }
 
-function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; title: string; t: any, isStatic?: boolean }) {
+function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; title: string; t: (key: string) => string | undefined, isStatic?: boolean }) {
     const [visible, setVisible] = useState(isStatic ? bubbles.length : 0);
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -185,10 +185,10 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.summary && (
+            {data.summary && typeof data.summary === 'string' && (
                 <div className="border-l-2 border-emerald-500 pl-3">
                     <span className="text-[9px] font-black text-emerald-600 uppercase block mb-1">{t('sections.summary')}</span>
-                    <p className="text-slate-700 dark:text-slate-300 line-clamp-4">{data.summary}</p>
+                    <p className="text-slate-700 dark:text-slate-300 line-clamp-4 whitespace-pre-wrap">{data.summary}</p>
                 </div>
             )}
 
@@ -217,13 +217,13 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.skills && data.skills.length > 0 && (
+            {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
                 <div className="border-l-2 border-cyan-500 pl-3">
                     <span className="text-[9px] font-black text-cyan-600 uppercase block mb-2">{t('sections.skills')}</span>
-                    {data.skills.map((skillGroup, i) => (
-                        <div key={skillGroup.id || i} className="mb-2">
-                            <span className="text-[9px] font-black text-slate-500 uppercase">{skillGroup.category}</span>
-                            <p className="text-slate-700 dark:text-slate-300">{skillGroup.skills?.join(', ')}</p>
+                    {data.skills.map((skillGroup: any, i: number) => (
+                        <div key={skillGroup?.id || i} className="mb-2">
+                            <span className="text-[9px] font-black text-slate-500 uppercase">{skillGroup?.category || ''}</span>
+                            <p className="text-slate-700 dark:text-slate-300">{Array.isArray(skillGroup?.skills) ? skillGroup.skills.join(', ') : ''}</p>
                         </div>
                     ))}
                 </div>

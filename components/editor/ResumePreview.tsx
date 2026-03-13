@@ -12,6 +12,14 @@ function getCurrentLabel(lang: string = 'pt'): string {
     return LABELS[lang as keyof typeof LABELS] || LABELS.pt;
 }
 
+// ─── ATS UTILITIES ──────────────────────────────────────────────────────────────
+export function stripEmojis(text: string | null | undefined): string {
+    if (!text) return '';
+    // Regex to remove emojis and extended pictographics
+    return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+}
+
+
 // ─── ATS-SAFE FONT MAP ─────────────────────────────────────────────────────────
 const FONT_MAP: Record<string, string> = {
     'Inter': "'Inter', Arial, sans-serif",
@@ -70,17 +78,21 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 <ResumePhoto url={personalInfo.photoUrl} size="90px" />
                 <div style={{ flex: 1 }}>
                     <h2 style={{ fontSize: '2em', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a', marginBottom: '4px' }}>
-                        {personalInfo.fullName || 'SEU NOME'}
+                        {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
                     </h2>
                     <p style={{ fontSize: '1.1em', fontWeight: 500, color: '#475569', textTransform: 'uppercase', marginBottom: '12px' }}>
-                        {personalInfo.title || 'SEU CARGO'}
+                        {stripEmojis(personalInfo.title) || 'SEU CARGO'}
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.78em', color: '#64748b' }}>
-                        {personalInfo.email && <span>{personalInfo.email}</span>}
-                        {personalInfo.phone && <span>• {personalInfo.phone}</span>}
-                        {personalInfo.location && <span>• {personalInfo.location}</span>}
-                        {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
-                        {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                        {[
+                            personalInfo.email,
+                            personalInfo.phone ? `• ${personalInfo.phone}` : '',
+                            personalInfo.location ? `• ${personalInfo.location}` : '',
+                            personalInfo.linkedin ? `• ${personalInfo.linkedin}` : '',
+                            personalInfo.portfolio ? `• ${personalInfo.portfolio}` : ''
+                        ].filter(Boolean).map((item, idx) => (
+                            <span key={idx}>{stripEmojis(item)}</span>
+                        ))}
                     </div>
                 </div>
             </header>
@@ -90,9 +102,9 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
-                            <p style={{ fontSize: '0.9em', color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
+                            <p style={{ fontSize: '0.9em', color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line' }}>{stripEmojis(summary)}</p>
                         </section>
                     );
                 }
@@ -101,20 +113,20 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{exp.position}</strong>
+                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(exp.position)}</strong>
                                         <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
-                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                            {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
-                                        {exp.company}{exp.location && `, ${exp.location}`}
+                                        {stripEmojis(exp.company)}{exp.location && `, ${stripEmojis(exp.location)}`}
                                     </p>
-                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
+                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{stripEmojis(exp.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -125,15 +137,15 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '10px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                        <strong style={{ color: '#0f172a' }}>{edu.degree}</strong>
+                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(edu.degree)}</strong>
                                         <span style={{ fontSize: '0.78em', color: '#64748b' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
                                     </div>
-                                    <p style={{ fontSize: '0.85em', color: '#475569' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
+                                    <p style={{ fontSize: '0.85em', color: '#475569' }}>{stripEmojis(edu.institution)}{edu.location && `, ${stripEmojis(edu.location)}`}</p>
                                 </div>
                             ))}
                         </section>
@@ -144,11 +156,11 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 20px', fontSize: '0.88em', color: '#374151' }}>
                                 {skills.map(g => (
-                                    <div key={g.id}><strong style={{ color: '#0f172a' }}>{g.category}:</strong> {g.skills.join(', ')}</div>
+                                    <div key={g.id}><strong style={{ color: '#0f172a' }}>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}</div>
                                 ))}
                             </div>
                         </section>
@@ -160,9 +172,9 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
-                            <p style={{ fontSize: '0.9em', color: '#374151', whiteSpace: 'pre-line' }}>{section.content}</p>
+                            <p style={{ fontSize: '0.9em', color: '#374151', whiteSpace: 'pre-line' }}>{stripEmojis(section.content)}</p>
                         </section>
                     );
                 }
@@ -171,14 +183,14 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
                             <ul style={{ fontSize: '0.9em', color: '#374151', paddingLeft: '18px', listStyleType: 'disc' }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
                                         {section.id === 'certifications' && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
-                                        ) : String(item)}
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
                             </ul>
@@ -190,20 +202,20 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
-                                {section.title}
+                                {stripEmojis(section.title)}
                             </h2>
                             {(section.items as any[] || []).map(item => (
                                 <div key={item.id} style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{item.title}</strong>
+                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(item.title)}</strong>
                                         <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
                                             {item.startDate}{item.endDate && ` — ${item.endDate}`}
                                         </span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
-                                        {item.subtitle}{item.location && `, ${item.location}`}
+                                        {stripEmojis(item.subtitle)}{item.location && `, ${stripEmojis(item.location)}`}
                                     </p>
-                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
+                                    <p style={{ fontSize: '0.88em', color: '#374151', whiteSpace: 'pre-line' }}>{stripEmojis(item.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -391,17 +403,17 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 <ResumePhoto url={personalInfo.photoUrl} size="100px" />
                 <div style={{ flex: 1 }}>
                     <h2 style={{ fontSize: '2.4em', fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em', marginBottom: '4px', lineHeight: 1.1 }}>
-                        {personalInfo.fullName || 'SEU NOME'}
+                        {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
                     </h2>
                     <p style={{ fontSize: '1.1em', color: '#3b82f6', fontWeight: 600, paddingBottom: '8px', marginBottom: '8px' }}>
-                        {personalInfo.title || 'Seu Cargo Desejado'}
+                        {stripEmojis(personalInfo.title) || 'Seu Cargo Desejado'}
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: '4px', columnGap: '16px', fontSize: '0.85em', color: '#475569' }}>
-                        {personalInfo.location && <span>• {personalInfo.location}</span>}
-                        {personalInfo.email && <span>• {personalInfo.email}</span>}
-                        {personalInfo.phone && <span>• {personalInfo.phone}</span>}
-                        {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
-                        {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+                        {personalInfo.location && <span>• {stripEmojis(personalInfo.location)}</span>}
+                        {personalInfo.email && <span>• {stripEmojis(personalInfo.email)}</span>}
+                        {personalInfo.phone && <span>• {stripEmojis(personalInfo.phone)}</span>}
+                        {personalInfo.linkedin && <span>• {stripEmojis(personalInfo.linkedin)}</span>}
+                        {personalInfo.portfolio && <span>• {stripEmojis(personalInfo.portfolio)}</span>}
                     </div>
                 </div>
             </header>
@@ -413,8 +425,8 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: '0.95em', textAlign: 'justify', lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line' }}>{summary}</p>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
+                            <p style={{ fontSize: '0.95em', textAlign: 'justify', lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line' }}>{stripEmojis(summary)}</p>
                         </section>
                     );
                 }
@@ -422,17 +434,17 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.id === 'experience' && experiences.length > 0) {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '18px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: '1.05em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{exp.position}</h3>
+                                        <h3 style={{ fontSize: '1.05em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(exp.position)}</h3>
                                         <span style={{ fontSize: '0.85em', color: '#3b82f6', fontWeight: 600 }}>{exp.startDate} – {exp.current ? 'Present' : exp.endDate}</span>
                                     </div>
                                     <div style={{ fontSize: '0.95em', fontWeight: 500, color: '#475569', marginBottom: '6px' }}>
-                                        {exp.company}{exp.location && ` | ${exp.location}`}
+                                        {stripEmojis(exp.company)}{exp.location && ` | ${stripEmojis(exp.location)}`}
                                     </div>
-                                    <p style={{ fontSize: '0.9em', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.5, margin: 0 }}>{exp.description}</p>
+                                    <p style={{ fontSize: '0.9em', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.5, margin: 0 }}>{stripEmojis(exp.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -442,15 +454,15 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.id === 'education' && education.length > 0) {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{edu.degree}</h3>
+                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(edu.degree)}</h3>
                                         <span style={{ fontSize: '0.85em', color: '#64748b' }}>{edu.startDate} – {edu.endDate}</span>
                                     </div>
                                     <div style={{ fontSize: '0.95em', color: '#475569' }}>
-                                        {edu.institution}{edu.location && ` | ${edu.location}`}
+                                        {stripEmojis(edu.institution)}{edu.location && ` | ${stripEmojis(edu.location)}`}
                                     </div>
                                 </div>
                             ))}
@@ -461,11 +473,11 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.id === 'skills' && skills.length > 0) {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 24px' }}>
                                 {skills.map(g => (
                                     <div key={g.id} style={{ fontSize: '0.9em', color: '#334155' }}>
-                                        <strong style={{ color: '#0f172a' }}>{g.category}:</strong> {g.skills.join(', ')}
+                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}
                                     </div>
                                 ))}
                             </div>
@@ -476,8 +488,8 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.type === 'TEXT') {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.6, margin: 0 }}>{section.content}</p>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
+                            <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.6, margin: 0 }}>{stripEmojis(section.content)}</p>
                         </section>
                     );
                 }
@@ -486,13 +498,13 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
                             <ul style={{ fontSize: '0.9em', color: '#334155', paddingLeft: '20px', listStyleType: 'square', margin: 0 }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '6px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
-                                        ) : String(item)}
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
                             </ul>
@@ -503,15 +515,15 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                 if (section.type === 'DATED_LIST') {
                     return (
                         <section key={section.id} style={sectionStyle}>
-                            <h2 style={headingStyle}>{section.title}</h2>
+                            <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
                             {(section.items as any[] || []).map(item => (
                                 <div key={item.id} style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{item.title}</h3>
+                                        <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(item.title)}</h3>
                                         <span style={{ fontSize: '0.85em', color: '#64748b' }}>{item.startDate} – {item.endDate}</span>
                                     </div>
-                                    {item.subtitle && <div style={{ fontSize: '0.95em', color: '#475569', marginBottom: '4px' }}>{item.subtitle}{item.location && ` | ${item.location}`}</div>}
-                                    <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.5, margin: 0 }}>{item.description}</p>
+                                    {item.subtitle && <div style={{ fontSize: '0.95em', color: '#475569', marginBottom: '4px' }}>{stripEmojis(item.subtitle)}{item.location && ` | ${stripEmojis(item.location)}`}</div>}
+                                    <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.5, margin: 0 }}>{stripEmojis(item.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -1225,6 +1237,156 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
     );
 }
 
+// ─── TEMPLATE 9: ATS Optimal Max ────────────────────────────────────────────────
+function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
+    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    const style = getStyles(appearance);
+
+    // Hardcode an ATS-safe font (Times New Roman or Arial) to override any creative font from appearance,
+    // although the system appearance setting should ideally be respected if it's safe.
+    // For ATS Optimal, we enforce maximum safety.
+    const fontToUse = appearance.fontFamily === 'Inter' ? "Arial, sans-serif" : style.fontFamily;
+
+    return (
+        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '1in', boxSizing: 'border-box', fontFamily: fontToUse }}>
+            <header style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
+                </h1>
+                <div style={{ fontSize: '0.9em', color: 'black' }}>
+                    {[
+                        personalInfo.location,
+                        personalInfo.phone,
+                        personalInfo.email,
+                        personalInfo.linkedin,
+                        personalInfo.portfolio
+                    ].filter(Boolean).map(stripEmojis).join(' • ')}
+                </div>
+            </header>
+
+            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                if (section.id === 'summary' && summary) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>
+                                {stripEmojis(section.title)}
+                            </h2>
+                            <p style={{ fontSize: '1em', textAlign: 'justify', whiteSpace: 'pre-line', margin: 0 }}>
+                                {stripEmojis(summary)}
+                            </p>
+                        </section>
+                    );
+                }
+
+                if (section.id === 'experience' && experiences.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '12px' }}>
+                                {stripEmojis(section.title)}
+                            </h2>
+                            {experiences.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                                        <span>{stripEmojis(exp.position)}</span>
+                                        <span style={{ fontWeight: 'normal' }}>
+                                            {exp.startDate} — {exp.current ? currentLabel : exp.endDate}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontStyle: 'italic', marginBottom: '4px' }}>
+                                        {stripEmojis(exp.company)}{exp.location ? `, ${stripEmojis(exp.location)}` : ''}
+                                    </div>
+                                    <div style={{ fontSize: '1em', whiteSpace: 'pre-line' }}>
+                                        {stripEmojis(exp.description).split('\n').map((line, i) => {
+                                            const trimmed = line.trim();
+                                            if (!trimmed) return null;
+                                            return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
+                                                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
+                                                    <span>•</span>
+                                                    <span>{trimmed.substring(1).trim()}</span>
+                                                </div>
+                                            ) : (
+                                                <div key={i} style={{ marginBottom: '2px' }}>{trimmed}</div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'education' && education.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '12px' }}>
+                                {stripEmojis(section.title)}
+                            </h2>
+                            {education.map(edu => (
+                                <div key={edu.id} style={{ marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                                        <span>{stripEmojis(edu.degree)}</span>
+                                        <span style={{ fontWeight: 'normal' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                    </div>
+                                    <div>
+                                        {stripEmojis(edu.institution)}{edu.location ? `, ${stripEmojis(edu.location)}` : ''}
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    );
+                }
+
+                if (section.id === 'skills' && skills.length > 0) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>
+                                {stripEmojis(section.title)}
+                            </h2>
+                            <div style={{ fontSize: '1em' }}>
+                                {skills.map(g => (
+                                    <div key={g.id} style={{ marginBottom: '4px' }}>
+                                        <strong>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                }
+
+                // Generic text/lists
+                if (section.type === 'TEXT' && section.content) {
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>{stripEmojis(section.title)}</h2>
+                            <div style={{ fontSize: '1em', whiteSpace: 'pre-line' }}>{stripEmojis(section.content)}</div>
+                        </section>
+                    );
+                }
+
+                if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    const isCertSection = section.id === 'certifications';
+                    return (
+                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>{stripEmojis(section.title)}</h2>
+                            <ul style={{ fontSize: '1em', margin: 0, paddingLeft: '18px' }}>
+                                {(section.items as any[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '4px' }}>
+                                        {isCertSection && item && typeof item === 'object' && item.name ? (
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                        ) : stripEmojis(String(item))}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+}
+
 export function ResumePreview({ data: explicitData, showPageBreaks = false }: { data?: any, showPageBreaks?: boolean }) {
     const storeData = useResumeStore(state => state.data);
     const data = explicitData || storeData;
@@ -1256,6 +1418,9 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
             case 'corporate':
                 return <TemplateCorporate data={data} currentLabel={getCurrentLabel(language)} />;
 
+            case 'ats-optimal':
+                return <TemplateATSOptimal data={data} currentLabel={getCurrentLabel(language)} />;
+
             default:
                 return <TemplateClassic data={data} currentLabel={getCurrentLabel(language)} />;
         }
@@ -1278,20 +1443,25 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                     position: absolute;
                     left: 0;
                     right: 0;
-                    border-top: 2px dashed #3b82f6;
-                    opacity: 0.4;
+                    height: 24px;
+                    background-color: #f8fafc;
+                    border-top: 1px solid #e2e8f0;
+                    border-bottom: 1px solid #e2e8f0;
+                    box-shadow: inset 0 4px 6px -1px rgb(0 0 0 / 0.05), inset 0 2px 4px -2px rgb(0 0 0 / 0.05);
                     z-index: 50;
                     pointer-events: none;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    transform: translateY(-50%);
                 }
                 .page-break-label {
-                    background: #3b82f6;
-                    color: white;
-                    font-size: 8px;
-                    font-weight: 900;
+                    background: #cbd5e1;
+                    color: #475569;
+                    font-size: 9px;
+                    font-weight: 800;
                     padding: 2px 8px;
+                    border-radius: 4px;
                     text-transform: uppercase;
                     letter-spacing: 0.1em;
                 }

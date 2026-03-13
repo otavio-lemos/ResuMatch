@@ -15,53 +15,51 @@ allowed-tools: Read, Write, Edit
 
 When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to the system's JSON format, apply the following rules:
 
-### Extraction Rules (Zero Hallucination)
-- **Absolute Fidelity:** Do not invent data. If information doesn't exist in the original document, return empty string `""` or empty array `[]`.
-- **Paragraph Preservation:** Maintain original paragraph breaks using single line break (\n). Do NOT use blank line (double \n) between paragraphs. Do not remove or merge original bullets.
-- **Date Standardization:** Convert to `MM/YYYY` format (e.g., "10/2021"). If current position, use `current`: true and `endDate`: "".
-- **Skill Categorization:** Group into logical categories ("Languages", "Tools", "Soft Skills", "Frameworks", "Cloud", "Methodologies").
-- **ID Generation:** Unique short IDs (e.g., `exp-1`, `edu-1`).
+### CORRECT OUTPUT EXAMPLE:
+```json
+{
+  "personalInfo": { "fullName": "John Smith", "title": "Software Engineer", "email": "john@email.com", "phone": "+1-555-123-4567", "location": "New York, NY", "linkedin": "linkedin.com/in/john", "portfolio": "" },
+  "summary": "Professional with 10 years of experience in software development.",
+  "experiences": [
+    { "id": "exp-1", "company": "Tech Company", "position": "Senior Developer", "location": "New York", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": "- Team leadership\n- API development\n- Code review" }
+  ],
+  "education": [{ "id": "edu-1", "institution": "MIT", "degree": "Bachelor in Computer Science", "location": "Boston", "startDate": "09/2010", "endDate": "06/2014", "current": false, "description": "" }],
+  "skills": [{ "id": "skill-1", "category": "Programming", "skills": ["JavaScript", "Python", "Java"] }],
+  "certifications": [{ "id": "cert-1", "name": "AWS Solutions Architect", "issuer": "Amazon", "date": "01/2023", "expirationDate": "" }],
+  "projects": [],
+  "languages": [{ "id": "lang-1", "language": "English", "proficiency": "Native" }],
+  "volunteer": [],
+  "_sectionHeaders": { "personalInfo": "", "summary": "", "experiences": "", "education": "", "skills": "", "certifications": "", "projects": "", "languages": "", "volunteer": "" }
+}
+```
 
-### ATS Date Rules (CRITICAL)
-- **Preferred format:** MM/YYYY (e.g., "10/2021 - 12/2024")
-- **Alternative format:** "October 2021" to "December 2024"
-- **INVALID formats:** YYYY-MM, YYYY-MM-DD, DD/MM/YYYY, "2021"
-- **Note:** ATS systems calculate employment duration from dates
+### RULES:
+1. **COPY ORIGINAL TEXT** - Do not summarize, do not abbreviate
+2. **description** in experiences: include ALL bullets and paragraphs
+3. **skills**: list ALL skills found
+4. **_sectionHeaders**: leave empty "" if you don't know the real header name
+5. **Dates**: use MM/YYYY, for current use "current":true
 
-### System Prompt for Import
-```text
-You are a highly accurate Resume Data Extractor. Your only function is to read the provided document and extract information into strict JSON.
-Do not invent data. Standardize dates to MM/YYYY.
+### REQUIRED FIELDS:
+- personalInfo (with all sub-fields)
+- summary (complete text)
+- experiences (with description)
+- education
+- skills
 
-## CRITICAL TASKS:
-1. IDENTIFY THE REAL NAMES OF SECTION HEADERS in the original resume
-   - Examples: "WORK EXPERIENCE", "EXPERIENCE", "EDUCATION", "ACADEMIC BACKGROUND", "SKILLS", "SKILLS AND COMPETENCIES", etc.
-   - Each section in the resume has an original name - you MUST extract this name
-
-2. MAP each identified section to the corresponding JSON field
-
-MANDATORY OUTPUT FORMAT:
+### OUTPUT (return ONLY the JSON, no text):
+```json
 {
   "personalInfo": { "fullName": "", "title": "", "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" },
   "summary": "",
-  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY or current", "current": false, "description": "" } ],
-  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY or current", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": ["skill 1"] } ],
-  "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/YYYY", "expirationDate": "MM/YYYY or null" } ],
-  "projects": [ { "id": "proj-1", "title": "", "subtitle": "", "description": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY or current", "current": false } ],
-  "languages": [ { "id": "lang-1", "language": "", "proficiency": "" } ],
-  "volunteer": [ { "id": "vol-1", "organization": "", "role": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "description": "" } ],
-  "_sectionHeaders": {
-    "personalInfo": "ACTUAL HEADER NAME FROM RESUME",
-    "summary": "ACTUAL HEADER NAME FROM RESUME",
-    "experiences": "ACTUAL HEADER NAME FROM RESUME",
-    "education": "ACTUAL HEADER NAME FROM RESUME",
-    "skills": "ACTUAL HEADER NAME FROM RESUME",
-    "certifications": "ACTUAL HEADER NAME FROM RESUME",
-    "projects": "ACTUAL HEADER NAME FROM RESUME",
-    "languages": "ACTUAL HEADER NAME FROM RESUME",
-    "volunteer": "ACTUAL HEADER NAME FROM RESUME"
-  }
+  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "current": false, "description": "" } ],
+  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "current": false, "description": "" } ],
+  "skills": [ { "id": "skill-1", "category": "", "skills": [] } ],
+  "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/YYYY", "expirationDate": "" } ],
+  "projects": [],
+  "languages": [],
+  "volunteer": [],
+  "_sectionHeaders": {}
 }
 ```
 ########## FIM PPPAAARRRSSSIIINNNGGG

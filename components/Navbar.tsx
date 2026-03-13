@@ -194,32 +194,9 @@ export default function Navbar() {
     }
 
     if (isEditorPage) {
-      const printContent = document.getElementById('resume-print-container');
-      if (printContent) {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(`
-            <html>
-              <head>
-                <title>Currículo</title>
-                <style>
-                  body { margin: 0; padding: 0; }
-                  @media print {
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                  }
-                </style>
-              </head>
-              <body>${printContent.innerHTML}</body>
-            </html>
-          `);
-          printWindow.document.close();
-          printWindow.focus();
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 250);
-        }
-      }
+      // Dispacha um evento customizado que o Editor vai escutar
+      // para utilizar o react-to-print e preservar todo o CSS original
+      window.dispatchEvent(new CustomEvent('print-resume'));
     } else {
       // Fora do editor, se tiver ID, tenta imprimir a página atual ou vai para o editor
       window.print();

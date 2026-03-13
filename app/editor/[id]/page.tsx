@@ -49,6 +49,20 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
     }
   }, [syncStatus, router]);
 
+  useEffect(() => {
+    const handlePrintRequest = () => {
+      if (reactToPrintFn) {
+        reactToPrintFn();
+      }
+    };
+
+    window.addEventListener('print-resume', handlePrintRequest);
+    
+    return () => {
+      window.removeEventListener('print-resume', handlePrintRequest);
+    };
+  }, [reactToPrintFn]);
+
   const [isVerifying, setIsVerifying] = useState(false);
 
   const performVerification = useCallback(async () => {

@@ -81,7 +81,7 @@ describe('Test AI API Validation', () => {
     it('accepts valid http URL (local development)', () => {
       const input = {
         baseUrl: 'http://localhost:11434',
-        model: 'llama3.2:3b'
+        model: 'qwen2.5:7b'
       };
       
       const result = testAiSchema.parse(input);

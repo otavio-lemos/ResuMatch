@@ -8,7 +8,7 @@ import { getMockDataForTemplate } from '@/lib/mock-resume-data';
 import { getTranslation } from '@/hooks/useTranslation';
 import { translateResumeData } from '@/app/actions/ai';
 
-const DEFAULT_TEMPLATE_ID = 'classic';
+const DEFAULT_TEMPLATE_ID = 'ats-optimal';
 
 export type ActionResponse = {
     success: boolean;

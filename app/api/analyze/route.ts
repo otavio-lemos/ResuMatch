@@ -23,116 +23,149 @@ export async function POST(req: NextRequest) {
   let rawResponse = '';
   let finalData: any;
 
-  try {
-    const body = await req.json();
-    const validated = analyzeSchema.parse(body);
-    
-    const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = validated;
-    
-    const authSettings: AIAuthSettings = aiSettings || {};
-    if (!authSettings.provider && !authSettings.apiKey && !process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ error: 'No provider or API key specified' }, { status: 400 });
-    }
+  const encoder = new TextEncoder();
 
-    let aiConfig;
-    try {
-      aiConfig = await getAIClient(authSettings);
-    } catch (error: any) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    const basePrompt = jobDescription
-      ? `JOB DESCRIPTION: ${jobDescription}\n\nRESUME DATA (JSON): ${JSON.stringify(resumeData)}`
-      : `RESUME DATA (JSON): ${JSON.stringify(resumeData)}`;
-
-    const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
-    const finalPrompt = `${userInstructions}${basePrompt}`;
-
-    skillUsed = getAtsAnalyzerSkill(language);
-    userPrompt = finalPrompt;
-
-    if (aiConfig.type === 'gemini') {
-      const response = await fetch(aiConfig.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': aiConfig.apiKey
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: finalPrompt }] }],
-          systemInstruction: { parts: [{ text: skillUsed }] },
-          generationConfig: { temperature: 0.2 }
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return NextResponse.json({ error: errorText }, { status: 500 });
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let fullText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-      }
-
-      const finalJson = JSON.parse(buffer);
-      if (Array.isArray(finalJson)) {
-        for (const item of finalJson) {
-          const text = item.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          fullText += text;
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const body = await req.json();
+        const validated = analyzeSchema.parse(body);
+        
+        const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = validated;
+        
+        const authSettings: AIAuthSettings = aiSettings || {};
+        if (!authSettings.provider && !authSettings.apiKey && !process.env.GEMINI_API_KEY) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No provider or API key specified' })}\n\n`));
+          controller.close();
+          return;
         }
-      } else {
-        fullText = finalJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+        let aiConfig;
+        try {
+          aiConfig = await getAIClient(authSettings);
+        } catch (error: any) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message })}\n\n`));
+          controller.close();
+          return;
+        }
+
+        const basePrompt = jobDescription
+          ? `JOB DESCRIPTION: ${jobDescription}\n\nRESUME DATA (JSON): ${JSON.stringify(resumeData)}`
+          : `RESUME DATA (JSON): ${JSON.stringify(resumeData)}`;
+
+        const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
+        const finalPrompt = `${userInstructions}${basePrompt}`;
+
+        skillUsed = getAtsAnalyzerSkill(language);
+        userPrompt = finalPrompt;
+
+        // Send initial info
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: skillUsed, prompt: userPrompt })}\n\n`));
+
+        if (aiConfig.type === 'gemini') {
+          const response = await fetch(aiConfig.endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': aiConfig.apiKey
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: finalPrompt }] }],
+              systemInstruction: { parts: [{ text: skillUsed }] },
+              generationConfig: { temperature: 0.2 }
+            })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorText })}\n\n`));
+            controller.close();
+            return;
+          }
+
+          const reader = response.body?.getReader();
+          if (!reader) throw new Error("No reader available");
+
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let fullText = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+          }
+
+          const finalJson = JSON.parse(buffer);
+          if (Array.isArray(finalJson)) {
+            for (const item of finalJson) {
+              const text = item.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              fullText += text;
+            }
+          } else {
+            fullText = finalJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          }
+          
+          rawResponse = fullText;
+          finalData = robustJsonParse(fullText);
+
+        } else {
+          // Ollama/OpenAI with streaming
+          const stream = await aiConfig.client.chat.completions.create({
+            model: aiConfig.model,
+            messages: [
+              { role: 'system', content: skillUsed },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: aiConfig.temperature,
+            stream: true,
+            response_format: { type: 'json_object' },
+          });
+
+          let fullContent = '';
+          
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            if (content) {
+              fullContent += content;
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: content })}\n\n`));
+            }
+          }
+          
+          rawResponse = fullContent;
+          finalData = robustJsonParse(fullContent);
+        }
+
+        // Send final result
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+          type: 'done', 
+          data: finalData,
+          debug: {
+            skill: skillUsed,
+            userPrompt: userPrompt,
+            rawResponse: rawResponse
+          }
+        })}\n\n`));
+
+        controller.close();
+
+      } catch (error: any) {
+        console.error("Error in analyze:", error);
+        if (error instanceof ZodError) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Validation error', details: error.issues })}\n\n`));
+        } else {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message || 'Internal server error' })}\n\n`));
+        }
+        controller.close();
       }
-      
-      rawResponse = fullText;
-      finalData = robustJsonParse(fullText);
-
-    } else {
-      const stream = await aiConfig.client.chat.completions.create({
-        model: aiConfig.model,
-        messages: [
-          { role: 'system', content: skillUsed },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: aiConfig.temperature,
-        stream: false,
-      });
-
-      const content = stream.choices[0]?.message?.content || '';
-      rawResponse = content;
-      finalData = robustJsonParse(content);
     }
+  });
 
-    return NextResponse.json({ 
-      data: finalData,
-      debug: {
-        skill: skillUsed,
-        userPrompt: userPrompt,
-        rawResponse: rawResponse
-      }
-    });
-
-  } catch (error: any) {
-    console.error("Error in analyze:", error);
-    if (error instanceof ZodError) {
-      return NextResponse.json({ error: 'Validation error', details: error.issues }, { status: 400 });
-    }
-    return NextResponse.json({ 
-      error: error.message || 'Internal server error',
-      debug: {
-        skill: skillUsed || 'N/A',
-        userPrompt: userPrompt || 'N/A',
-        rawResponse: rawResponse || 'N/A'
-      }
-    }, { status: 500 });
-  }
+  return new NextResponse(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }

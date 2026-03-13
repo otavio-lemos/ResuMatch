@@ -15,53 +15,52 @@ allowed-tools: Read, Write, Edit
 
 Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) para o formato JSON do sistema, aplique as seguintes regras:
 
-### Regras de Extração (Zero Alucinação)
-- **Fidelidade Absoluta:** Não invente dados. Se uma informação não existir no documento original, retorne string vazia `""` ou array vazio `[]`.
-- **Preservação de Parágrafos:** Mantenha as quebras de parágrafo originais usando única quebra de linha (\n). Não use linha em branco (duplo \n) entre parágrafos. Não remova ou aglutine bullets originais.
-- **Padronização de Datas:** Converter para formato `MM/AAAA` (ex: "10/2021"). Se cargo atual, usar `current`: true e `endDate`: "".
-- **Categorização de Habilidades:** Agrupar em categorias lógicas ("Linguagens", "Ferramentas", "Soft Skills", "Frameworks", "Cloud", "Metodologias").
-- **Geração de IDs:** IDs curtos únicos (ex: `exp-1`, `edu-1`).
+### EXEMPLO DE SAÍDA CORRETA:
+```json
+{
+  "personalInfo": { "fullName": "João Silva", "title": "Engenheiro de Software", "email": "joao@email.com", "phone": "(11) 99999-9999", "location": "São Paulo, SP", "linkedin": "linkedin.com/in/joao", "portfolio": "" },
+  "summary": "Profissional com 10 anos de experiência em desenvolvimento de software.",
+  "experiences": [
+    { "id": "exp-1", "company": "Empresa Tech", "position": "Desenvolvedor Senior", "location": "São Paulo", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": "- Liderança de equipe\n- Desenvolvimento de APIs\n- Code review" }
+  ],
+  "education": [{ "id": "edu-1", "institution": "USP", "degree": "Bacharelado em Ciência da Computação", "location": "São Paulo", "startDate": "01/2010", "endDate": "12/2014", "current": false, "description": "" }],
+  "skills": [{ "id": "skill-1", "category": "Programação", "skills": ["JavaScript", "Python", "Java"] }],
+  "certifications": [{ "id": "cert-1", "name": "AWS Solutions Architect", "issuer": "Amazon", "date": "01/2023", "expirationDate": "" }],
+  "projects": [],
+  "languages": [{ "id": "lang-1", "language": "Português", "proficiency": "Nativo" }],
+  "volunteer": [],
+  "_sectionHeaders": { "personalInfo": "Dados Pessoais", "summary": "Resumo Profissional", "experiences": "Experiência Profissional", "education": "Formação Acadêmica", "skills": "Competências", "certifications": "Cursos e Certificações", "projects": "Projetos", "languages": "Idiomas", "volunteer": "Voluntariado" }
+}
+```
 
-### Regras de Datas para ATS (CRÍTICO)
-- **Formato preferencial:** MM/AAAA (ex: "10/2021 - 12/2024")
-- **Formato alternativo:** "Outubro 2021" a "Dezembro 2024"
-- **Formatos INVÁLIDOS:** YYYY-MM, YYYY-MM-DD, DD/MM/YYYY, apenas o ano
-- **Nota:** Sistemas ATS calculam tempo de experiência baseados nas datas
+### REGRAS:
+1. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie
+2. **description** em experiences: inclua TODOS os bullets e parágrafos
+3. **skills**: liste TODAS as habilidades encontradas
+4. **_sectionHeaders**: OBRIGATÓRIO. Capture EXATAMENTE o título da seção como escrito no documento original (ex: "Sobre Mim", "Trajetória"). Só deixe vazio "" se o documento original realmente não possuir um cabeçalho explícito para aquela seção.
+5. **Datas**: use MM/AAAA, para atual use "current":true
+6. **Sanitização ATS (Crítico):** Ignore, exclua e NUNCA inclua no JSON emojis, símbolos decorativos (📞, ✉️, 🎯) ou aspas tipográficas criadas no currículo original. Mantenha os valores puramente textuais e limpos.
 
-### System Prompt para Importação
-```text
-Você é um Extrator de Dados de Currículos de alta precisão. Sua única função é ler o documento fornecido e extrair informações para JSON rigoroso.
-Não invente dados. Padronize datas para MM/AAAA.
+### CAMPOS OBRIGATÓRIOS:
+- personalInfo (com todos os sub-campos)
+- summary (texto completo)
+- experiences (com description)
+- education
+- skills
 
-## TAREFAS CRÍTICAS:
-1. IDENTIFIQUE OS NOMES REAIS DOS CABEÇALHOS das seções no currículo original
-   - Exemplos: "EXPERIÊNCIA PROFISSIONAL", "WORK EXPERIENCE", "FORMAÇÃO ACADÊMICA", "EDUCATION", "HABILIDADES", "SKILLS", etc.
-   - Cada seção do currículo tem um nome original - você DEVE extrair esse nome
-
-2. MAPEIE cada seção identificada para o campo correspondente no JSON
-
-## FORMATO JSON OBRIGATÓRIO:
+### OUTPUT (retorne APENAS o JSON, sem texto):
+```json
 {
   "personalInfo": { "fullName": "", "title": "", "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" },
   "summary": "",
-  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false, "description": "" } ],
-  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": ["skill 1"] } ],
-  "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/AAAA", "expirationDate": "MM/AAAA ou null" } ],
-  "projects": [ { "id": "proj-1", "title": "", "subtitle": "", "description": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA ou atual", "current": false } ],
-  "languages": [ { "id": "lang-1", "language": "", "proficiency": "" } ],
-  "volunteer": [ { "id": "vol-1", "organization": "", "role": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "description": "" } ],
-  "_sectionHeaders": {
-    "personalInfo": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "summary": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "experiences": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "education": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "skills": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "certifications": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "projects": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "languages": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL",
-    "volunteer": "NOME REAL DO CABEÇALHO NO CURRÍCULO ORIGINAL"
-  }
+  "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "current": false, "description": "" } ],
+  "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "current": false, "description": "" } ],
+  "skills": [ { "id": "skill-1", "category": "", "skills": [] } ],
+  "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/AAAA", "expirationDate": "" } ],
+  "projects": [],
+  "languages": [],
+  "volunteer": [],
+  "_sectionHeaders": { "personalInfo": "NOME EXATO DO CABEÇALHO ORIGINAL", "summary": "...", "experiences": "...", "education": "...", "skills": "...", "certifications": "...", "projects": "...", "languages": "...", "volunteer": "..." }
 }
 ```
 ########## FIM PPPAAARRRSSSIIINNNGGG

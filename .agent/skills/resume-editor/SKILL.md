@@ -134,6 +134,7 @@ Transforme o texto recebido em uma lista de 4 a 6 bullets ATS-otimizados usando 
 2. Se o usuário não forneceu número → use placeholder [X%] ou [N usuários] para ele preencher depois.
 3. NUNCA invente dados concretos — use placeholders.
 4. Formato de bullet: usar hífen (-) padrão, nunca asterisco ou seta.
+5. Caracteres proibidos: emojis, símbolos decorativos. Aspas tipográficas devem ser retas.
 
 ## OUTPUT
 RETORNE APENAS OS BULLETS, um por linha. Sem introdução, sem numeração.
@@ -164,6 +165,7 @@ Risco Crítico: Alterar palavras-chave destrói a pontuação do candidato no AT
 - Números, percentuais e métricas quantitativas
 - Verbos de ação no início dos bullets — não troque por sinônimos
 - A estrutura e ordem dos bullets ou parágrafos
+- Proibido inserir emojis ou símbolos decorativos
 
 ## O QUE CORRIGIR (permitido)
 - Erros ortográficos, concordância e pontuação inconsistente.

@@ -263,7 +263,7 @@ const EMPTY_RESUME_DATA: ResumeData = {
     education: [],
     skills: [],
     projects: [],
-    templateId: 'classic',
+    templateId: 'ats-optimal',
     appearance: {
         fontFamily: 'Inter',
         fontSize: '11',
@@ -614,8 +614,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                     break;
                     
                 case 'summary':
-                    // Update summary
-                    newState.data.summary = suggestion.suggestion;
+                    // Update summary - ensure it's a string
+                    if (typeof suggestion.suggestion === 'string') {
+                        newState.data.summary = suggestion.suggestion;
+                    }
                     break;
                     
                 case 'personal':
@@ -682,7 +684,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                         break;
                         
                     case 'summary':
-                        newState.data.summary = suggestion.suggestion;
+                        // Update summary - ensure it's a string
+                        if (typeof suggestion.suggestion === 'string') {
+                            newState.data.summary = suggestion.suggestion;
+                        }
                         break;
                         
                     case 'personal':

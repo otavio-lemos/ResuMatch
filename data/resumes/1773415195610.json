@@ -1,0 +1,793 @@
+{
+  "personalInfo": {
+    "fullName": "Otavio Luis Bastos Lemos",
+    "title": "",
+    "email": "otaviera@icloud.com",
+    "phone": "+61 99890-1240",
+    "location": "Brasilia, Federal District",
+    "linkedin": "https://www.linkedin.com/in/otavio-lemos",
+    "portfolio": "",
+    "photoUrl": ""
+  },
+  "summary": "Innovative Principal Cloud Architect with 20+ years’ experience leading multi-cloud transformation for public and private sectors.",
+  "experiences": [
+    {
+      "id": "exp-1",
+      "company": "Digisystem",
+      "position": "Principal Cloud Architect",
+      "location": "Brasilia, Federal District",
+      "startDate": "05/2025",
+      "endDate": "Today",
+      "current": true,
+      "description": "Leads multi-year migration with KPIs. Cuts risks 40%; audit-ready governance. Accelerates decisions 25% via briefings. Coordinates 10+ cross-functional teams."
+    },
+    {
+      "id": "exp-2",
+      "company": "Oracle",
+      "position": "Principal Enterprise Cloud Architect",
+      "location": "Brasilia, Federal District",
+      "startDate": "12/2020",
+      "endDate": "03/2025",
+      "current": false,
+      "description": "Led transformative cloud initiatives for regulated clients. Expanded global reach via multi-region deployments. Accelerated revenue growth with emerging tech. Shortened sales cycles across numerous accounts."
+    },
+    {
+      "id": "exp-3",
+      "company": "Central IT - Governança Corporativa",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "06/2020",
+      "endDate": "12/2020",
+      "current": false,
+      "description": "Automated cloud mgmt, 99.9% uptime. Cut overhead 35%; secure data for 200+ endpoints. DevOps/Docker: Deployments weeks-to-days. RTO reduced 70%; AWS/OpenStack for 300+ users."
+    },
+    {
+      "id": "exp-4",
+      "company": "Cabal Brasil",
+      "position": "Infrastructure Analyst Senior",
+      "location": "Brasilia, Federal District",
+      "startDate": "12/2019",
+      "endDate": "06/2020",
+      "current": false,
+      "description": "Migrated 10+ apps/100+ VMs zero-downtime. 30%+ cost cuts; hybrid cloud 40-50% faster. Scalability 25% no CAPEX; 99.8% availability."
+    },
+    {
+      "id": "exp-5",
+      "company": "CITSmart Corporation",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2018",
+      "endDate": "12/2019",
+      "current": false,
+      "description": "Cut costs 30%+ via automation; zero-downtime migration of 100+ VMs. Enabled hybrid cloud (AWS/OpenStack) for 50% faster deployments and 60% more flexibility."
+    },
+    {
+      "id": "exp-6",
+      "company": "Universidade de Brasília",
+      "position": "Academic Research",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2013",
+      "endDate": "01/2018",
+      "current": false,
+      "description": "Handled auth/authz/session for MDS SUAS EMR app. Enabled nationwide secure access across Brazil."
+    },
+    {
+      "id": "exp-7",
+      "company": "Central IT - Governança Corporativa",
+      "position": "Technology Consultant",
+      "location": "Brasilia, Federal District",
+      "startDate": "01/2013",
+      "endDate": "01/2018",
+      "current": false,
+      "description": "Built AWS/OpenStack cloud for 300+ users. Achieved 99.7% availability. DevOps/Docker: Deployments weeks to days."
+    },
+    {
+      "id": "exp-8",
+      "company": "Embratel",
+      "position": "Telecommunications Specialist",
+      "location": "Brasilia, Federal District",
+      "startDate": "06/2011",
+      "endDate": "01/2013",
+      "current": false,
+      "description": "Managed DCs for 20+ clients (SLAs >98%). Led 8+ teams; downtime -45%. 250+ Linux servers; VMware/network security."
+    },
+    {
+      "id": "exp-9",
+      "company": "Embratel",
+      "position": "Earlier Career",
+      "location": "São Paulo, São Paulo",
+      "startDate": "03/2003",
+      "endDate": "06/2011",
+      "current": false,
+      "description": "Full role history and details available on LinkedIn."
+    },
+    {
+      "id": "exp-10",
+      "company": "Faculdade Exame",
+      "position": "MBA in Leadership and Management",
+      "location": "Brasilia, Brazil",
+      "startDate": "01/2026",
+      "endDate": "Present",
+      "current": true,
+      "description": "Focus: Executive leadership, high-performance team management, innovation strategy, and measurable corporate results."
+    },
+    {
+      "id": "exp-11",
+      "company": "Faculdade Exame",
+      "position": "MBA in Artificial Intelligence for Business",
+      "location": "Brasilia, Brazil",
+      "startDate": "03/2025",
+      "endDate": "12/2025",
+      "current": false,
+      "description": "Specialized in AI strategy, Generative AI Professional, and MLOps to drive enterprise business transformation via innovative, cloud-integrated AI solutions and data-driven outcomes."
+    },
+    {
+      "id": "exp-12",
+      "company": "UNB",
+      "position": "MSc in Telecommunications & Networking",
+      "location": "Brasilia, Brazil",
+      "startDate": "04/2018",
+      "endDate": "08/2019",
+      "current": false,
+      "description": "Advanced studies in telecom systems, networking protocols, and infra design—delivered key insights despite accident-related interruption."
+    },
+    {
+      "id": "exp-13",
+      "company": "Universidade Estácio de Sá",
+      "position": "BSc in Network Management",
+      "location": "São Paulo, Brazil",
+      "startDate": "01/2006",
+      "endDate": "12/2008",
+      "current": false,
+      "description": "BSc Network Management: Specialized in infrastructure design, telecom systems, and scalable enterprise connectivity."
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "institution": "Faculdade Exame",
+      "degree": "MBA in Leadership and Management",
+      "location": "Brasilia, Brazil",
+      "startDate": "01/2026",
+      "endDate": "Present",
+      "current": true,
+      "description": ""
+    },
+    {
+      "id": "edu-2",
+      "institution": "Faculdade Exame",
+      "degree": "MBA in Artificial Intelligence for Business",
+      "location": "Brasilia, Brazil",
+      "startDate": "03/2025",
+      "endDate": "12/2025",
+      "current": false,
+      "description": ""
+    },
+    {
+      "id": "edu-3",
+      "institution": "UNB",
+      "degree": "MSc in Telecommunications & Networking",
+      "location": "Brasilia, Brazil",
+      "startDate": "04/2018",
+      "endDate": "08/2019",
+      "current": false,
+      "description": ""
+    },
+    {
+      "id": "edu-4",
+      "institution": "Universidade Estácio de Sá",
+      "degree": "BSc in Network Management",
+      "location": "São Paulo, Brazil",
+      "startDate": "01/2006",
+      "endDate": "12/2008",
+      "current": false,
+      "description": ""
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "category": "",
+      "skills": [
+        "Cloud Architecture",
+        "Cloud Security",
+        "DevOps",
+        "Artificial Intelligence",
+        "Machine Learning"
+      ]
+    }
+  ],
+  "projects": [],
+  "templateId": "classic",
+  "appearance": {
+    "fontFamily": "Inter",
+    "fontSize": "11",
+    "lineSpacing": "1.5",
+    "pageSize": "A4"
+  },
+  "sectionsConfig": [
+    {
+      "id": "personal",
+      "title": "Personal Information",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "summary",
+      "title": "Professional Summary",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "experience",
+      "title": "Work Experience",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "education",
+      "title": "Education",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "type": "DATED_LIST",
+      "active": true
+    },
+    {
+      "id": "skills",
+      "title": "Skills & Competencies",
+      "type": "STANDARD",
+      "active": true
+    },
+    {
+      "id": "certifications",
+      "title": "Certifications",
+      "type": "SIMPLE_LIST",
+      "active": true,
+      "items": [
+        {
+          "id": "cert-1",
+          "name": "Scrum Foundation Professional Certification",
+          "issuer": "",
+          "date": "05/2025",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-2",
+          "name": "Oracle Cloud Infrastructure 2025 Multicloud Architect Professional",
+          "issuer": "",
+          "date": "02/2025",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-3",
+          "name": "Oracle Cloud Infrastructure 2024 Generative AI Professional",
+          "issuer": "",
+          "date": "07/2024",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-4",
+          "name": "Oracle Cloud Infrastructure 2023 Security Professional",
+          "issuer": "",
+          "date": "09/2023",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-5",
+          "name": "Oracle Cloud Infrastructure 2022 Architect Professional",
+          "issuer": "",
+          "date": "04/2023",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-6",
+          "name": "Microsoft Certified: Azure Fundamentals",
+          "issuer": "",
+          "date": "06/2020",
+          "expirationDate": ""
+        },
+        {
+          "id": "cert-7",
+          "name": "AWS Certified Cloud Practitioner",
+          "issuer": "",
+          "date": "09/2019",
+          "expirationDate": ""
+        }
+      ]
+    },
+    {
+      "id": "languages",
+      "title": "Languages",
+      "type": "TEXT",
+      "active": true,
+      "content": ""
+    },
+    {
+      "id": "volunteer",
+      "title": "Volunteering",
+      "type": "DATED_LIST",
+      "active": false,
+      "items": []
+    }
+  ],
+  "jobDescription": "",
+  "language": "en",
+  "certifications": [
+    {
+      "id": "cert-1",
+      "name": "Scrum Foundation Professional Certification",
+      "issuer": "",
+      "date": "05/2025",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-2",
+      "name": "Oracle Cloud Infrastructure 2025 Multicloud Architect Professional",
+      "issuer": "",
+      "date": "02/2025",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-3",
+      "name": "Oracle Cloud Infrastructure 2024 Generative AI Professional",
+      "issuer": "",
+      "date": "07/2024",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-4",
+      "name": "Oracle Cloud Infrastructure 2023 Security Professional",
+      "issuer": "",
+      "date": "09/2023",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-5",
+      "name": "Oracle Cloud Infrastructure 2022 Architect Professional",
+      "issuer": "",
+      "date": "04/2023",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-6",
+      "name": "Microsoft Certified: Azure Fundamentals",
+      "issuer": "",
+      "date": "06/2020",
+      "expirationDate": ""
+    },
+    {
+      "id": "cert-7",
+      "name": "AWS Certified Cloud Practitioner",
+      "issuer": "",
+      "date": "09/2019",
+      "expirationDate": ""
+    }
+  ],
+  "languages": [
+    {
+      "id": "lang-1",
+      "language": "English",
+      "proficiency": "Native"
+    }
+  ],
+  "volunteer": [],
+  "_sectionHeaders": {
+    "personalInfo": "",
+    "summary": "",
+    "experiences": "",
+    "education": "",
+    "skills": "",
+    "certifications": "",
+    "projects": "",
+    "languages": "",
+    "volunteer": ""
+  },
+  "atsScore": {
+    "scores": {
+      "design": 80,
+      "estrutura": 90,
+      "conteudo": 85
+    },
+    "designChecks": [
+      {
+        "label": "Fontes",
+        "passed": true,
+        "feedback": "Use Arial, Calibri, Times New Roman"
+      },
+      {
+        "label": "Layout Colunas",
+        "passed": true,
+        "feedback": "Taleo não suporta multi-colunas. Use coluna única."
+      },
+      {
+        "label": "Text Boxes",
+        "passed": true,
+        "feedback": "Taleo ignora text boxes completamente"
+      },
+      {
+        "label": "Ícones/Emoji",
+        "passed": true,
+        "feedback": "Workday lê ícones como garbage. Use texto."
+      },
+      {
+        "label": "Headers/Footers",
+        "passed": true,
+        "feedback": "Taleo/Workday ignoram. Mova para corpo."
+      },
+      {
+        "label": "Arquivo <5MB",
+        "passed": true,
+        "feedback": "iCIMS recomenda <5MB"
+      }
+    ],
+    "estruturaChecks": [
+      {
+        "label": "Formato de Datas",
+        "passed": true,
+        "feedback": "Use MM/AAAA. Encontrado: 10/2021 - 12/2024"
+      },
+      {
+        "label": "Smart Quotes",
+        "passed": true,
+        "feedback": "Converta smart quotes para aspas retas"
+      },
+      {
+        "label": "Em-dashes",
+        "passed": true,
+        "feedback": "Converta em-dashes para hífen"
+      },
+      {
+        "label": "Cabeçalhos Padrão",
+        "passed": true,
+        "feedback": "Use headers consistentes: 'Work Experience' ou 'Experiência Profissional' (ambos aceitos)"
+      },
+      {
+        "label": "Seções Ausentes",
+        "passed": true,
+        "feedback": "Recomenda adicionar: Experiência, Educação, Habilidades"
+      },
+      {
+        "label": "Certificações Expiradas",
+        "passed": true,
+        "feedback": "Scrum Foundation Professional Certification expirada em 05/2025"
+      },
+      {
+        "label": "Experiências Antigas",
+        "passed": true,
+        "feedback": "AWS Solutions Architect de 2018 há mais de 5 anos"
+      },
+      {
+        "label": "Comprimento",
+        "passed": true,
+        "feedback": "1 página - Recomendação: 1 página"
+      }
+    ],
+    "conteudoMetrics": {
+      "wordCount": {
+        "value": 450,
+        "target": "330-573",
+        "status": "good"
+      },
+      "paragraphsPerSection": {
+        "value": 3,
+        "target": "3-5",
+        "status": "good"
+      },
+      "experienceDescriptions": {
+        "value": 4,
+        "target": "4-7",
+        "status": "good"
+      },
+      "starBullets": {
+        "value": 70,
+        "target": ">70%",
+        "status": "good"
+      },
+      "keywordCount": {
+        "value": 20,
+        "target": "15-25",
+        "status": "good"
+      },
+      "pageCount": {
+        "value": 1,
+        "target": "1-2",
+        "status": "good"
+      }
+    },
+    "jdMatch": {
+      "score": 80,
+      "matchedKeywords": [],
+      "missingKeywords": []
+    },
+    "improvedBullets": [
+      {
+        "section": "experience",
+        "index": 0,
+        "original": "Trabalhei no projeto",
+        "improved": "Liderei projeto de X que resultou em Y% de melhoria",
+        "reason": "Falta verbo de ação + métrica"
+      }
+    ],
+    "detailedSuggestions": [
+      {
+        "type": "design",
+        "field": "icones",
+        "original": "📞 11999999999",
+        "issue": "Workday lê ícones como garbage",
+        "suggestion": "Substitua por 'Phone: 11 99999-9999'",
+        "impact": "high"
+      },
+      {
+        "type": "design",
+        "field": "textbox",
+        "original": "Conteúdo em text box",
+        "issue": "Taleo ignora text boxes completamente",
+        "suggestion": "Remova text boxes, use parágrafos",
+        "impact": "high"
+      },
+      {
+        "type": "design",
+        "field": "colunas",
+        "original": "Layout duas colunas",
+        "issue": "Taleo não suporta multi-colunas",
+        "suggestion": "Use layout coluna única",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "smartquotes",
+        "original": "",
+        "issue": "Smart quotes quebram em Taleo",
+        "suggestion": "Converta para ",
+        "impact": "medium"
+      },
+      {
+        "type": "estrutura",
+        "field": "dates",
+        "original": "2021-03",
+        "issue": "Formato YYYY-MM inválido para ATS",
+        "suggestion": "Converter para 03/2021",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "header",
+        "original": "Email no header",
+        "issue": "Taleo/Workday ignoram headers",
+        "suggestion": "Mova email para corpo do documento",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "certifications",
+        "original": "AWS Solutions Architect - 2018",
+        "issue": "Certificação expirada há mais de 5 anos",
+        "suggestion": "Remover ou listar como 'AWS Solutions Architect (expired 2018)'",
+        "impact": "medium"
+      },
+      {
+        "type": "estrutura",
+        "field": "experience",
+        "original": "Estagiário - 2012-2014",
+        "issue": "Experiência há mais de 10 anos",
+        "suggestion": "Considere remover ou reduzir para 1-2 bullets",
+        "impact": "low"
+      },
+      {
+        "type": "conteudo",
+        "field": "experience",
+        "original": "Trabalhei no projeto",
+        "issue": "Falta verbo de ação e métrica",
+        "suggestion": "Liderei projeto de X que resultou em Y% de melhoria",
+        "impact": "high"
+      }
+    ]
+  },
+  "score": 85,
+  "aiAnalysis": {
+    "scores": {
+      "design": 80,
+      "estrutura": 90,
+      "conteudo": 85
+    },
+    "designChecks": [
+      {
+        "label": "Fontes",
+        "passed": true,
+        "feedback": "Use Arial, Calibri, Times New Roman"
+      },
+      {
+        "label": "Layout Colunas",
+        "passed": true,
+        "feedback": "Taleo não suporta multi-colunas. Use coluna única."
+      },
+      {
+        "label": "Text Boxes",
+        "passed": true,
+        "feedback": "Taleo ignora text boxes completamente"
+      },
+      {
+        "label": "Ícones/Emoji",
+        "passed": true,
+        "feedback": "Workday lê ícones como garbage. Use texto."
+      },
+      {
+        "label": "Headers/Footers",
+        "passed": true,
+        "feedback": "Taleo/Workday ignoram. Mova para corpo."
+      },
+      {
+        "label": "Arquivo <5MB",
+        "passed": true,
+        "feedback": "iCIMS recomenda <5MB"
+      }
+    ],
+    "estruturaChecks": [
+      {
+        "label": "Formato de Datas",
+        "passed": true,
+        "feedback": "Use MM/AAAA. Encontrado: 10/2021 - 12/2024"
+      },
+      {
+        "label": "Smart Quotes",
+        "passed": true,
+        "feedback": "Converta smart quotes para aspas retas"
+      },
+      {
+        "label": "Em-dashes",
+        "passed": true,
+        "feedback": "Converta em-dashes para hífen"
+      },
+      {
+        "label": "Cabeçalhos Padrão",
+        "passed": true,
+        "feedback": "Use headers consistentes: 'Work Experience' ou 'Experiência Profissional' (ambos aceitos)"
+      },
+      {
+        "label": "Seções Ausentes",
+        "passed": true,
+        "feedback": "Recomenda adicionar: Experiência, Educação, Habilidades"
+      },
+      {
+        "label": "Certificações Expiradas",
+        "passed": true,
+        "feedback": "Scrum Foundation Professional Certification expirada em 05/2025"
+      },
+      {
+        "label": "Experiências Antigas",
+        "passed": true,
+        "feedback": "AWS Solutions Architect de 2018 há mais de 5 anos"
+      },
+      {
+        "label": "Comprimento",
+        "passed": true,
+        "feedback": "1 página - Recomendação: 1 página"
+      }
+    ],
+    "conteudoMetrics": {
+      "wordCount": {
+        "value": 450,
+        "target": "330-573",
+        "status": "good"
+      },
+      "paragraphsPerSection": {
+        "value": 3,
+        "target": "3-5",
+        "status": "good"
+      },
+      "experienceDescriptions": {
+        "value": 4,
+        "target": "4-7",
+        "status": "good"
+      },
+      "starBullets": {
+        "value": 70,
+        "target": ">70%",
+        "status": "good"
+      },
+      "keywordCount": {
+        "value": 20,
+        "target": "15-25",
+        "status": "good"
+      },
+      "pageCount": {
+        "value": 1,
+        "target": "1-2",
+        "status": "good"
+      }
+    },
+    "jdMatch": {
+      "score": 80,
+      "matchedKeywords": [],
+      "missingKeywords": []
+    },
+    "improvedBullets": [
+      {
+        "section": "experience",
+        "index": 0,
+        "original": "Trabalhei no projeto",
+        "improved": "Liderei projeto de X que resultou em Y% de melhoria",
+        "reason": "Falta verbo de ação + métrica"
+      }
+    ],
+    "detailedSuggestions": [
+      {
+        "type": "design",
+        "field": "icones",
+        "original": "📞 11999999999",
+        "issue": "Workday lê ícones como garbage",
+        "suggestion": "Substitua por 'Phone: 11 99999-9999'",
+        "impact": "high"
+      },
+      {
+        "type": "design",
+        "field": "textbox",
+        "original": "Conteúdo em text box",
+        "issue": "Taleo ignora text boxes completamente",
+        "suggestion": "Remova text boxes, use parágrafos",
+        "impact": "high"
+      },
+      {
+        "type": "design",
+        "field": "colunas",
+        "original": "Layout duas colunas",
+        "issue": "Taleo não suporta multi-colunas",
+        "suggestion": "Use layout coluna única",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "smartquotes",
+        "original": "",
+        "issue": "Smart quotes quebram em Taleo",
+        "suggestion": "Converta para ",
+        "impact": "medium"
+      },
+      {
+        "type": "estrutura",
+        "field": "dates",
+        "original": "2021-03",
+        "issue": "Formato YYYY-MM inválido para ATS",
+        "suggestion": "Converter para 03/2021",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "header",
+        "original": "Email no header",
+        "issue": "Taleo/Workday ignoram headers",
+        "suggestion": "Mova email para corpo do documento",
+        "impact": "high"
+      },
+      {
+        "type": "estrutura",
+        "field": "certifications",
+        "original": "AWS Solutions Architect - 2018",
+        "issue": "Certificação expirada há mais de 5 anos",
+        "suggestion": "Remover ou listar como 'AWS Solutions Architect (expired 2018)'",
+        "impact": "medium"
+      },
+      {
+        "type": "estrutura",
+        "field": "experience",
+        "original": "Estagiário - 2012-2014",
+        "issue": "Experiência há mais de 10 anos",
+        "suggestion": "Considere remover ou reduzir para 1-2 bullets",
+        "impact": "low"
+      },
+      {
+        "type": "conteudo",
+        "field": "experience",
+        "original": "Trabalhei no projeto",
+        "issue": "Falta verbo de ação e métrica",
+        "suggestion": "Liderei projeto de X que resultou em Y% de melhoria",
+        "impact": "high"
+      }
+    ],
+    "score": 85
+  }
+}

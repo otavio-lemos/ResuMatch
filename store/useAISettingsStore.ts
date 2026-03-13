@@ -67,7 +67,7 @@ const defaultEditorAISettings: AISettings = {
   model: 'gemini-2.5-flash', temperature: 0.3, topP: 0.9, topK: 40, maxTokens: 2048, frequencyPenalty: 0, presencePenalty: 0, timeout: 60000,
 };
 
-const defaultImportPrompt = "Analise o currículo e extraia todas as informações relevantes.";
+const defaultImportPrompt = "Analise o currículo e extraia as informações rigorosamente no formato JSON exigido. REMOVA, IGNORANDO TOTALMENTE, qualquer emoji, ícone ou símbolo decorativo presente no texto original. Limpe a formatação para 100% texto puro focado em parsing ATS. ATENÇÃO: É vital que você preencha a chave `_sectionHeaders` com os NOMES EXATOS E ORIGINAIS das seções agrupadas (ex: 'Trajetória', 'Sobre').";
 const defaultSummaryPrompt = `Você é um redator de currículos de elite, especializado em ATS (Workday, Taleo, Greenhouse).
 
 ## CONTEXTO DO CANDIDATO

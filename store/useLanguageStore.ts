@@ -29,7 +29,9 @@ export function getInitialLanguage(): Language {
       if (parsed.state?.language) {
         return parsed.state.language;
       }
-    } catch {}
+    } catch (e) {
+      // Invalid JSON in storage, use default
+    }
   }
   
   const browserLang = navigator.language.toLowerCase();
