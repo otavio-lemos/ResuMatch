@@ -266,67 +266,24 @@ export default function ImportWizardClient() {
                 return;
             }
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-                setError('Erro ao ler resposta do servidor');
+            // API returns JSON directly, not SSE stream
+            setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
+            setStatusMessage('Recebendo dados da IA...');
+            console.log('[IMPORT] Parsing JSON response...');
+
+            const result = await response.json();
+            console.log('[IMPORT] Response keys:', Object.keys(result));
+            
+            if (result.error) {
+                console.log('[IMPORT] API error:', result.error);
+                setError(result.error);
                 resetToUpload();
                 return;
             }
 
-            const decoder = new TextDecoder();
-            let extractedData: any = null;
-            let aiMessage = '';
-            
-            setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
-            setStatusMessage('Recebendo dados da IA...');
-            console.log('[IMPORT] Starting to read response stream...');
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            console.log('[IMPORT] Received data type:', data.type);
-                            
-                            if (data.type === 'progress' || data.type === 'skill' || data.type === 'prompt') {
-                                setParsingBubbles(prev => [...prev, { 
-                                    from: 'ai' as const, 
-                                    text: data.message || data.content || 'Processando...', 
-                                    delay: 0 
-                                }]);
-                            } else if (data.type === 'chunk') {
-                                aiMessage += data.content;
-                                setParsingBubbles(prev => {
-                                    const newBubbles = [...prev];
-                                    // Update last AI message
-                                    const lastAiIndex = newBubbles.findLastIndex(b => b.from === 'ai');
-                                    if (lastAiIndex >= 0) {
-                                        newBubbles[lastAiIndex] = { ...newBubbles[lastAiIndex], text: aiMessage };
-                                    }
-                                    return newBubbles;
-                                });
-                            } else if (data.type === 'complete') {
-                                extractedData = data.data;
-                                console.log('[IMPORT] Complete, data keys:', Object.keys(extractedData || {}));
-                                console.log('[IMPORT] personalInfo:', extractedData?.personalInfo);
-                            } else if (data.type === 'error') {
-                                console.log('[IMPORT] Error from server:', data.message);
-                                setError(data.message);
-                                setStep('UPLOAD');
-                                return;
-                            }
-                        } catch (e) {
-                            // Skip invalid JSON
-                        }
-                    }
-                }
-            }
+            const extractedData = result.data;
+            console.log('[IMPORT] Extracted data keys:', Object.keys(extractedData || {}));
+            console.log('[IMPORT] personalInfo:', extractedData?.personalInfo);
 
             if (!extractedData?.personalInfo) {
                 console.log('[IMPORT] Invalid data - no personalInfo:', extractedData);
