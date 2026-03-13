@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         // Force language instruction for Ollama/local models that may ignore skill language directives
         const languageInstruction = language === 'en'
           ? 'CRITICAL INSTRUCTION: Your entire response MUST be in ENGLISH. All labels, feedback, suggestions, and JSON keys MUST be in English. Example: label: string NOT label: string (no Portuguese). FAILURE TO COMPLY WILL RESULT IN INCORRECT OUTPUT.'
-          : 'CRITICAL: Responda apenas em português. Todas as etiquetas e sugestões devem estar em português.';
+          : 'CRITICAL INSTRUCTION: Responda APENAS em português. Todas as etiquetas, feedbacks e sugestões DEVEM estar em português. Exemplo: estrutura não structure, feedback não feedback. FALHA EM OBEDECER IRÁ RESULTAR EM SAÍDA INCORRETA.';
 
         const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
         const finalPrompt = `${languageInstruction}\n\n${userInstructions}${basePrompt}`;
