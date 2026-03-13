@@ -14,58 +14,65 @@ allowed-tools: Read, Write, Edit
 ## 2. Audit Phase (ATS Scoring)
 
 ### 🚨 ANTI-HALLUCINATION RULES (MANDATORY READING)
-1. **JSON DATA = NO LAYOUT:** You are analyzing a JSON object (plain text). A JSON **NEVER** has columns, text boxes, physical headers, footers, or tables.
-2. **MANDATORY PASSED:** You MUST always mark `passed: true` for the following items, as you cannot detect them in a JSON:
-   - `Column Layout`
-   - `Text Boxes`
-   - `Headers/Footers`
-   - `Tables`
-3. **ICON VERIFICATION:** Only report icon errors if you explicitly find characters like 📞, ✉️ or emojis in the VALUE of the provided JSON strings. If the text is clean, mark `passed: true`.
-4. **DATE FORMAT:** The `MM/YYYY` format (e.g., 05/2025) is the GOLD STANDARD. If you find this format, mark `passed: true` and **DO NOT** generate a change suggestion.
-5. **ZERO FALSE EXAMPLES:** Do not use generic feedback texts from systems like Taleo or Workday if the problem is not explicitly in the text.
+1. **JSON DATA = NO LAYOUT:** You are analyzing a JSON object. A JSON **NEVER** has columns, text boxes, physical headers, or footers.
+2. **MANDATORY PASSED:** You MUST always mark `passed: true` for: `Column Layout`, `Text Boxes`, `Headers/Footers`, `Tables`. You cannot detect these issues in a JSON.
+3. **REPORT ONLY WHAT YOU SEE:** If you don't explicitly find an emoji or icon in the text, mark `Icons/Emoji` as `passed: true`.
+4. **CORRECT DATES:** The `MM/YYYY` format (e.g., 05/2025) is the GOLD STANDARD. If you find this format, mark `passed: true`.
+5. **DEFAULT STATE:** Assume the resume is perfect in design until the raw text proves otherwise (e.g., presence of strange symbols).
 
 ### EVALUATION PILLARS (2026 Market Standard)
 
 #### 1. DESIGN (0-100 pts)
-| Criterion | ATS Rule | State for JSON |
-| :--- | :--- | :--- |
-| **Fonts** | Use Arial, Calibri, Times New Roman | `passed: true` (Default) |
-| **Column Layout** | Multi-columns prohibited | `passed: true` (JSON is flat) |
-| **Text Boxes** | Text boxes prohibited | `passed: true` (JSON is plain text) |
-| **Icons/Emoji** | Prohibited symbols like 📞, ✉️ | `passed: true` (Unless present) |
-| **Headers/Footers** | Info must be in body | `passed: true` |
-| **File <5MB** | Light PDF/DOCX | `passed: true` |
+Focus: Mechanical readability (OCR/parsing)
+
+| Rule | Real Problem | Score Impact |
+|-------|----------|--------------|
+| Standard Fonts | Arial, Calibri, Times New Roman are ideal | -15 if not standard |
+| Single Column | JSON is inherently flat (single column) | PASSED by default |
+| No Text Boxes | JSON has no drawing elements | PASSED by default |
+| No Icons/Emoji | Symbols like 📞 or ✉️ in text cause errors | -25 if found |
+| No Headers/Footer | Data must be in the main body | PASSED by default |
+| Light File | iCIMS recommends files < 5MB | PASSED by default |
 
 #### 2. STRUCTURE (0-100 pts)
-| Criterion | ATS Rule | Verification |
-| :--- | :--- | :--- |
-| **Dates MM/YYYY** | Standard format (e.g., 01/2024) | Validate pattern |
-| **Headers** | "Work Experience", etc. | Validate section names |
-| **Sections** | Summary, Experience, Education, Skills | Check existence |
-| **Smart quotes** | Use straight quotes " " | Check in text |
-| **Em-dashes** | Use common hyphen - | Check in text |
+Focus: Correct parsing of sections
+
+| Rule | Problem | Score Impact |
+|-------|----------|--------------|
+| Dates MM/YYYY | DD/MM/YYYY or YYYY-MM formats break parsing | -25 |
+| Standard Headers | Use clear names like "Professional Experience" | -15 |
+| Essential Sections | Missing Summary, Experience, Education or Skills | -20 each |
+| Smart quotes | Curly quotes “ ” break old systems | -15 |
+| Em-dashes | Long dashes — should be hyphens - | -10 |
+| Photo | Some ATS reject automatically (GDPR) | -10 |
 
 #### 3. CONTENT (0-100 pts)
-| Metric | Ideal | Problem if |
-| :--- | :--- | :--- |
-| **Word count** | 330-573 | <300 or >800 |
-| **Bullets per exp** | 4-7 | <2 or >10 |
-| **Bullets with STAR** | >70% | <30% |
-| **Keywords** | 15-25 relevant | <10 |
+Focus: Keyword density and STAR method
+
+| Metric | Ideal Target | Problem if |
+|--------|-------|-------------|
+| Word count | 330-573 | <300 or >800 |
+| Bullets per exp | 4-7 | <2 or >10 |
+| Bullets with STAR | >70% | <30% |
+| Keywords | 15-25 relevant | <10 |
 
 ### FEEDBACK INSTRUCTIONS
-- **FORBIDDEN:** Do not use generic feedbacks from "Taleo" or "Workday" if you don't find the error in the JSON.
-- **FOCUS:** Focus your analysis on Keywords, STAR Method, and Date Accuracy.
-- **SUGGESTIONS:** Generate `detailedSuggestions` only for real content problems (text) or date/character format errors you actually saw.
+- Focus your analysis on **Keywords**, **STAR Method**, and **Dates**.
+- Generate `detailedSuggestions` only for real content problems or date/character format errors you actually identified in the JSON.
 
 ### OUTPUT FORMAT (JSON)
-Strictly follow this schema:
 ```json
 {
   "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },
   "designChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
   "structureChecks": [ { "label": "string", "passed": boolean, "feedback": "string" } ],
-  "contentMetrics": { ... },
+  "contentMetrics": {
+    "wordCount": { "value": number, "target": "330-573", "status": "good|warning|danger" },
+    "starBullets": { "value": percentage, "target": ">70%", "status": "good|warning|danger" },
+    "keywordCount": { "value": number, "target": "15-25", "status": "good|warning|danger" }
+  },
+  "jdMatch": { "score": 0-100, "matchedKeywords": [], "missingKeywords": [] },
+  "improvedBullets": [ { "section": "string", "index": number, "original": "string", "improved": "string", "reason": "string" } ],
   "detailedSuggestions": [ { "type": "design|structure|content", "field": "string", "original": "string", "issue": "string", "suggestion": "string", "impact": "high|medium|low" } ]
 }
 ```
