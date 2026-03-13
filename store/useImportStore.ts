@@ -44,13 +44,13 @@ export type ImportState = {
   setStep: (step: WizardStep) => void;
   setFileInfo: (name: string, size: number) => void;
   addParsingBubble: (bubble: Omit<ChatBubble, 'id'>) => void;
-  setParsingBubbles: (bubbles: ChatBubble[]) => void;
+  setParsingBubbles: (bubbles: ChatBubble[] | ((prev: ChatBubble[]) => ChatBubble[])) => void;
   updateParsingBubble: (id: string, updates: Partial<ChatBubble>) => void;
   setParsedData: (data: any) => void;
   setMappingRows: (rows: MappingRow[] | ((prev: MappingRow[]) => MappingRow[])) => void;
   setCurriculumChips: (chips: CurriculumChip[]) => void;
   addAnalysingBubble: (bubble: Omit<ChatBubble, 'id'>) => void;
-  setAnalysingBubbles: (bubbles: ChatBubble[]) => void;
+  setAnalysingBubbles: (bubbles: ChatBubble[] | ((prev: ChatBubble[]) => ChatBubble[])) => void;
   updateAnalysingBubble: (id: string, updates: Partial<ChatBubble>) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setError: (error: string | null) => void;
@@ -82,7 +82,9 @@ export const useImportStore = create<ImportState>()(
         parsingBubbles: [...state.parsingBubbles, { ...bubble, id: uuidv4() }] 
       })),
       
-      setParsingBubbles: (parsingBubbles) => set({ parsingBubbles }),
+      setParsingBubbles: (bubblesOrFn) => set((state) => ({
+        parsingBubbles: typeof bubblesOrFn === 'function' ? bubblesOrFn(state.parsingBubbles) : bubblesOrFn
+      })),
       
       updateParsingBubble: (id, updates) => set((state) => ({
         parsingBubbles: state.parsingBubbles.map((b) => b.id === id ? { ...b, ...updates } : b)
@@ -100,7 +102,9 @@ export const useImportStore = create<ImportState>()(
         analysingBubbles: [...state.analysingBubbles, { ...bubble, id: uuidv4() }] 
       })),
       
-      setAnalysingBubbles: (analysingBubbles) => set({ analysingBubbles }),
+      setAnalysingBubbles: (bubblesOrFn) => set((state) => ({
+        analysingBubbles: typeof bubblesOrFn === 'function' ? bubblesOrFn(state.analysingBubbles) : bubblesOrFn
+      })),
       
       updateAnalysingBubble: (id, updates) => set((state) => ({
         analysingBubbles: state.analysingBubbles.map((b) => b.id === id ? { ...b, ...updates } : b)
