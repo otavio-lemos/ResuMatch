@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         
         // Include detected section headers in the prompt to help the AI
         const detectedHeadersStr = Object.keys(sectionHeadersFromText).length > 0
-          ? `\n\nIMPORTANT - DETECTED SECTION HEADERS FROM DOCUMENT:\n${JSON.stringify(sectionHeadersFromText, null, 2)}\nUse these EXACT section names in _sectionHeaders!`
+          ? `\n\nSection headers found in document: ${Object.values(sectionHeadersFromText).join(', ')}`
           : '';
           
         const fullLanguageInstruction = `${languageInstruction}\n\n${userInstructions}${detectedHeadersStr}`;
