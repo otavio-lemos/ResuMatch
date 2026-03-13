@@ -1,7 +1,7 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
   <text x="200" y="50" font-family="'Times New Roman', Times, serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">SEU NOME COMPLETO</text>
-  <text x="200" y="65" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="middle" fill="#333333">São Paulo, SP • (11) 99999-9999 • seu.email@exemplo.com • linkedin.com/in/seuperfil</text>
+  <text x="200" y="65" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="middle" fill="#333333">São Paulo, SP - (11) 99999-9999 - seu.email@exemplo.com - linkedin.com/in/seuperfil</text>
   
   <line x1="40" y1="80" x2="360" y2="80" stroke="black" stroke-width="1.5"/>
   <text x="200" y="95" font-family="'Times New Roman', Times, serif" font-size="10" font-weight="bold" text-anchor="middle" fill="black">RESUMO PROFISSIONAL</text>
@@ -15,17 +15,17 @@
   <line x1="40" y1="172" x2="360" y2="172" stroke="black" stroke-width="0.5"/>
   
   <text x="40" y="190" font-family="'Times New Roman', Times, serif" font-size="8.5" font-weight="bold" fill="black">Senior Product Designer</text>
-  <text x="360" y="190" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" text-anchor="end" fill="black">Jan 2021 – Presente</text>
+  <text x="360" y="190" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" text-anchor="end" fill="black">01/2021 - Present</text>
   <text x="40" y="202" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" fill="#333333">TechFlow Inc. | São Paulo, SP</text>
-  <text x="50" y="215" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">• Liderou o redesenho do principal produto SaaS da empresa, reduzindo taxa de churn em 18%.</text>
-  <text x="50" y="225" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">• Criou e escalou o Design System interno, aumentando a velocidade de entrega técnica em 30%.</text>
-  <text x="50" y="235" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">• Conduziu mais de 50 testes de usabilidade e implementou cultura de design data-driven.</text>
+  <text x="50" y="215" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">- Liderou o redesenho do principal produto SaaS da empresa, reduzindo taxa de churn em 18%.</text>
+  <text x="50" y="225" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">- Criou e escalou o Design System interno, aumentando a velocidade de entrega técnica em 30%.</text>
+  <text x="50" y="235" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">- Conduziu mais de 50 testes de usabilidade e implementou cultura de design data-driven.</text>
   
   <text x="40" y="255" font-family="'Times New Roman', Times, serif" font-size="8.5" font-weight="bold" fill="black">Product Designer Pleno</text>
   <text x="360" y="255" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" text-anchor="end" fill="black">Fev 2018 – Dez 2020</text>
   <text x="40" y="267" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" fill="#333333">Inova Digital Agency | Curitiba, PR</text>
-  <text x="50" y="280" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">• Projetou aplicativos de serviços financeiros para mais de 5 bancos digitais da América Latina.</text>
-  <text x="50" y="290" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">• Colaborou lado a lado com times mobile e web no desenho de arquiteturas de informação robustas.</text>
+  <text x="50" y="280" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">- Projetou aplicativos de serviços financeiros para mais de 5 bancos digitais da América Latina.</text>
+  <text x="50" y="290" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="#333333">- Colaborou lado a lado com times mobile e web no desenho de arquiteturas de informação robustas.</text>
 
   <text x="200" y="325" font-family="'Times New Roman', Times, serif" font-size="10" font-weight="bold" text-anchor="middle" fill="black">FORMAÇÃO ACADÊMICA</text>
   <line x1="40" y1="332" x2="360" y2="332" stroke="black" stroke-width="0.5"/>
