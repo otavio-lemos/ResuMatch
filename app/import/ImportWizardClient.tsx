@@ -603,96 +603,43 @@ export default function ImportWizardClient() {
             const newRows: MapRow[] = [];
             let rowId = 1;
 
-            // PRIORITY: Get keys that have DATA from parsedData
-            const dataKeys = Object.keys(parsedData as any).filter(k => 
-                !k.startsWith('_') && 
-                k !== 'personalInfo' &&
-                k !== 'atsScore' &&
-                sectionHasData(k)
-            );
-            
-            console.log('[IMPORT] Data keys with content:', dataKeys);
-            console.log('[IMPORT] Section Headers from AI:', sectionHeaders);
+            // Define the order and mapping for curriculum sections
+            // 1. Get all keys from either _sectionHeaders or parsedData directly
+            const rawKeys = new Set([
+                ...Object.keys(sectionHeaders),
+                ...Object.keys(parsedData as any).filter(k => !k.startsWith('_') && k !== 'personalInfo')
+            ]);
 
-            // Map each curriculum key to ATS if possible
-            for (const dataKey of dataKeys) {
-                // Get the original header name from AI response
-                const originalHeader = sectionHeaders[dataKey];
-                
-                // Use original header if available and not empty
-                let displayLabel = originalHeader && String(originalHeader).trim() !== '' 
-                    ? String(originalHeader).trim() 
-                    : dataKey; // Fallback to key name if no header
-                
-                // Find matching ATS section (try exact match, singular/plural variations)
-                let atsKey: string | null = null;
-                
-                // Exact match
-                if (ATS_SECTIONS.find(s => s.key === dataKey)) {
-                    atsKey = dataKey;
-                }
-                // Try plural/singular
-                else if (ATS_SECTIONS.find(s => s.key + 's' === dataKey)) {
-                    atsKey = dataKey + 's';
-                }
-                else if (ATS_SECTIONS.find(s => s.key === dataKey.replace(/s$/, ''))) {
-                    atsKey = dataKey.replace(/s$/, '');
-                }
-                // Try partial match (experience vs experiences)
-                else if (dataKey.includes('experience') || dataKey.includes('work')) {
-                    atsKey = 'experiences';
-                }
-                else if (dataKey.includes('skill')) {
-                    atsKey = 'skills';
-                }
-                else if (dataKey.includes('certif')) {
-                    atsKey = 'certifications';
-                }
-                else if (dataKey.includes('educat')) {
-                    atsKey = 'education';
-                }
-                else if (dataKey.includes('project')) {
-                    atsKey = 'projects';
-                }
-                else if (dataKey.includes('lang')) {
-                    atsKey = 'languages';
-                }
-                else if (dataKey.includes('volunteer')) {
-                    atsKey = 'volunteer';
-                }
-                else if (dataKey.includes('summary') || dataKey.includes('about')) {
-                    atsKey = 'summary';
-                }
-                
-                console.log(`[IMPORT] Mapping: dataKey="${dataKey}" -> atsKey="${atsKey}", label="${displayLabel}"`);
-                
-                // Add to curriculum chips (left side - what came from resume)
-                newCurriculumChips.push({ key: dataKey, label: displayLabel });
-                
-                // Add to mapping rows
-                if (atsKey) {
-                    newRows.push({
-                        id: `row-${rowId++}`,
-                        userLabel: displayLabel,  // REAL name from curriculum
-                        atsKey: atsKey,           // ATS standard key
-                        validated: true,
-                        isAiSuggestion: false,
-                    });
-                } else {
-                    // Unknown key - user needs to map manually
-                    newRows.push({
-                        id: `row-${rowId++}`,
-                        userLabel: displayLabel,
-                        atsKey: null,
-                        validated: false,
-                        isAiSuggestion: false,
-                    });
+            for (const key of Array.from(rawKeys)) {
+                // If it's in headers or has data, we include it
+                if (sectionHeaders[key] || sectionHasData(key)) {
+                    const atsSection = ATS_SECTIONS.find(s => s.key === key);
+                    const originalHeader = sectionHeaders[key];
+                    
+                    const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
+                                            ? String(originalHeader).trim() 
+                                            : (atsSection?.label || key);
+                    
+                    // Add to curriculum chips pool
+                    newCurriculumChips.push({ key, label: curriculumLabel });
+                    
+                    // Auto-map if it's a known ATS key
+                    if (atsSection && sectionHasData(key)) {
+                        newRows.push({
+                            id: `row-${rowId++}`,
+                            userLabel: curriculumLabel,
+                            atsKey: key,
+                            validated: true,
+                            isAiSuggestion: false,
+                        });
+                    }
                 }
             }
 
-            console.log('[IMPORT] Final curriculumChips:', newCurriculumChips);
-            console.log('[IMPORT] Final mappingRows:', newRows);
-
+            console.log('[IMPORT] Detected curriculum sections:', newCurriculumChips.map(c => c.label));
+            console.log('[IMPORT] Original headers from AI:', sectionHeaders);
+            console.log('[IMPORT] Auto-mapped rows:', newRows.map(r => ({ label: r.userLabel, atsKey: r.atsKey })));
+            
             if (newCurriculumChips.length > 0) {
                 setCurriculumChips(newCurriculumChips);
                 if (newRows.length > 0) {
