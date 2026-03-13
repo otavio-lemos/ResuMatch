@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 export type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING' | 'FINISH';
@@ -72,11 +71,10 @@ const INITIAL_STATE = {
 };
 
 export const useImportStore = create<ImportState>()(
-  persist(
-    (set) => ({
-      ...INITIAL_STATE,
+  (set) => ({
+    ...INITIAL_STATE,
 
-      setStep: (step) => set({ step }),
+    setStep: (step) => set({ step }),
       
       setFileInfo: (fileName, fileSize) => set({ fileName, fileSize }),
       
@@ -113,9 +111,5 @@ export const useImportStore = create<ImportState>()(
       setError: (error) => set({ error }),
       
       reset: () => set(INITIAL_STATE),
-    }),
-    {
-      name: 'import-wizard-store',
-    }
-  )
+    })
 );

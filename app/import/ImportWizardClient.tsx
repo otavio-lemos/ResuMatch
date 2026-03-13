@@ -152,21 +152,8 @@ export default function ImportWizardClient() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     
-    // Hydration check for Zustand persist - wait for store to be ready
-    const [hasHydrated, setHasHydrated] = useState(false);
-    useEffect(() => {
-        // Wait for zustand persist to rehydrate
-        const checkHydration = () => {
-            if (useImportStore.persist.hasHydrated()) {
-                setHasHydrated(true);
-                // Reset processing state on hydration to avoid stuck states
-                setIsProcessing(false);
-            } else {
-                setTimeout(checkHydration, 100);
-            }
-        };
-        checkHydration();
-    }, [setIsProcessing]);
+    // No persistence anymore - always ready
+    const hasHydrated = true;
 
     const [hasValidationResult, setHasValidationResult] = useState(false);
 
