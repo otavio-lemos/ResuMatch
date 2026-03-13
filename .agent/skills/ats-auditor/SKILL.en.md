@@ -220,11 +220,11 @@ MANDATORY ATS STANDARDS (Reference: Workday, Greenhouse, iCIMS, Taleo, Lever, Sm
 
 RETURN ONLY JSON:
 {
-  "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },
+  "scores": { "design": 0-100, "estrutura": 0-100, "conteudo": 0-100 },
   "designChecks": [
     { "label": "string", "passed": boolean, "feedback": "string" }
   ],
-  "structureChecks": [
+  "estruturaChecks": [
     { "label": "string", "passed": boolean, "feedback": "string" }
   ],
   "conteudoMetrics": {

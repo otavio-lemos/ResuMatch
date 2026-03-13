@@ -10,10 +10,17 @@ function normalizeApiResponse(data: any): any {
     if (normalized.scores.estrutura === undefined && normalized.scores.structure !== undefined) {
       normalized.scores.estrutura = normalized.scores.structure;
     }
+    if (normalized.scores.conteudo === undefined && normalized.scores.content !== undefined) {
+      normalized.scores.conteudo = normalized.scores.content;
+    }
   }
   
   if (normalized.estruturaChecks === undefined && normalized.structureChecks !== undefined) {
     normalized.estruturaChecks = normalized.structureChecks;
+  }
+  
+  if (normalized.conteudoMetrics === undefined && normalized.contentMetrics !== undefined) {
+    normalized.conteudoMetrics = normalized.contentMetrics;
   }
   
   return normalized;

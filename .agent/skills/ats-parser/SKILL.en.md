@@ -38,6 +38,8 @@ When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to t
 
 1. **_sectionHeaders (VITAL)**: Capture EXACTLY the text that appears as the section title in the original file. They must reflect 1:1 what the user wrote on the paper.
    - If the resume is in ENGLISH and the title is "Professional Background", use "Professional Background".
+   - If the resume is in PORTUGUESE and the title is "Minha Jornada", use "Minha Jornada".
+   - **NEVER** translate, summarize, or standardize these titles in the `_sectionHeaders` field.
    - **IGNORE** any trailing generic headers like "Experience", "Education", "Certificates" that are not followed by actual content. These are often artifacts of the extraction process and should NOT be included in the parsed data.
    - **NEVER** include these generic labels as part of section content if they are just standalone words at the end of the document.
 

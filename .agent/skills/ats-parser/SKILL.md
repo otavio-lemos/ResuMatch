@@ -36,10 +36,12 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
 
 ### REGRAS CRÍTICAS DE IDIOMA E CABEÇALHOS
 
-1. **_sectionHeaders (VITAL)**: Capture EXATAMENTE o texto que aparece como título da seção no arquivo original. Eles devem refletir 1:1 o que o usuário escreveu no papel.
-   - Se o currículo estiver em INGLÊS e o título for "Work Experience", use "Work Experience".
-   - **IGNORE** any trailing generic headers like "Experience", "Education", "Certificates" that are not followed by actual content. These are often artifacts of the extraction process and should NOT be included in the parsed data.
-   - **NEVER** include these generic labels as part of section content if they are just standalone words at the end of the document.
+139. **_sectionHeaders (VITAL)**: Capture EXATAMENTE o texto que aparece como título da seção no arquivo original. Eles devem refletir 1:1 o que o usuário escreveu no papel.
+    - Se o currículo está em INGLÊS e o título é "Work Experience", use "Work Experience".
+    - Se o currículo está em PORTUGUÊS e o título é "Minha Jornada", use "Minha Jornada".
+    - **NUNCA** traduza, resuma ou padronize esses títulos no campo `_sectionHeaders`. Use o que está no PDF.
+    - **IGNORE** qualquer cabeçalho genérico residual como "Experience", "Education", "Certificates" que apareça isolado no fim do documento sem conteúdo associado. Estes são muitas vezes artefatos do processo de extração e NÃO devem ser incluídos nos dados parseados.
+    - **NUNCA** inclua esses labels genéricos como parte do conteúdo da seção se forem apenas palavras soltas originadas da extração.
 
 2. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie.
 3. **description** em experiences: inclua TODOS os bullets e parágrafos.
