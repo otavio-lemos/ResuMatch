@@ -287,7 +287,7 @@ export default function ImportWizardClient() {
                             addParsingBubble({ sender: 'ai', text: data.message, type: 'progress' });
                         } else if (data.type === 'chunk') {
                             rawResponse += data.content;
-                            setParsingBubbles(prev => [
+                            setParsingBubbles((prev: ChatBubble[]) => [
                                 ...prev.filter(b => b.id !== 'parsing-response'),
                                 { id: 'parsing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
                             ]);
@@ -321,17 +321,17 @@ export default function ImportWizardClient() {
     // ── Row editing ───────────────────────────────────────────────────────────
 
     const updateRowLabel = (id: string, value: string) => {
-        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));
+        setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));
         setHasValidationResult(false);
     };
 
     const clearRowLabel = (id: string) => {
-        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: '', validated: false, isAiSuggestion: false } : r));
+        setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, userLabel: '', validated: false, isAiSuggestion: false } : r));
         setHasValidationResult(false);
     };
 
     const clearRowAts = (id: string) => {
-        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, atsKey: null, validated: false } : r));
+        setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, atsKey: null, validated: false } : r));
         setHasValidationResult(false);
     };
 
@@ -343,7 +343,7 @@ export default function ImportWizardClient() {
         if (chipType === 'curriculum') {
             const curriculumChip = curriculumChips.find(c => c.key === chipDrag);
             if (curriculumChip) {
-                setMappingRows(prev => prev.map(r => {
+                setMappingRows((prev: MappingRow[]) => prev.map(r => {
                     const labelExists = prev.some(row => row.userLabel.toLowerCase() === curriculumChip.label.toLowerCase() && row.id !== rowId);
                     if (r.id === rowId && !labelExists) {
                         return { ...r, userLabel: curriculumChip.label, validated: false };
@@ -352,7 +352,7 @@ export default function ImportWizardClient() {
                 }));
             }
         } else {
-            setMappingRows(prev => prev.map(r => {
+            setMappingRows((prev: MappingRow[]) => prev.map(r => {
                 if (r.atsKey === chipDrag) return { ...r, atsKey: null, validated: false };
                 if (r.id === rowId) return { ...r, atsKey: chipDrag, validated: false };
                 return r;
@@ -369,7 +369,7 @@ export default function ImportWizardClient() {
             setRowDragOver(null);
             return;
         }
-        setMappingRows(prev => {
+        setMappingRows((prev: MappingRow[]) => {
             const next = [...prev];
             const fromIdx = next.findIndex(r => r.id === rowDragId);
             const toIdx = next.findIndex(r => r.id === targetId);
@@ -387,7 +387,7 @@ export default function ImportWizardClient() {
             .filter(h => h != null)
             .map(h => String(h).toLowerCase().trim());
 
-        setMappingRows(prev => prev.map(r => {
+        setMappingRows((prev: MappingRow[]) => prev.map(r => {
             const label = (r.userLabel || '').trim().toLowerCase();
             if (!label || !r.atsKey) return { ...r, validated: false };
             const existsInPdf = originalHeaders.some(h => h === label || h.includes(label) || label.includes(h));
@@ -456,7 +456,7 @@ export default function ImportWizardClient() {
                             const data = JSON.parse(trimmedLine.slice(6));
                             if (data.type === 'chunk') {
                                 rawResponse += data.content;
-                                setAnalysingBubbles(prev => [
+                                setAnalysingBubbles((prev: ChatBubble[]) => [
                                     ...prev.filter(b => b.id !== 'analysing-response'),
                                     { id: 'analysing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
                                 ]);
@@ -608,7 +608,7 @@ export default function ImportWizardClient() {
                                                 return (
                                                     <tr key={row.id} className={`border-b border-slate-100 dark:border-slate-800 last:border-0 transition-all ${!row.userLabel.trim() && !row.atsKey ? 'opacity-40' : ''} ${isRowOver ? 'bg-blue-50 dark:bg-blue-900/10 border-t-2 border-t-blue-400' : ''} ${isChipOver ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''} ${rowDragId === row.id ? 'opacity-50' : ''}`} onDragOver={e => { e.preventDefault(); setRowDragOver(row.id); }} onDragLeave={() => setRowDragOver(null)} onDrop={(e) => { if (rowDragId) handleRowDrop(row.id); else if (chipDrag) handleChipDrop(row.id, e.dataTransfer.getData('chipType') as 'ats' | 'curriculum' || 'ats'); }}>
                                                         <td className="pl-3 pr-1 py-3 w-8"><div draggable onDragStart={() => setRowDragId(row.id)} onDragEnd={() => { setRowDragId(null); setRowDragOver(null); }} className="cursor-grab text-slate-300 hover:text-slate-500 dark:hover:text-slate-400 flex items-center justify-center py-1 select-none" title={t('import.dragToReorder')}><GripVertical className="size-4" /></div></td>
-                                                        <td className="px-5 py-3"><div className="flex items-center gap-2"><span className={`size-2 rounded-full shrink-0 transition-colors ${isMapped ? (row.validated ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-300 dark:bg-slate-600'}`} /><div className="flex-1 flex items-center gap-2 min-w-0"><input type="text" value={row.userLabel} onChange={e => updateRowLabel(row.id, e.target.value)} placeholder={t('import.exactSectionName')} className="flex-1 text-sm text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-400 focus:outline-none py-0.5 placeholder:text-slate-300 dark:placeholder:text-slate-600 min-w-0 overflow-hidden text-ellipsis" />{row.isAiSuggestion && <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/40 text-[8px] font-black text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 uppercase tracking-tighter shrink-0 select-none">{t('import.aiSuggestion')}</span>}</div>{row.userLabel.trim() && <button onClick={() => row.isAiSuggestion ? setMappingRows(prev => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r)) : clearRowLabel(row.id)} className="text-slate-300 hover:text-red-400 transition-colors shrink-0"><X className="size-3.5" /></button>}</div></td>
+                                                        <td className="px-5 py-3"><div className="flex items-center gap-2"><span className={`size-2 rounded-full shrink-0 transition-colors ${isMapped ? (row.validated ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-300 dark:bg-slate-600'}`} /><div className="flex-1 flex items-center gap-2 min-w-0"><input type="text" value={row.userLabel} onChange={e => updateRowLabel(row.id, e.target.value)} placeholder={t('import.exactSectionName')} className="flex-1 text-sm text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-400 focus:outline-none py-0.5 placeholder:text-slate-300 dark:placeholder:text-slate-600 min-w-0 overflow-hidden text-ellipsis" />{row.isAiSuggestion && <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/40 text-[8px] font-black text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 uppercase tracking-tighter shrink-0 select-none">{t('import.aiSuggestion')}</span>}</div>{row.userLabel.trim() && <button onClick={() => row.isAiSuggestion ? setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r)) : clearRowLabel(row.id)} className="text-slate-300 hover:text-red-400 transition-colors shrink-0"><X className="size-3.5" /></button>}</div></td>
                                                         <td className={`px-5 py-3 border-l border-slate-100 dark:border-slate-800 transition-colors ${isChipOver ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>{atsSection ? <div className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight"><ArrowRight className="size-3.5 text-blue-500 shrink-0" />{atsSection.label}</span><button onClick={() => clearRowAts(row.id)} className="text-slate-300 hover:text-red-400 transition-colors"><X className="size-4" /></button></div> : <span className={`text-xs italic ${isChipOver ? 'text-blue-500 font-bold' : 'text-slate-400'}`}>{isChipOver ? t('import.dropHere') : t('import.dragAtsChip')}</span>}</td>
                                                     </tr>
                                                 );
