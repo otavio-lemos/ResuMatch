@@ -439,72 +439,16 @@ export default function ImportWizardClient() {
                     throw new Error(errorData.error || 'Erro na análise');
                 }
 
-                const reader = response.body?.getReader();
-                if (!reader) throw new Error('Erro ao ler resposta');
-
-                const decoder = new TextDecoder();
-                let atsResult: any = null;
-                let aiMessage = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                
-                                if (data.type === 'progress') {
-                                    const progressBubble: Bubble = {
-                                        from: 'ai',
-                                        text: data.message,
-                                        delay: 0
-                                    };
-                                    conversation.push(progressBubble);
-                                    setAnalysingBubbles([...conversation]);
-                                } else if (data.type === 'skill') {
-                                    conversation.push({
-                                        from: 'ai',
-                                        text: `📋 SKILL USADA:\n${data.content.substring(0, 1000)}...`,
-                                        delay: 0
-                                    });
-                                    setParsingBubbles([...conversation]);
-                                } else if (data.type === 'prompt') {
-                                    conversation.push({
-                                        from: 'user',
-                                        text: `📝 PROMPT ENVIADO:\n${data.content.substring(0, 1500)}...`,
-                                        delay: 0
-                                    });
-                                    setParsingBubbles([...conversation]);
-                                } else if (data.type === 'chunk') {
-                                    aiMessage += data.content;
-                                    const latestBubble: Bubble = {
-                                        from: 'ai',
-                                        text: aiMessage,
-                                        delay: 0
-                                    };
-                                    const lastIndex = conversation.length - 1;
-                                    if (conversation[lastIndex]?.from === 'ai') {
-                                        conversation[lastIndex] = latestBubble;
-                                    } else {
-                                        conversation.push(latestBubble);
-                                    }
-                                    setAnalysingBubbles([...conversation]);
-                                } else if (data.type === 'complete') {
-                                    atsResult = data.data;
-                                } else if (data.type === 'error') {
-                                    throw new Error(data.message);
-                                }
-                            } catch (e) {
-                                // Skip invalid JSON
-                            }
-                        }
-                    }
+                // API returns JSON directly, not SSE
+                const result = await response.json();
+                console.log('[IMPORT] Analyze response keys:', Object.keys(result));
+                
+                if (result.error) {
+                    throw new Error(result.error);
                 }
+
+                const atsResult = result.data;
+                console.log('[IMPORT] ATS Result:', atsResult);
 
                 if (atsResult) finalData.atsScore = atsResult;
             }
