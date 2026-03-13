@@ -574,61 +574,10 @@ export default function ImportWizardClient() {
         if (step === 'REVIEW' && parsedData && (curriculumChips || []).length === 0) {
             console.log('[IMPORT] Full parsedData:', JSON.stringify(parsedData, null, 2));
             
-            // Get original section headers from curriculum
+            // Use _sectionHeaders from API response (which now includes detected headers from raw text)
             const sectionHeaders = (parsedData as any)._sectionHeaders || {};
             
-            // FALLBACK: If _sectionHeaders is empty, try to detect language from content
-            // This happens when local models (Ollama) don't return _sectionHeaders
-            let effectiveHeaders = { ...sectionHeaders };
-            if (Object.keys(effectiveHeaders).length === 0 || Object.values(effectiveHeaders).every(v => !v)) {
-                console.log('[IMPORT] _sectionHeaders empty, detecting language from content...');
-                
-                // Detect language from resume content
-                const resumeText = [
-                    (parsedData as any).summary || '',
-                    ...((parsedData as any).experiences || []).map((e: any) => e.description || ''),
-                    ...((parsedData as any).education || []).map((e: any) => e.description || '')
-                ].join(' ').toLowerCase();
-                
-                // English indicators
-                const englishIndicators = ['years', 'experience', 'lead', 'managed', 'developed', 'team', 'project', 'skills', 'education', 'certification', 'professional', 'summary'];
-                const portugueseIndicators = ['anos', 'experiência', 'liderou', 'desenvolveu', 'equipe', 'projeto', 'formação', 'certificação', 'profissional', 'resumo', 'competências'];
-                
-                let englishScore = 0;
-                let portugueseScore = 0;
-                
-                englishIndicators.forEach(word => { if (resumeText.includes(word)) englishScore++; });
-                portugueseIndicators.forEach(word => { if (resumeText.includes(word)) portugueseScore++; });
-                
-                const isEnglish = englishScore > portugueseScore;
-                console.log(`[IMPORT] Language detection: EN=${englishScore}, PT=${portugueseScore} => ${isEnglish ? 'English' : 'Portuguese'}`);
-                
-                if (isEnglish) {
-                    effectiveHeaders = {
-                        personalInfo: 'Personal Info',
-                        summary: 'Professional Summary',
-                        experiences: 'Work Experience',
-                        education: 'Education',
-                        skills: 'Skills',
-                        certifications: 'Certifications',
-                        projects: 'Projects',
-                        languages: 'Languages',
-                        volunteer: 'Volunteering'
-                    };
-                } else {
-                    effectiveHeaders = {
-                        personalInfo: 'Dados Pessoais',
-                        summary: 'Resumo Profissional',
-                        experiences: 'Experiência Profissional',
-                        education: 'Formação Acadêmica',
-                        skills: 'Competências',
-                        certifications: 'Certificações',
-                        projects: 'Projetos',
-                        languages: 'Idiomas',
-                        volunteer: 'Voluntariado'
-                    };
-                }
-            }
+            console.log('[IMPORT] Section headers from API:', sectionHeaders);
 
             const sectionHasData = (key: string): boolean => {
                 const val = (parsedData as any)[key];
@@ -638,7 +587,7 @@ export default function ImportWizardClient() {
                 if (typeof val === 'object') return Object.values(val).some((v: any) => String(v ?? '').trim().length > 0);
                 return false;
             };
-
+ 
             const newCurriculumChips: {key: string; label: string}[] = [];
             const newRows: MapRow[] = [];
             let rowId = 1;
@@ -646,15 +595,15 @@ export default function ImportWizardClient() {
             // Define the order and mapping for curriculum sections
             // 1. Get all keys from either _sectionHeaders or parsedData directly
             const rawKeys = new Set([
-                ...Object.keys(effectiveHeaders),
+                ...Object.keys(sectionHeaders),
                 ...Object.keys(parsedData as any).filter(k => !k.startsWith('_') && k !== 'personalInfo')
             ]);
 
             for (const key of Array.from(rawKeys)) {
                 // If it's in headers or has data, we include it
-                if (effectiveHeaders[key] || sectionHasData(key)) {
+                if (sectionHeaders[key] || sectionHasData(key)) {
                     const atsSection = ATS_SECTIONS.find(s => s.key === key);
-                    const originalHeader = effectiveHeaders[key];
+                    const originalHeader = sectionHeaders[key];
                     
                     const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
                                             ? String(originalHeader).trim() 
@@ -677,7 +626,7 @@ export default function ImportWizardClient() {
             }
 
             console.log('[IMPORT] Detected curriculum sections:', newCurriculumChips.map(c => c.label));
-            console.log('[IMPORT] Original headers used:', effectiveHeaders);
+            console.log('[IMPORT] Original headers used:', sectionHeaders);
             console.log('[IMPORT] Auto-mapped rows:', newRows.map(r => ({ label: r.userLabel, atsKey: r.atsKey })));
             
             if (newCurriculumChips.length > 0) {
