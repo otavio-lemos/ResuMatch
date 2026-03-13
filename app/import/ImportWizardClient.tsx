@@ -289,7 +289,7 @@ export default function ImportWizardClient() {
                             rawResponse += data.content;
                             setParsingBubbles((prev: ChatBubble[]) => [
                                 ...prev.filter(b => b.id !== 'parsing-response'),
-                                { id: 'parsing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
+                                { id: 'parsing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
                             ]);
                         } else if (data.type === 'done') {
                             clearTimeout(timeoutId);
@@ -458,7 +458,7 @@ export default function ImportWizardClient() {
                                 rawResponse += data.content;
                                 setAnalysingBubbles((prev: ChatBubble[]) => [
                                     ...prev.filter(b => b.id !== 'analysing-response'),
-                                    { id: 'analysing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
+                                    { id: 'analysing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
                                 ]);
                             } else if (data.type === 'done') {
                                 if (data.data) finalData.atsScore = data.data;
