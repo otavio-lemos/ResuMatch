@@ -50,7 +50,7 @@ Faça uma varredura fria e analítica do currículo. Retorne um relatório estru
 4. **Red Flags de Formatação:** Alerte se houver seções vazias, descrições fora do padrão (muito curtas/longas), datas inconsistentes ou falta de informações de contato.
 
 ## OUTPUT
-Use \n para parágrafos (ex: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3"). OBRIGATÓRIO (Apenas JSON válido)
+OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3"). OBRIGATÓRIO (Apenas JSON válido)
 Retorne ESTRITAMENTE o seguinte formato JSON, sem markdown ou texto fora das chaves:
 {
   "ats_score": [Número de 0 a 100 indicando a força geral do currículo OU o match com a vaga],
@@ -100,7 +100,7 @@ Gere um Resumo Profissional ATS-otimizado que ELEVE as métricas de conteúdo.
 6. Proibido: emojis, símbolos decorativos, jargões genéricos ("proativo").
 
 ## OUTPUT
-Use \n para parágrafos (ex: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3").
+OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3").
 RETORNE APENAS O TEXTO DO RESUMO. Sem introduções, sem markdown.
 ```
 ########## FIM SSSUMMMMAAARRRYYY
@@ -139,7 +139,7 @@ Transforme o texto recebido em uma lista de 4 a 6 bullets ATS-otimizados usando 
 5. Caracteres proibidos: emojis, símbolos decorativos. Aspas tipográficas devem ser retas.
 
 ## OUTPUT
-Use \n para parágrafos (ex: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3").
+OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3").
 RETORNE APENAS OS BULLETS, um por linha. Sem introdução, sem numeração.
 ```
 ########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE
@@ -175,7 +175,7 @@ Risco Crítico: Alterar palavras-chave destrói a pontuação do candidato no AT
 - Uniformizar: todos os bullets terminam com ponto OU nenhum termina.
 
 ## OUTPUT
-Use \n para parágrafos (ex: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3").
+OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3").
 RETORNE APENAS O TEXTO CORRIGIDO. Sem comentários, sem markdown extra.
 ```
 ########## FIM GGGRRRAAAMMMMMMAAARRRR
