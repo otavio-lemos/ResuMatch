@@ -113,10 +113,10 @@ export function getAtsSummarySkill(language: string = 'pt'): string {
  */
 export function getAtsRewriteSkill(language: string = 'pt'): string {
   const content = readSkillFile('resume-editor', language);
-  const section = extractSection(content, '########## SSSTTTAAARRRREEEwwwrrriiittteee', '########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE');
+  const section = extractSection(content, '########## SSSTTTAAARRRREEEWWWRRRIIITTTEEE', '########## FIM SSSTTTAAARRRREEEWWWRRRIIITTTEEE');
 
   if (!section) {
-    console.warn(`[Skill] resume-editor: SSSTTTAAARRRREEEwwwrrriiittteee section not found for language ${language}`);
+    console.warn(`[Skill] resume-editor: SSSTTTAAARRRREEEWWWRRRIIITTTEEE section not found for language ${language}`);
     return language === 'en'
       ? 'You are an ATS specialist for resume bullets.'
       : 'Você é um especialista em bullets ATS.';
@@ -167,7 +167,7 @@ export function getAtsAuditSkill(language: string = 'pt'): string {
  */
 export function getJobComparisonSkill(language: string = 'pt'): string {
   const content = readSkillFile('job-comparison', language);
-  const section = extractSection(content, '########## CCOOMMPPAARRAAÇÃÃOO', '########## FIM CCOOMMPAAARRAAÇÃÃOO');
+  const section = extractSection(content, '########## CCOOMMPPAARRAAÇÃÃOO', '########## FIM CCOOMMPPAARRAAÇÃÃOO');
 
   if (!section) {
     console.warn(`[Skill] job-comparison: CCOOMMPPAARRAAÇÃÃOO section not found for language ${language}`);

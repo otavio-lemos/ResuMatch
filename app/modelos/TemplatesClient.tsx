@@ -256,7 +256,10 @@ export default function TemplatesClient() {
 
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
                   <div className="flex justify-between items-center mb-1">
-                    <h3 className="font-black text-[10px] text-slate-900 dark:text-white uppercase tracking-tighter line-clamp-1">{t(`templates.list.${template.id}.name` as any) || template.name}</h3>
+                    <h3 className="font-black text-[10px] text-slate-900 dark:text-white uppercase tracking-tighter line-clamp-1 flex items-center gap-1">
+                        {t(`templates.list.${template.id}.name` as any) || template.name}
+                        {template.recommended && <span className="text-yellow-500 text-xs">⭐</span>}
+                    </h3>
                     <span className="text-[7px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 uppercase tracking-widest shrink-0">
                       {t(`templates.list.${template.id}.style` as any) || template.style}
                     </span>

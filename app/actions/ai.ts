@@ -128,13 +128,17 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
     }
 }
 
+const getLanguageInstruction = (language: string) => language === 'en'
+    ? 'CRITICAL INSTRUCTION: Your entire response MUST be in ENGLISH. All labels, feedback, suggestions, and JSON keys MUST be in English. FAILURE TO COMPLY WILL RESULT IN INCORRECT OUTPUT.'
+    : 'CRITICAL INSTRUCTION: Responda APENAS em português. Todas as etiquetas, feedbacks e sugestões DEVEM estar em português. FALHA EM OBEDECER IRÁ RESULTAR EM SAÍDA INCORRETA.';
+
 export async function rewriteText(text: string, authSettings?: AIAuthSettings & { rewritePrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const safeText = text.replace(/[{}]/g, '');
     const userPrompt = authSettings?.rewritePrompt ? `USER INSTRUCTION: ${authSettings.rewritePrompt}\n\n` : '';
-    const finalPrompt = `${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
-    // USA A SKILL DE REWRITE (SSSTTTAAARRRREEwwwrrriiittteee)
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
+    // USA A SKILL DE REWRITE (SSSTTTAAARRRREEWWWRRRIIITTTEEE)
     return callAI(finalPrompt, aiConfig, undefined, getAtsRewriteSkill(language), language);
 }
 
@@ -142,7 +146,7 @@ export async function correctGrammar(text: string, authSettings?: AIAuthSettings
     if (!text?.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.grammarPrompt ? `USER INSTRUCTION: ${authSettings.grammarPrompt}\n\n` : '';
-    const finalPrompt = `${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${text}"`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${text}"`;
     // USA A SKILL DE GRAMMAR (GGGRRRAAAMMMMMMAAARRRR)
     return callAI(finalPrompt, aiConfig, undefined, getAtsGrammarSkill(language), language);
 }
@@ -150,7 +154,7 @@ export async function correctGrammar(text: string, authSettings?: AIAuthSettings
 export async function generateSummaryAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { summaryPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.summaryPrompt ? `USER INSTRUCTION: ${authSettings.summaryPrompt}\n\n` : '';
-    const finalPrompt = `${userPrompt}EXECUTE ACTION 1: GENERATE SUMMARY for this data: ${JSON.stringify(resumeData)}`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 1: GENERATE SUMMARY for this data: ${JSON.stringify(resumeData)}`;
     // USA A SKILL DE SUMMARY (SSSUMMMMAAARRRYYY)
     return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
@@ -159,7 +163,7 @@ export async function generateATSAnalysis(resumeData: ResumeData, jobDescription
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.atsPrompt ? `USER INSTRUCTION: ${authSettings.atsPrompt}\n\n` : '';
     const jobInfo = jobDescription ? `JOB DESCRIPTION: ${jobDescription}\n\n` : '';
-    const finalPrompt = `${userPrompt}${jobInfo}EXECUTE ACTION 2 (AUDIT) for this data: ${JSON.stringify(resumeData)}`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}${jobInfo}EXECUTE ACTION 2 (AUDIT) for this data: ${JSON.stringify(resumeData)}`;
     // OBRIGATORIAMENTE USA A SKILL FASE 2 (AUDITORIA)
     const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsAnalyzerSkill(language), language);
     return { prompt, response: robustJsonParse(response) };
@@ -167,7 +171,7 @@ export async function generateATSAnalysis(resumeData: ResumeData, jobDescription
 
 export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<{ prompt: string; response: ResumeData }> {
     const aiConfig = await getAIClient(authSettings);
-    const prompt = `Traduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`;
+    const prompt = `${getLanguageInstruction(targetLang)}\n\nTraduza este currículo JSON para ${targetLang}. Mantenha a estrutura JSON: ${JSON.stringify(data)}`;
     // Usa a skill de escrita para tradução profissional
     const { response } = await callAI(prompt, aiConfig, 'json_object', getAtsSummarySkill(targetLang), targetLang);
     return { prompt, response: robustJsonParse(response) };
@@ -176,7 +180,7 @@ export async function translateResumeData(data: ResumeData, targetLang: 'pt' | '
 export async function parseResumeFromText(text: string, authSettings?: AIAuthSettings & { importPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: Partial<ResumeData> }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.importPrompt ? `USER INSTRUCTION: ${authSettings.importPrompt}\n\n` : '';
-    const finalPrompt = `${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${text}`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${text}`;
     // OBRIGATORIAMENTE USA A SKILL FASE 1 (IMPORTAÇÃO)
     const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
     return { prompt, response: robustJsonParse(response) };

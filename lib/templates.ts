@@ -14,6 +14,19 @@ export type Template = {
 
 export const TEMPLATES: Template[] = [
     {
+        id: 'ats-optimal',
+        name: 'ATS Optimal',
+        style: 'Minimalista',
+        description: 'O formato definitivo para passar em qualquer robô ATS (Workday, Taleo, Gupy). Extração 100% garantida sem perda de dados ou quebra de layout.',
+        ats: 100,
+        imageSrc: '/templates/classic.svg',
+        sector: ['Todos'],
+        experience: ['Qualquer'],
+        popularity: 100,
+        dateAdded: '2025-03-10',
+        recommended: true,
+    },
+    {
         id: 'classic',
         name: 'Standard Ivy League',
         style: 'Clássico',

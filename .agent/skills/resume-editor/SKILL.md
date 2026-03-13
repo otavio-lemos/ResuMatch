@@ -107,7 +107,7 @@ RETORNE APENAS O TEXTO DO RESUMO. Sem introduções, sem markdown.
 
 ---
 
-########## SSSTTTAAARRRREEEwwwrrriiittteee
+########## SSSTTTAAARRRREEEWWWRRRIIITTTEEE
 
 ## AÇÃO 2 — REFORMULAR EXPERIÊNCIA (STAR/XYZ)
 
@@ -142,7 +142,7 @@ Transforme o texto recebido em uma lista de 4 a 6 bullets ATS-otimizados usando 
 OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3").
 RETORNE APENAS OS BULLETS, um por linha. Sem introdução, sem numeração.
 ```
-########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE
+########## FIM SSSTTTAAARRRREEEWWWRRRIIITTTEEE
 
 ---
 

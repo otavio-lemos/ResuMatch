@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
               contents,
               systemInstruction: { parts: [{ text: skillUsed }] },
-              generationConfig: { temperature: 0.2, responseModalities: 'TEXT' }
+              generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
             })
           });
 
@@ -280,6 +280,19 @@ export async function POST(req: NextRequest) {
           finalData = robustJsonParse(fullContent);
         }
         
+        // Convert description arrays back to strings if AI returned arrays
+        if (finalData) {
+          ['experiences', 'education', 'projects'].forEach(section => {
+            if (Array.isArray(finalData[section])) {
+              finalData[section].forEach((item: any) => {
+                if (Array.isArray(item.description)) {
+                  item.description = item.description.map((d: string) => d.startsWith('-') ? d : `- ${d}`).join('\n');
+                }
+              });
+            }
+          });
+        }
+
         // Merge detected section headers with the AI response
         // This ensures the frontend gets the detected headers even if AI didn't include them
         if (Object.keys(sectionHeadersFromText).length > 0) {

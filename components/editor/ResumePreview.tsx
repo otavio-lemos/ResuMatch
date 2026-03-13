@@ -15,8 +15,67 @@ function getCurrentLabel(lang: string = 'pt'): string {
 // ─── ATS UTILITIES ──────────────────────────────────────────────────────────────
 export function stripEmojis(text: string | null | undefined): string {
     if (!text) return '';
-    // Regex to remove emojis and extended pictographics
-    return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+    // 1. Regex to remove emojis and extended pictographics
+    let cleaned = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+    
+    // 2. Normalize Smart Quotes to Straight Quotes
+    cleaned = cleaned.replace(/[“”]/g, '"');
+    cleaned = cleaned.replace(/[‘’]/g, "'");
+    
+    // 3. Normalize Em-dashes and En-dashes to simple hyphens
+    cleaned = cleaned.replace(/[—–]/g, '-');
+    
+    return cleaned;
+}
+
+export function normalizeAtsDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    // Remove extra spaces
+    let str = dateStr.trim();
+    if (!str) return '';
+
+    // If it's just a year (YYYY), leave it
+    if (/^\d{4}$/.test(str)) return str;
+
+    // Handle existing MM/YYYY or MM-YYYY
+    const mmYyyyMatch = str.match(/(\d{1,2})[\/\-\.](\d{4})/);
+    if (mmYyyyMatch) {
+        const month = mmYyyyMatch[1].padStart(2, '0');
+        const year = mmYyyyMatch[2];
+        return `${month}/${year}`;
+    }
+
+    // Handle spelled out months (pt/en)
+    const monthMap: Record<string, string> = {
+        'jan': '01', 'january': '01', 'janeiro': '01',
+        'feb': '02', 'february': '02', 'fev': '02', 'fevereiro': '02',
+        'mar': '03', 'march': '03', 'março': '03',
+        'apr': '04', 'april': '04', 'abr': '04', 'abril': '04',
+        'may': '05', 'mai': '05', 'maio': '05',
+        'jun': '06', 'june': '06', 'junho': '06',
+        'jul': '07', 'july': '07', 'julho': '07',
+        'aug': '08', 'august': '08', 'ago': '08', 'agosto': '08',
+        'sep': '09', 'september': '09', 'set': '09', 'setembro': '09',
+        'oct': '10', 'october': '10', 'out': '10', 'outubro': '10',
+        'nov': '11', 'november': '11', 'novembro': '11',
+        'dec': '12', 'december': '12', 'dez': '12', 'dezembro': '12'
+    };
+
+    const monthWordMatch = str.toLowerCase().match(/([a-zç]+)[\s,]+(\d{4})/);
+    if (monthWordMatch) {
+        const word = monthWordMatch[1];
+        const year = monthWordMatch[2];
+        
+        // Try to match the word
+        for (const [key, num] of Object.entries(monthMap)) {
+            if (word.startsWith(key)) {
+                return `${num}/${year}`;
+            }
+        }
+    }
+
+    // Return original if no match (to avoid destroying unknown valid text like 'Present')
+    return str;
 }
 
 
@@ -122,7 +181,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <strong style={{ color: '#0f172a' }}>{stripEmojis(exp.position)}</strong>
                                         <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
-                                            {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                            {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
@@ -145,7 +204,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={edu.id} style={{ marginBottom: '10px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                         <strong style={{ color: '#0f172a' }}>{stripEmojis(edu.degree)}</strong>
-                                        <span style={{ fontSize: '0.78em', color: '#64748b' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                        <span style={{ fontSize: '0.78em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569' }}>{stripEmojis(edu.institution)}{edu.location && `, ${stripEmojis(edu.location)}`}</p>
                                 </div>
@@ -191,7 +250,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
                                         {section.id === 'certifications' && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
@@ -211,7 +270,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <strong style={{ color: '#0f172a' }}>{stripEmojis(item.title)}</strong>
                                         <span style={{ fontSize: '0.78em', color: '#64748b', fontWeight: 600 }}>
-                                            {item.startDate}{item.endDate && ` — ${item.endDate}`}
+                                            {normalizeAtsDate(item.startDate)}{item.endDate && ` — ${normalizeAtsDate(item.endDate)}`}
                                         </span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
@@ -305,7 +364,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                     <div key={exp.id} style={{ marginBottom: '14px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                             <strong style={{ color: '#0f172a', fontSize: '0.95em' }}>{exp.position}</strong>
-                                            <span style={{ fontSize: '0.75em', color: '#64748b' }}>                                            {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}</span>
+                                            <span style={{ fontSize: '0.75em', color: '#64748b' }}>                                            {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}</span>
                                         </div>
                                         <p style={{ fontSize: '0.82em', color: '#1e40af', marginBottom: '4px' }}>{exp.company}{exp.location && `, ${exp.location}`}</p>
                                         <p style={{ fontSize: '0.85em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
@@ -323,7 +382,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                     <div key={edu.id} style={{ marginBottom: '10px' }}>
                                         <strong style={{ fontSize: '0.9em', color: '#0f172a' }}>{edu.degree}</strong>
                                         <p style={{ fontSize: '0.82em', color: '#374151' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
-                                        <p style={{ fontSize: '0.75em', color: '#64748b' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</p>
+                                        <p style={{ fontSize: '0.75em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</p>
                                     </div>
                                 ))}
                             </section>
@@ -362,7 +421,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                     {(section.items as any[] || []).map((item, idx) => (
                                         <li key={idx} style={{ marginBottom: '3px' }}>
                                             {isCertSection && item && typeof item === 'object' && item.name ? (
-                                                <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                                <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                             ) : String(item)}
                                         </li>
                                     ))}
@@ -379,7 +438,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                     <div key={item.id} style={{ marginBottom: '12px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                             <strong style={{ color: '#0f172a', fontSize: '0.9em' }}>{item.title}</strong>
-                                            <span style={{ fontSize: '0.7em', color: '#64748b' }}>{item.startDate}{item.endDate && ` — ${item.endDate}`}</span>
+                                            <span style={{ fontSize: '0.7em', color: '#64748b' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` — ${normalizeAtsDate(item.endDate)}`}</span>
                                         </div>
                                         <p style={{ fontSize: '0.8em', color: '#1e40af' }}>{item.subtitle}{item.location && `, ${item.location}`}</p>
                                         <p style={{ fontSize: '0.82em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
@@ -445,7 +504,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <div key={exp.id} style={{ marginBottom: '18px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <h3 style={{ fontSize: '1.05em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(exp.position)}</h3>
-                                        <span style={{ fontSize: '0.85em', color: '#3b82f6', fontWeight: 600 }}>{exp.startDate} – {exp.current ? 'Present' : exp.endDate}</span>
+                                        <span style={{ fontSize: '0.85em', color: '#3b82f6', fontWeight: 600 }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? 'Present' : exp.endDate}</span>
                                     </div>
                                     <div style={{ fontSize: '0.95em', fontWeight: 500, color: '#475569', marginBottom: '6px' }}>
                                         {stripEmojis(exp.company)}{exp.location && ` | ${stripEmojis(exp.location)}`}
@@ -465,7 +524,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <div key={edu.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(edu.degree)}</h3>
-                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{edu.startDate} – {edu.endDate}</span>
+                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)} – {normalizeAtsDate(edu.endDate)}</span>
                                     </div>
                                     <div style={{ fontSize: '0.95em', color: '#475569' }}>
                                         {stripEmojis(edu.institution)}{edu.location && ` | ${stripEmojis(edu.location)}`}
@@ -509,7 +568,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '6px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
@@ -526,7 +585,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <div key={item.id} style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(item.title)}</h3>
-                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{item.startDate} – {item.endDate}</span>
+                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{normalizeAtsDate(item.startDate)} – {normalizeAtsDate(item.endDate)}</span>
                                     </div>
                                     {item.subtitle && <div style={{ fontSize: '0.95em', color: '#475569', marginBottom: '4px' }}>{stripEmojis(item.subtitle)}{item.location && ` | ${stripEmojis(item.location)}`}</div>}
                                     <p style={{ fontSize: '0.9em', whiteSpace: 'pre-line', color: '#334155', lineHeight: 1.5, margin: 0 }}>{stripEmojis(item.description)}</p>
@@ -592,7 +651,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={exp.id} style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.9em' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{exp.startDate} – {exp.current ? 'Atual' : exp.endDate}</span>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? 'Atual' : exp.endDate}</span>
                                     </div>
                                     <p style={{ fontSize: '0.82em', color: '#6b7280', marginBottom: '3px' }}>{exp.location}</p>
                                     <p style={{ fontSize: '0.85em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
@@ -610,7 +669,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.88em' }}>{edu.degree}</strong>
-                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <p style={{ fontSize: '0.8em', color: '#6b7280' }}>{edu.institution}</p>
                                 </div>
@@ -653,7 +712,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
@@ -670,7 +729,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={item.id} style={{ marginBottom: '12px', paddingLeft: '12px', borderLeft: '2px solid #f3f4f6' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.88em' }}>{item.title}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#9ca3af' }}>{item.startDate}{item.endDate && ` – ${item.endDate}`}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#9ca3af' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` – ${normalizeAtsDate(item.endDate)}`}</span>
                                     </div>
                                     <p style={{ fontSize: '0.8em', color: '#6b7280' }}>{item.subtitle}</p>
                                     <p style={{ fontSize: '0.82em', color: '#374151', whiteSpace: 'pre-line' }}>{item.description}</p>
@@ -733,7 +792,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                         {exp.position} @ {exp.company}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
-                                        &gt; {exp.location ? `${exp.location} // ` : ''}{exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                                        &gt; {exp.location ? `${exp.location} // ` : ''}{normalizeAtsDate(exp.startDate)} - {exp.current ? 'Present' : exp.endDate}
                                     </p>
                                     <p style={{ fontSize: '0.75em', whiteSpace: 'pre-line' }}>{exp.description}</p>
                                 </div>
@@ -752,7 +811,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                         {edu.degree} @ {edu.institution}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px' }}>
-                                        &gt; {edu.location ? `${edu.location} // ` : ''}{edu.startDate} - {edu.endDate}
+                                        &gt; {edu.location ? `${edu.location} // ` : ''}{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}
                                     </p>
                                 </div>
                             ))}
@@ -783,7 +842,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '2px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
@@ -802,7 +861,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                         {item.title} {item.subtitle ? `@ ${item.subtitle}` : ''}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
-                                        &gt; {item.location ? `${item.location} // ` : ''}{item.startDate}{item.endDate ? ` - ${item.endDate}` : ''}
+                                        &gt; {item.location ? `${item.location} // ` : ''}{normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}
                                     </p>
                                     <p style={{ fontSize: '0.75em', whiteSpace: 'pre-line' }}>{item.description}</p>
                                 </div>
@@ -875,7 +934,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={exp.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{exp.startDate} - {exp.current ? 'Present' : exp.endDate}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(exp.startDate)} - {exp.current ? 'Present' : exp.endDate}</span>
                                     </div>
                                     <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px' }}>{exp.description}</p>
                                 </div>
@@ -892,7 +951,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={edu.id} style={{ marginBottom: '6px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{edu.degree} @ {edu.institution}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{edu.startDate} - {edu.endDate}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}</span>
                                     </div>
                                 </div>
                             ))}
@@ -931,7 +990,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={item.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{item.title} {item.subtitle ? `— ${item.subtitle}` : ''}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{item.startDate}{item.endDate ? ` - ${item.endDate}` : ''}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}</span>
                                     </div>
                                     <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px' }}>{item.description}</p>
                                 </div>
@@ -999,7 +1058,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontWeight: 'bold' }}>
                                         <span>{exp.position}</span>
                                         <span style={{ fontSize: '0.9em', fontWeight: 'normal' }}>
-                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                                                                        {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontStyle: 'italic', marginBottom: '4px' }}>
@@ -1040,7 +1099,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                         <span style={{ fontStyle: 'italic' }}>{edu.degree}</span>
-                                        <span style={{ fontSize: '0.9em' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                        <span style={{ fontSize: '0.9em' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                 </div>
                             ))}
@@ -1084,7 +1143,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '4px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
@@ -1151,7 +1210,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                             <span style={{ color: '#4b5563', fontWeight: 500 }}>{exp.company}</span>
                                         </div>
                                         <span style={{ fontSize: '0.85em', color: '#6b7280', whiteSpace: 'nowrap' }}>
-                                                                                        {exp.startDate} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
+                                                                                        {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
                                     <div style={{ fontSize: '0.9em', color: '#4b5563', whiteSpace: 'pre-line', marginTop: '6px' }}>
@@ -1188,7 +1247,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                             <div style={{ color: '#4b5563', fontSize: '0.9em', marginTop: '2px' }}>{edu.institution}{edu.location && `, ${edu.location}`}</div>
                                         </div>
                                         <span style={{ fontSize: '0.85em', color: '#6b7280', whiteSpace: 'nowrap' }}>
-                                            {edu.startDate}{edu.endDate && ` — ${edu.endDate}`}
+                                            {normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}
                                         </span>
                                     </div>
                                 </div>
@@ -1236,7 +1295,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                             <span>
                                                 <strong>{item.name}</strong>
                                                 {item.issuer && <span> — {item.issuer}</span>}
-                                                {item.date && <span> ({item.date})</span>}
+                                                {item.date && <span> ({normalizeAtsDate(item.date)})</span>}
                                             </span>
                                         ) : (
                                             String(item)
@@ -1260,104 +1319,97 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
     const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
-    // Hardcode an ATS-safe font (Times New Roman or Arial) to override any creative font from appearance,
-    // although the system appearance setting should ideally be respected if it's safe.
-    // For ATS Optimal, we enforce maximum safety.
-    const fontToUse = appearance.fontFamily === 'Inter' ? "Arial, sans-serif" : style.fontFamily;
+    // Force maximum ATS safety with standard fonts
+    const fontToUse = "Arial, Helvetica, sans-serif";
 
     return (
         <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '1in', boxSizing: 'border-box', fontFamily: fontToUse }}>
-            <header style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
                 </h1>
                 <div style={{ fontSize: '0.9em', color: 'black' }}>
                     {[
                         personalInfo.location,
-                        personalInfo.phone,
-                        personalInfo.email,
-                        personalInfo.linkedin,
-                        personalInfo.github,
-                        personalInfo.portfolio
-                    ].filter(Boolean).map(stripEmojis).join(' • ')}
+                        personalInfo.phone && `Phone: ${personalInfo.phone}`,
+                        personalInfo.email && `Email: ${personalInfo.email}`,
+                        personalInfo.linkedin && `LinkedIn: ${personalInfo.linkedin}`,
+                        personalInfo.github && `GitHub: ${personalInfo.github}`,
+                        personalInfo.portfolio && `Portfolio: ${personalInfo.portfolio}`
+                    ].filter(Boolean).map(s => stripEmojis(String(s))).join(' | ')}
                 </div>
-            </header>
+            </div>
 
             {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             <p style={{ fontSize: '1em', textAlign: 'justify', whiteSpace: 'pre-line', margin: 0 }}>
                                 {stripEmojis(summary)}
                             </p>
-                        </section>
+                        </div>
                     );
                 }
 
                 if (section.id === 'experience' && experiences.length > 0) {
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '12px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '12px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                                        <span>{stripEmojis(exp.position)}</span>
-                                        <span style={{ fontWeight: 'normal' }}>
-                                            {exp.startDate} — {exp.current ? currentLabel : exp.endDate}
+                                    <div>
+                                        <span style={{ fontWeight: 'bold' }}>{stripEmojis(exp.position)}</span>
+                                        <span style={{ float: 'right' }}>
+                                            {normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}
                                         </span>
                                     </div>
                                     <div style={{ fontStyle: 'italic', marginBottom: '4px' }}>
                                         {stripEmojis(exp.company)}{exp.location ? `, ${stripEmojis(exp.location)}` : ''}
                                     </div>
-                                    <div style={{ fontSize: '1em', whiteSpace: 'pre-line' }}>
+                                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '1em' }}>
                                         {stripEmojis(exp.description).split('\n').map((line, i) => {
-                                            const trimmed = line.trim();
+                                            const trimmed = line.trim().replace(/^[-•]\s*/, '');
                                             if (!trimmed) return null;
-                                            return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
-                                                <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
-                                                    <span>•</span>
-                                                    <span>{trimmed.substring(1).trim()}</span>
-                                                </div>
-                                            ) : (
-                                                <div key={i} style={{ marginBottom: '2px' }}>{trimmed}</div>
+                                            return (
+                                                <li key={i} style={{ marginBottom: '2px' }}>{trimmed}</li>
                                             );
                                         })}
-                                    </div>
+                                    </ul>
                                 </div>
                             ))}
-                        </section>
+                        </div>
                     );
                 }
 
                 if (section.id === 'education' && education.length > 0) {
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '12px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                                        <span>{stripEmojis(edu.degree)}</span>
-                                        <span style={{ fontWeight: 'normal' }}>{edu.startDate}{edu.endDate && ` — ${edu.endDate}`}</span>
+                                    <div>
+                                        <span style={{ fontWeight: 'bold' }}>{stripEmojis(edu.degree)}</span>
+                                        <span style={{ float: 'right' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` - ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <div>
                                         {stripEmojis(edu.institution)}{edu.location ? `, ${stripEmojis(edu.location)}` : ''}
                                     </div>
                                 </div>
                             ))}
-                        </section>
+                        </div>
                     );
                 }
 
                 if (section.id === 'skills' && skills.length > 0) {
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
@@ -1368,35 +1420,35 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                                     </div>
                                 ))}
                             </div>
-                        </section>
+                        </div>
                     );
                 }
 
                 // Generic text/lists
                 if (section.type === 'TEXT' && section.content) {
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>{stripEmojis(section.title)}</h2>
                             <div style={{ fontSize: '1em', whiteSpace: 'pre-line' }}>{stripEmojis(section.content)}</div>
-                        </section>
+                        </div>
                     );
                 }
 
                 if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
                     const isCertSection = section.id === 'certifications';
                     return (
-                        <section key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>{stripEmojis(section.title)}</h2>
                             <ul style={{ fontSize: '1em', margin: 0, paddingLeft: '18px' }}>
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '4px' }}>
                                         {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({item.date})</span>}</span>
+                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
                                         ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
                             </ul>
-                        </section>
+                        </div>
                     );
                 }
 
@@ -1450,16 +1502,17 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
-                    @page { 
-                        size: ${size.width} ${size.minHeight}; 
-                        margin: 15mm;
+                    @page {
+                        size: ${size.width} ${size.minHeight};
+                        margin: 0; /* Remove margens do sistema para esconder headers/footers do browser (URL, data) que quebram o ATS */
                     }
                     .page-break-indicator { display: none !important; }
                     body { margin: 0; }
-                    .resume-container { padding: 0 !important; }
+                    .resume-container { 
+                        padding: 15mm !important; /* Move a margem para dentro do container para manter o respiro visual */
+                    }
                 }
-                .page-break-indicator {
-                    position: absolute;
+                .page-break-indicator {                    position: absolute;
                     left: 0;
                     right: 0;
                     height: 24px;

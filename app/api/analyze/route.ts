@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
               contents: [{ parts: [{ text: finalPrompt }] }],
               systemInstruction: { parts: [{ text: skillUsed }] },
-              generationConfig: { temperature: 0.2 }
+              generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
             })
           });
 

@@ -961,7 +961,10 @@ export function EditorPanel() {
                                             : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
                                             }`}
                                     >
-                                        <span className="block text-xs font-bold text-slate-700 dark:text-slate-300">{t(`templates.list.${template.id}.name` as any) || template.name}</span>
+                                        <span className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            {t(`templates.list.${template.id}.name` as any) || template.name}
+                                            {template.recommended && <span className="ml-1 text-yellow-500">⭐</span>}
+                                        </span>
                                         <span className="block text-[10px] text-slate-500 mt-1">{t('templates.atsLabel')} {template.ats}%</span>
                                     </button>
                                 ))}

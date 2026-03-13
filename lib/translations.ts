@@ -395,6 +395,11 @@ export const translations = {
       aiServiceOverloaded: "Serviço de IA sobrecarregado. Tente novamente mais tarde.",
       atsLabel: "ATS:",
       list: {
+        'ats-optimal': {
+          name: "ATS Optimal",
+          style: "Minimalista",
+          description: "O formato definitivo para passar em qualquer robô ATS (Workday, Taleo, Gupy). Extração 100% garantida sem perda de dados ou quebra de layout."
+        },
         classic: {
           name: "Standard Ivy League",
           style: "Clássico",
@@ -908,6 +913,11 @@ export const translations = {
       aiServiceOverloaded: "AI service overloaded. Please try again later.",
       atsLabel: "ATS:",
       list: {
+        'ats-optimal': {
+          name: "ATS Optimal",
+          style: "Minimalist",
+          description: "The definitive format to pass any ATS robot (Workday, Taleo, Greenhouse). 100% guaranteed extraction with no data loss or layout breaking."
+        },
         classic: {
           name: "Standard Ivy League",
           style: "Classic",

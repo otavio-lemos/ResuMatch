@@ -22,7 +22,7 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
   "personalInfo": { "fullName": "João Silva", "title": "Engenheiro de Software", "email": "joao@email.com", "phone": "(11) 99999-9999", "location": "São Paulo, SP", "linkedin": "linkedin.com/in/joao", "github": "github.com/joao", "portfolio": "" },
   "summary": "Profissional com 10 anos de experiência em desenvolvimento de software.",
   "experiences": [
-    { "id": "exp-1", "company": "Empresa Tech", "position": "Desenvolvedor Senior", "location": "São Paulo", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": "- Liderança de equipe\n- Desenvolvimento de APIs\n- Code review" }
+    { "id": "exp-1", "company": "Empresa Tech", "position": "Desenvolvedor Senior", "location": "São Paulo", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": ["Liderança de equipe", "Desenvolvimento de APIs", "Code review"] }
   ],
   "education": [{ "id": "edu-1", "institution": "USP", "degree": "Bacharelado em Ciência da Computação", "location": "São Paulo", "startDate": "01/2010", "endDate": "12/2014", "current": false, "description": "" }],
   "skills": [{ "id": "skill-1", "category": "Programação", "skills": ["JavaScript", "Python", "Java"] }],
@@ -74,7 +74,7 @@ Exemplo para currículo inglês:
 ```
 
 2. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie.
-3. **description** em experiences: inclua TODOS os bullets e parágrafos. OBRIGATÓRIO: Use \n para quebras de linha. EXEMPLO: "- Liderança de equipe\n- Desenvolvimento de APIs\n- Code review" (não "- Liderança de equipe - Desenvolvimento - Code review") (ex: "- Liderança\n- Desenvolvimento\n- Code review").
+3. **description** em experiences: inclua TODOS os bullets e parágrafos. OBRIGATÓRIO: Retorne um array de strings (uma string para cada bullet ou parágrafo). EXEMPLO: `"description": ["Liderança de equipe", "Desenvolvimento de APIs", "Code review"]` (não "Liderança de equipe - Desenvolvimento...").
 4. **Sanitização ATS (Crítico):** Ignore emojis, símbolos decorativos (📞, ✉️, 🎯) ou aspas tipográficas. Mantenha os valores puramente textuais.
 5. **Certeza de Headers**: Só deixe vazio "" se o documento original realmente não possuir um cabeçalho explícito para aquela seção.
 

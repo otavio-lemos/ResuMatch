@@ -106,7 +106,7 @@ RETURN ONLY THE SUMMARY TEXT. No introductions, no markdown.
 
 ---
 
-########## SSSTTTAAARRRREEEwwwrrriiittteee
+########## SSSTTTAAARRRREEEWWWRRRIIITTTEEE
 
 ## ACTION 2 — REWRITE EXPERIENCE (STAR/XYZ)
 
@@ -140,7 +140,7 @@ Transform the received text into a list of 4 to 6 ATS-optimized bullets using th
 Use \n for paragraphs (ex: "Paragraph 1\n\nParagraph 2\n\nParagraph 3").
 RETURN ONLY THE BULLETS, one per line. No introduction, no numbering.
 ```
-########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE
+########## FIM SSSTTTAAARRRREEEWWWRRRIIITTTEEE
 
 ---
 

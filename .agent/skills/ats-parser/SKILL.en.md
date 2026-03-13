@@ -22,7 +22,7 @@ When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to t
   "personalInfo": { "fullName": "John Smith", "title": "Software Engineer", "email": "john@email.com", "phone": "+1-555-123-4567", "location": "New York, NY", "linkedin": "linkedin.com/in/john", "github": "github.com/john", "portfolio": "" },
   "summary": "Professional with 10 years of experience in software development.",
   "experiences": [
-    { "id": "exp-1", "company": "Tech Company", "position": "Senior Developer", "location": "New York", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": "- Team leadership\n- API development\n- Code review" }
+    { "id": "exp-1", "company": "Tech Company", "position": "Senior Developer", "location": "New York", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": ["Team leadership", "API development", "Code review"] }
   ],
   "education": [{ "id": "edu-1", "institution": "MIT", "degree": "Bachelor in Computer Science", "location": "Boston", "startDate": "09/2010", "endDate": "06/2014", "current": false, "description": "" }],
   "skills": [{ "id": "skill-1", "category": "Programming", "skills": ["JavaScript", "Python", "Java"] }],
@@ -66,7 +66,7 @@ Example for resume with custom headers:
    - **NEVER** include these generic labels as part of section content if they are just standalone words at the end of the document.
 
 2. **COPY ORIGINAL TEXT** - Do not summarize, do not abbreviate.
-3. **description** in experiences: include ALL bullets and paragraphs. Use \n for line breaks (ex: "- Leadership\n- Development\n- Code review").
+3. **description** in experiences: include ALL bullets and paragraphs. MANDATORY: Return an array of strings (one string for each bullet or paragraph). EXAMPLE: `"description": ["Team leadership", "API development", "Code review"]` (not "Team leadership - Development...").
 4. **ATS Sanitization (Critical):** Ignore emojis, decorative symbols (📞, ✉️, 🎯) or smart quotes. Keep values purely textual.
 5. **Header Certainty**: Only leave empty "" if the original document really doesn't have an explicit header for that section.
 

@@ -18,21 +18,26 @@ export function robustJsonParse(text: string): any {
     // e.g., "Aqui está o JSON:", "Here is the JSON:", "```json"
     cleaned = cleaned.replace(/^(?:Aqui está|Here is|The following is)(?:\s+o\s+)?(?:JSON|json|dados|data):?\s*/i, '');
 
-    // Try to find JSON between { and }
+    // Try to find the outermost JSON structure (object or array)
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
+    const firstBracket = cleaned.indexOf('[');
+    const lastBracket = cleaned.lastIndexOf(']');
 
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-    }
+    const hasObject = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace;
+    const hasArray = firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket;
 
-    // If no braces found, try to find JSON array
-    if (firstBrace === -1) {
-        const firstBracket = cleaned.indexOf('[');
-        const lastBracket = cleaned.lastIndexOf(']');
-        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    if (hasObject && hasArray) {
+        // If both exist, see which one is the outermost
+        if (firstBracket < firstBrace && lastBracket > lastBrace) {
             cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+        } else {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
         }
+    } else if (hasObject) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    } else if (hasArray) {
+        cleaned = cleaned.substring(firstBracket, lastBracket + 1);
     }
 
     try {
