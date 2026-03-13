@@ -225,11 +225,16 @@ export default function ImportWizardClient() {
             formData.append('file', selectedFile);
             formData.append('language', language);
             
-            const aiSettings = importAI ? {
+            const aiSettings = (importAI?.provider && importAI?.apiKey) ? {
                 provider: importAI.provider,
                 apiKey: importAI.apiKey,
                 model: importAI.model,
                 baseUrl: importAI.baseUrl
+            } : (primaryAI?.provider && primaryAI?.apiKey) ? {
+                provider: primaryAI.provider,
+                apiKey: primaryAI.apiKey,
+                model: primaryAI.model,
+                baseUrl: primaryAI.baseUrl
             } : null;
             
             if (aiSettings) {
@@ -274,6 +279,7 @@ export default function ImportWizardClient() {
             
             setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
             setStatusMessage('Recebendo dados da IA...');
+            console.log('[IMPORT] Starting to read response stream...');
 
             while (true) {
                 const { done, value } = await reader.read();
