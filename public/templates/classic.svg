@@ -1,25 +1,29 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
-  <text x="200" y="45" font-family="'Georgia', serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#111111">SEU NOME COMPLETO</text>
-  <text x="200" y="60" font-family="'Georgia', serif" font-size="7.5" text-anchor="middle" fill="#444444">seu.email@exemplo.com | (11) 99999-9999 | linkedin.com/in/seulinkedin</text>
   
-  <line x1="40" y1="75" x2="360" y2="75" stroke="#111111" stroke-width="1"/>
+  <rect x="40" y="30" width="320" height="40" fill="white"/>
+  <text x="40" y="50" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#0F172A">SEU NOME</text>
+  <text x="40" y="65" font-family="Arial, sans-serif" font-size="8" font-weight="700" fill="#475569" text-transform="uppercase">SEU CARGO ATUAL</text>
   
-  <text x="40" y="95" font-family="'Georgia', serif" font-size="10" font-weight="bold" fill="#111111">PROFESSIONAL SUMMARY</text>
-  <text x="40" y="110" font-family="'Georgia', serif" font-size="7.5" fill="#333333">Accomplished Senior Executive with over 15 years of experience in strategic management</text>
-  <text x="40" y="120" font-family="'Georgia', serif" font-size="7.5" fill="#333333">and business development. Proven track record of delivering high-impact solutions.</text>
+  <line x1="40" y1="75" x2="360" y2="75" stroke="#1E293B" stroke-width="2"/>
   
-  <text x="40" y="150" font-family="'Georgia', serif" font-size="10" font-weight="bold" fill="#111111">EXPERIENCE</text>
-  <text x="40" y="165" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="#111111">Premier Finance Group</text>
-  <text x="360" y="165" font-family="'Georgia', serif" font-size="8" text-anchor="end" fill="#111111">São Paulo, Brazil</text>
-  <text x="40" y="175" font-family="'Georgia', serif" font-size="8" font-style="italic" fill="#333333">Managing Director</text>
-  <text x="360" y="175" font-family="'Georgia', serif" font-size="8" text-anchor="end" fill="#333333">Jan 2015 – Present</text>
+  <text x="40" y="95" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Resumo</text>
+  <rect x="40" y="102" width="320" height="3" fill="#F1F5F9"/>
+  <rect x="40" y="108" width="300" height="3" fill="#F1F5F9"/>
   
-  <text x="45" y="188" font-family="'Georgia', serif" font-size="7.5" fill="#333333">• Overseeing global operations and leading a team of 200+ professionals.</text>
-  <text x="45" y="198" font-family="'Georgia', serif" font-size="7.5" fill="#333333">• Increased annual revenue by 40% through innovative market expansion strategies.</text>
-
-  <text x="40" y="230" font-family="'Georgia', serif" font-size="10" font-weight="bold" fill="#111111">EDUCATION</text>
-  <text x="40" y="245" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="#111111">London School of Economics</text>
-  <text x="360" y="245" font-family="'Georgia', serif" font-size="8" text-anchor="end" fill="#111111">London, UK</text>
-  <text x="40" y="255" font-family="'Georgia', serif" font-size="8" font-style="italic" fill="#333333">Master of Science in International Relations</text>
+  <text x="40" y="130" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Experiência</text>
+  <line x1="40" y1="135" x2="360" y2="135" stroke="#E2E8F0" stroke-width="0.5"/>
+  
+  <text x="40" y="150" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Senior Product Designer</text>
+  <text x="360" y="150" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2021 – Present</text>
+  <text x="40" y="160" font-family="Arial, sans-serif" font-size="7" font-style="italic" fill="#475569">TechFlow Solutions, São Paulo</text>
+  
+  <rect x="40" y="170" width="310" height="3" fill="#F1F5F9"/>
+  <rect x="40" y="176" width="280" height="3" fill="#F1F5F9"/>
+  
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#0F172A">Product Designer</text>
+  <text x="360" y="200" font-family="Arial, sans-serif" font-size="7" text-anchor="end" fill="#64748B">2018 – 2021</text>
+  
+  <text x="40" y="230" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#64748B" text-transform="uppercase" letter-spacing="0.1em">Educação</text>
+  <line x1="40" y1="235" x2="360" y2="235" stroke="#E2E8F0" stroke-width="0.5"/>
 </svg>

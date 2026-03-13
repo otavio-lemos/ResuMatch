@@ -1,26 +1,26 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
-  <text x="200" y="40" font-family="'Times New Roman', Times, serif" font-size="18" font-weight="bold" text-anchor="middle" fill="black">SEU NOME COMPLETO</text>
-  <text x="200" y="55" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="middle" fill="black">Cidade, Estado | (11) 99999-9999 | seu.email@exemplo.com | linkedin.com/in/perfil</text>
+  <text x="200" y="45" font-family="'Georgia', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">SEU NOME COMPLETO</text>
+  <text x="200" y="58" font-family="'Georgia', serif" font-size="7" text-anchor="middle" fill="black">Cidade, Estado • (11) 99999-9999 • seu.email@exemplo.com • linkedin.com/in/perfil</text>
   
-  <text x="40" y="85" font-family="'Times New Roman', Times, serif" font-size="10" font-weight="bold" fill="black">EDUCATION</text>
-  <line x1="40" y1="90" x2="360" y2="90" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="105" font-family="'Times New Roman', Times, serif" font-size="9" font-weight="bold" fill="black">Harvard University</text>
-  <text x="360" y="105" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="end" fill="black">Cambridge, MA</text>
-  <text x="40" y="115" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" fill="black">Master of Business Administration (MBA)</text>
-  <text x="360" y="115" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="end" fill="black">May 2021</text>
+  <text x="40" y="85" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">SUMMARY</text>
+  <line x1="40" y1="88" x2="360" y2="88" stroke="black" stroke-width="0.5"/>
+  <rect x="40" y="95" width="320" height="3.5" fill="#EEEEEE"/>
+  <rect x="40" y="102" width="290" height="3.5" fill="#EEEEEE"/>
   
-  <text x="40" y="145" font-family="'Times New Roman', Times, serif" font-size="10" font-weight="bold" fill="black">EXPERIENCE</text>
-  <line x1="40" y1="150" x2="360" y2="150" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="165" font-family="'Times New Roman', Times, serif" font-size="9" font-weight="bold" fill="black">Global Consulting Group</text>
-  <text x="360" y="165" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="end" fill="black">New York, NY</text>
-  <text x="40" y="175" font-family="'Times New Roman', Times, serif" font-size="8" font-style="italic" fill="black">Senior Strategy Associate</text>
-  <text x="360" y="175" font-family="'Times New Roman', Times, serif" font-size="8" text-anchor="end" fill="black">2021 – Present</text>
-  <text x="45" y="188" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="black">• Led cross-functional teams to execute market entry strategies for Fortune 500 clients.</text>
-  <text x="45" y="198" font-family="'Times New Roman', Times, serif" font-size="7.5" fill="black">• Optimized operational efficiency resulting in $2M annual cost savings.</text>
+  <text x="40" y="125" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EXPERIENCE</text>
+  <line x1="40" y1="128" x2="360" y2="128" stroke="black" stroke-width="0.5"/>
+  
+  <text x="40" y="142" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">Position Title</text>
+  <text x="360" y="142" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2021 – Present</text>
+  <text x="40" y="150" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Company Name</text>
+  <text x="360" y="150" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">Location</text>
+  <text x="40" y="160" font-family="'Georgia', serif" font-size="7" fill="#333333">• Key achievement with metrics and STAR method.</text>
+  <text x="40" y="168" font-family="'Georgia', serif" font-size="7" fill="#333333">• Optimized operational efficiency by 20%.</text>
 
-  <text x="40" y="230" font-family="'Times New Roman', Times, serif" font-size="10" font-weight="bold" fill="black">SKILLS &amp; INTERESTS</text>
-  <line x1="40" y1="235" x2="360" y2="235" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="250" font-family="'Times New Roman', Times, serif" font-size="8" fill="black"><tspan font-weight="bold">Technical:</tspan> Financial Modeling, Data Analysis (SQL, Python), Strategic Planning.</text>
-  <text x="40" y="262" font-family="'Times New Roman', Times, serif" font-size="8" fill="black"><tspan font-weight="bold">Languages:</tspan> Portuguese (Native), English (Fluent), French (Proficient).</text>
+  <text x="40" y="190" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EDUCATION</text>
+  <line x1="40" y1="193" x2="360" y2="193" stroke="black" stroke-width="0.5"/>
+  <text x="40" y="205" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">University Name</text>
+  <text x="360" y="205" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2019 – 2021</text>
+  <text x="40" y="213" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Degree Name</text>
 </svg>
