@@ -17,7 +17,7 @@ When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to t
 
 ### Extraction Rules (Zero Hallucination)
 - **Absolute Fidelity:** Do not invent data. If information doesn't exist in the original document, return empty string `""` or empty array `[]`.
-- **Paragraph Preservation:** Maintain original paragraph breaks in experience and education descriptions using a blank line (double \n). Do not remove or merge original bullets.
+- **Paragraph Preservation:** Maintain original paragraph breaks using single line break (\n). Do NOT use blank line (double \n) between paragraphs. Do not remove or merge original bullets.
 - **Date Standardization:** Convert to `MM/YYYY` format (e.g., "10/2021"). If current position, use `current`: true and `endDate`: "".
 - **Skill Categorization:** Group into logical categories ("Languages", "Tools", "Soft Skills", "Frameworks", "Cloud", "Methodologies").
 - **ID Generation:** Unique short IDs (e.g., `exp-1`, `edu-1`).

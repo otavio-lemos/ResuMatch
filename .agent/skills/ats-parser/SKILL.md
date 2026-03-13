@@ -17,7 +17,7 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
 
 ### Regras de Extração (Zero Alucinação)
 - **Fidelidade Absoluta:** Não invente dados. Se uma informação não existir no documento original, retorne string vazia `""` ou array vazio `[]`.
-- **Preservação de Parágrafos:** Mantenha as quebras de parágrafo originais nas descrições de experiência e formação usando uma linha em branco (duplo \n). Não remova ou aglutine bullets originais.
+- **Preservação de Parágrafos:** Mantenha as quebras de parágrafo originais usando única quebra de linha (\n). Não use linha em branco (duplo \n) entre parágrafos. Não remova ou aglutine bullets originais.
 - **Padronização de Datas:** Converter para formato `MM/AAAA` (ex: "10/2021"). Se cargo atual, usar `current`: true e `endDate`: "".
 - **Categorização de Habilidades:** Agrupar em categorias lógicas ("Linguagens", "Ferramentas", "Soft Skills", "Frameworks", "Cloud", "Metodologias").
 - **Geração de IDs:** IDs curtos únicos (ex: `exp-1`, `edu-1`).
