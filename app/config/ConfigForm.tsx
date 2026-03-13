@@ -197,7 +197,7 @@ function AIConfigForm({
               )}
             </div>
             
-            {availableModels.length > 0 ? (
+            {(availableModels || []).length > 0 ? (
               <select
                 value={settings.model}
                 onChange={(e) => onChange({ model: e.target.value })}
@@ -490,19 +490,19 @@ export default function ConfigForm() {
         </label>
       </div>
 
-      {testLogs.length > 0 && (
+      {(testLogs || []).length > 0 && (
         <div className="mb-5 p-2.5 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-1.5">
             <h4 className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
               <Clock className="size-2 inline mr-1" />
-              {t('config.history')} ({testLogs.length})
+              {t('config.history')} ({(testLogs || []).length})
             </h4>
             <button onClick={clearLogs} className="text-[9px] text-slate-400 hover:text-slate-600 flex items-center gap-1">
               <Trash2 className="size-2" /> {t('actions.clear')}
             </button>
           </div>
           <div className="space-y-1 max-h-24 overflow-y-auto">
-            {testLogs.slice(0, 3).map((log) => (
+            {(testLogs || []).slice(0, 3).map((log) => (
               <div key={log.id} className={`flex items-center justify-between text-[9px] p-1 rounded ${
                 log.success ? 'bg-emerald-50 dark:bg-emerald-900/10' : 'bg-red-50 dark:bg-red-900/10'
               }`}>

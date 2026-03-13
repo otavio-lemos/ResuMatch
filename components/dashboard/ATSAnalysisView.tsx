@@ -40,7 +40,7 @@ function getScoreColorClassBg(score: number): string {
 interface Bubble { from: 'user' | 'ai'; text: string; delay: number; }
 
 function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; title: string; t: (key: string) => string | undefined, isStatic?: boolean }) {
-    const [visible, setVisible] = useState(isStatic ? bubbles.length : 0);
+    const [visible, setVisible] = useState(isStatic ? (bubbles || []).length : 0);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -93,7 +93,7 @@ function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; 
                         </div>
                     </div>
                 ))}
-                {!isStatic && visible < bubbles.length && (
+                {!isStatic && visible < (bubbles || []).length && (
                     <div className="flex gap-3">
                         <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">{t('labels.ai')}</div>
                         <div className="bg-[#1c2c3e] border border-blue-900/50 px-4 py-3 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl flex gap-1 items-center">
@@ -192,7 +192,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.experiences && data.experiences.length > 0 && (
+            {data?.experiences && data.experiences.length > 0 && (
                 <div className="border-l-2 border-teal-500 pl-3">
                     <span className="text-[9px] font-black text-teal-600 uppercase block mb-2">{t('sections.experience')}</span>
                     {data.experiences.map((exp, i) => (
@@ -205,7 +205,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.education && data.education.length > 0 && (
+            {data?.education && data.education.length > 0 && (
                 <div className="border-l-2 border-amber-500 pl-3">
                     <span className="text-[9px] font-black text-amber-600 uppercase block mb-2">{t('sections.education')}</span>
                     {data.education.map((edu, i) => (
@@ -217,7 +217,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
+            {data?.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
                 <div className="border-l-2 border-cyan-500 pl-3">
                     <span className="text-[9px] font-black text-cyan-600 uppercase block mb-2">{t('sections.skills')}</span>
                     {data.skills.map((skillGroup: any, i: number) => (
@@ -232,7 +232,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
             {(() => {
                 const certSection = data.sectionsConfig?.find(s => s.id === 'certifications');
                 const certs = certSection?.items || [];
-                return certs.length > 0 && (
+                return (certs || []).length > 0 && (
                     <div className="border-l-2 border-pink-500 pl-3">
                         <span className="text-[9px] font-black text-pink-600 uppercase block mb-2">{t('sections.certifications') || 'Certificações'}</span>
                         {(certs as any[]).map((cert: any, i: number) => (
@@ -245,7 +245,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 );
             })()}
 
-            {data.languages && data.languages.length > 0 && (
+            {data?.languages && (data.languages || []).length > 0 && (
                 <div className="border-l-2 border-indigo-500 pl-3">
                     <span className="text-[9px] font-black text-indigo-600 uppercase block mb-2">{t('sections.languages')}</span>
                     {data.languages.map((lang, i) => (
@@ -256,7 +256,7 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                 </div>
             )}
 
-            {data.projects && data.projects.length > 0 && (
+            {data?.projects && (data.projects || []).length > 0 && (
                 <div className="border-l-2 border-orange-500 pl-3">
                     <span className="text-[9px] font-black text-orange-600 uppercase block mb-2">{t('sections.projects')}</span>
                     {data.projects.map((proj, i) => (
@@ -378,7 +378,7 @@ export default function ATSAnalysisView() {
         );
     }
 
-    const unresolvedCount = suggestions.filter(s => !s.resolved).length;
+    const unresolvedCount = (suggestions || []).filter(s => !s.resolved).length;
 
     return (
         <div className="space-y-6">
@@ -414,7 +414,7 @@ export default function ATSAnalysisView() {
                     <CircularProgress percent={displayScore} colorClass={displayScore >= 92 ? "text-emerald-500" : displayScore >= 60 ? "text-amber-500" : "text-red-500"} size="lg" />
                     
                     {/* Streaming Progress Display */}
-                    {storeIsAnalyzing && streamProgress.length > 0 && (
+                    {storeIsAnalyzing && (streamProgress || []).length > 0 && (
                         <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg max-h-48 overflow-y-auto">
                             <div className="flex items-center gap-2 mb-2">
                                 <Loader2 className="size-3 animate-spin text-blue-600" />
@@ -596,7 +596,7 @@ export default function ATSAnalysisView() {
                         </div>
 
                         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                            {suggestions.length === 0 ? (
+                            {(suggestions || []).length === 0 ? (
                                 <div className="text-center py-12">
                                     <CheckCircle2 className="size-12 text-emerald-500 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{t('analysis.noIssues')}</p>

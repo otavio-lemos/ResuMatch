@@ -24,7 +24,7 @@ export async function createNewResume(formData?: FormData, templateId?: string, 
 
         // Obter dados base (vazios ou mockados se veio de um template E includeSampleData for true)
         const baseData = (isFromTemplate && includeSampleData) ? getMockDataForTemplate(resolvedTemplateId) : {
-            personalInfo: { fullName: '', title: '', email: '', phone: '', location: '', linkedin: '', portfolio: '', photoUrl: '' },
+            personalInfo: { fullName: '', title: '', email: '', phone: '', location: '', linkedin: '', github: '', portfolio: '', photoUrl: '' },
             summary: '',
             experiences: [],
             education: [],

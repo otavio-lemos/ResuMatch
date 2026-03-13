@@ -176,12 +176,33 @@ RETURN ONLY THE CORRECTED TEXT. No comments, no extra markdown.
 
 ---
 
+########## EEEDDDIIITTTOOORRR
+## 3. Editor Actions (Summary, Rewrite, Grammar)
+
+### Generation Rules
+- **Summary:** Maximum 4 lines, focus on years of experience and measurable impact
+- **Rewrite (STAR):** Transform into high-impact bullets with: Action verb + What was done + How it was done + Measurable result (%)
+- **Grammar:** Correct errors while maintaining the original tone
+- **Output:** RETURN ONLY THE RESULTING TEXT
+
+########## FIM EEEDDDIIITTTOOORRR
+
+########## UUUIII
+## 4. UI Integration (Zustand)
+
+Whenever modifying the analysis API, ensure that `store/useResumeStore.ts` has interfaces aligned with this SKILL.
+
+########## FIM UUUIII
+
+---
+
 ## 🔗 Store Integration (Zustand)
 
 ### How to call this skill in the backend
 ```typescript
 // Updated pattern to support Audit and Target Job (JD)
 const editorCall = async (
+  action: 'audit' | 'summary' | 'rewrite' | 'grammar',
   fieldText: string,
   resumeContext: ResumeJSON,
   jobDescription?: string // NEW: Job context

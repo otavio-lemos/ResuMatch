@@ -64,13 +64,23 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
 } {
     if (!jobDescription?.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [], jdKeywords: [] };
     const jdKeywords = extractKeywords(jobDescription);
-    const resumeText = [resume.summary, ...resume.experiences.map(e => e.description), ...resume.skills.flatMap(g => g.skills), resume.personalInfo.title].join(' ').toLowerCase();
+    const resumeText = [
+        resume?.summary || '',
+        ...(resume?.experiences || []).map(e => e?.description || ''),
+        ...(resume?.skills || []).flatMap(g => g?.skills || []),
+        resume?.personalInfo?.title || ''
+    ].join(' ').toLowerCase();
+    
     const resumeKeywords = extractKeywords(resumeText);
     const matchedKeywords: string[] = [];
     const missingKeywords: string[] = [];
+    
     for (const keyword of jdKeywords) {
-        if (resumeKeywords.some(rk => rk.includes(keyword) || keyword.includes(rk) || levenshteinDistance(rk, keyword) <= 2)) matchedKeywords.push(keyword);
-        else missingKeywords.push(keyword);
+        if (resumeKeywords.some(rk => rk.includes(keyword) || keyword.includes(rk) || (rk.length > 0 && keyword.length > 0 && levenshteinDistance(rk, keyword) <= 2))) {
+            matchedKeywords.push(keyword);
+        } else {
+            missingKeywords.push(keyword);
+        }
     }
     return { matchScore: jdKeywords.length > 0 ? Math.min(100, Math.round((matchedKeywords.length / jdKeywords.length) * 100)) : 0, matchedKeywords, missingKeywords, jdKeywords };
 }

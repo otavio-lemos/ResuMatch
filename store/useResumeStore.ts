@@ -53,6 +53,7 @@ export type PersonalInfo = {
     phone: string;
     location: string;
     linkedin: string;
+    github?: string;
     portfolio: string;
     title: string;
     photoUrl?: string;
@@ -255,6 +256,7 @@ const EMPTY_RESUME_DATA: ResumeData = {
         phone: '',
         location: '',
         linkedin: '',
+        github: '',
         portfolio: '',
         photoUrl: '',
     },

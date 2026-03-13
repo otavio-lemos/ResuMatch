@@ -290,7 +290,7 @@ export function EditorPanel() {
                         </div>
 
                         {/* ATS Transparency Bubbles */}
-                        {atsBubbles.length > 0 && (
+                        {(atsBubbles || []).length > 0 && (
                             <div className="mb-3 p-2 bg-blue-900/20 border border-blue-800/30 rounded text-[9px] max-h-40 overflow-y-auto">
                                 <div className="text-[9px] font-black text-blue-400 uppercase mb-1">🔍 Debug Info:</div>
                                 {atsBubbles.map((b, i) => (
@@ -516,13 +516,21 @@ export function EditorPanel() {
                                         onChange={(e) => updatePersonalInfo({ location: e.target.value })}
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-3 gap-3">
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('form.linkedin')}</label>
                                         <input
                                             className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs"
                                             value={personalInfo.linkedin}
                                             onChange={(e) => updatePersonalInfo({ linkedin: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Github</label>
+                                        <input
+                                            className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs"
+                                            value={personalInfo.github || ''}
+                                            onChange={(e) => updatePersonalInfo({ github: e.target.value })}
                                         />
                                     </div>
                                     <div>

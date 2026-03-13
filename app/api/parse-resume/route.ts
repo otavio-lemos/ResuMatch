@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
 
         const language = currentLanguage || 'pt';
         const languageInstruction = language === 'pt' 
-          ? 'Responda APENAS em português brasileiro. Use nomes de seções em Português.' 
-          : 'Respond ONLY in English. Use section names in English.';
+          ? 'Responda APENAS em português brasileiro.' 
+          : 'Respond ONLY in English.';
 
         let aiConfig;
         try {

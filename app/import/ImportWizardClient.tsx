@@ -6,7 +6,8 @@ import { Upload, Check, Brain, ShieldAlert, ArrowRight, X, RefreshCw, GripVertic
 import { parseResumeFromPDF, generateATSAnalysis } from '@/app/actions/ai';
 import { saveImportedResume } from '@/app/dashboard/actions';
 import { useAISettingsStore } from '@/store/useAISettingsStore';
-import { ResumeData } from '@/store/useResumeStore';
+import { useResumeStore } from '@/store/useResumeStore';
+import { ResumeData, AppearanceSettings, PersonalInfo } from '@/store/useResumeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING';
@@ -45,7 +46,7 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
         if (!Array.isArray(bubbles)) return;
         // Use defer with setTimeout to avoid sync setState in effect
         const timeout = setTimeout(() => {
-            setVisible(bubbles.length);
+            setVisible((bubbles || []).length);
         }, 0);
         const timeouts = bubbles.map((b, i) => setTimeout(() => setVisible(v => Math.max(v, i + 1)), b.delay));
         return () => {
@@ -85,7 +86,7 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
                         </div>
                     </div>
                 ))}
-                {visible < bubbles.length && (
+                {(visible || 0) < (bubbles || []).length && (
                     <div className="flex gap-3">
                         <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">{t('labels.ai') || 'IA'}</div>
                         <div className="bg-[#1c2c3e] border border-blue-900/50 px-4 py-3 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl flex gap-1 items-center">
@@ -431,14 +432,18 @@ export default function ImportWizardClient() {
             const label = (r.userLabel || '').trim().toLowerCase();
             if (!label || !r.atsKey) return { ...r, validated: false };
 
-            // Real validation: check if the string exists in original PDF headers
-            // or if it matches the target ATS section name (semantic fallthrough)
+            // Real validation: ANY user input is technically valid for mapping
+            // because the user knows what "My Cool Section" maps to.
+            // But we keep basic truth checks if possible from the original headers.
             const existsInPdf = originalHeaders.some(h => h === label || h.includes(label) || label.includes(h));
             const matchesAtsTarget = ATS_SECTIONS.find(s => s.key === r.atsKey)?.label.toLowerCase() === label;
+            
+            // As long as there is an AtsKey selected and a user label typed, it is valid configuration.
+            const hasValidConfig = !!label && !!r.atsKey;
 
             return {
                 ...r,
-                validated: existsInPdf || matchesAtsTarget,
+                validated: hasValidConfig || existsInPdf || matchesAtsTarget,
             };
         }));
         setHasValidationResult(true);
@@ -558,7 +563,7 @@ export default function ImportWizardClient() {
 
     // ── Auto-populate rows from parsed data on REVIEW step ─────────────────────
     useEffect(() => {
-        if (step === 'REVIEW' && parsedData && curriculumChips.length === 0) {
+        if (step === 'REVIEW' && parsedData && (curriculumChips || []).length === 0) {
             // Get original section headers from curriculum (if returned by AI)
             const sectionHeaders = (parsedData as any)._sectionHeaders || {};
 
@@ -577,36 +582,34 @@ export default function ImportWizardClient() {
             let rowId = 1;
 
             // Define the order and mapping for curriculum sections
-            const sectionOrder = [
-                { key: 'personalInfo', atsKey: 'personalInfo' },
-                { key: 'summary', atsKey: 'summary' },
-                { key: 'experiences', atsKey: 'experiences' },
-                { key: 'education', atsKey: 'education' },
-                { key: 'projects', atsKey: 'projects' },
-                { key: 'skills', atsKey: 'skills' },
-                { key: 'certifications', atsKey: 'certifications' },
-                { key: 'languages', atsKey: 'languages' },
-                { key: 'volunteer', atsKey: 'volunteer' },
-            ];
+            // 1. Get all keys from either _sectionHeaders or parsedData directly
+            const rawKeys = new Set([
+                ...Object.keys(sectionHeaders),
+                ...Object.keys(parsedData as any).filter(k => !k.startsWith('_') && k !== 'personalInfo')
+            ]);
 
-            for (const section of sectionOrder) {
-                if (sectionHasData(section.key)) {
-                    const atsSection = ATS_SECTIONS.find(s => s.key === section.atsKey);
-                    // Use original section header from curriculum if available, otherwise use ATS label
-                    const originalHeader = sectionHeaders[section.key];
-                    const curriculumLabel = originalHeader && originalHeader.trim() ? originalHeader : (atsSection?.label || section.key);
+            for (const key of Array.from(rawKeys)) {
+                if (sectionHasData(key)) {
+                    const atsSection = ATS_SECTIONS.find(s => s.key === key);
+                    const originalHeader = sectionHeaders[key];
                     
-                    // Add to curriculum chips pool (for dragging)
-                    newCurriculumChips.push({ key: section.key, label: curriculumLabel });
+                    const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
+                                            ? String(originalHeader).trim() 
+                                            : (atsSection?.label || key);
                     
-                    // Auto-map: create row with mapping already done
-                    newRows.push({
-                        id: `row-${rowId++}`,
-                        userLabel: curriculumLabel,
-                        atsKey: section.atsKey,
-                        validated: true,
-                        isAiSuggestion: false,
-                    });
+                    // Add to curriculum chips pool
+                    newCurriculumChips.push({ key, label: curriculumLabel });
+                    
+                    // Auto-map if it's a known ATS key
+                    if (atsSection) {
+                        newRows.push({
+                            id: `row-${rowId++}`,
+                            userLabel: curriculumLabel,
+                            atsKey: key,
+                            validated: true,
+                            isAiSuggestion: false,
+                        });
+                    }
                 }
             }
 
@@ -620,7 +623,7 @@ export default function ImportWizardClient() {
                 setHasValidationResult(true);
             }
         }
-    }, [step, parsedData, curriculumChips.length, ATS_SECTIONS]);
+    }, [step, parsedData, (curriculumChips || []).length, ATS_SECTIONS]);
 
     // ── Render ────────────────────────────────────────────────────────────────
 
@@ -667,7 +670,7 @@ export default function ImportWizardClient() {
                                 {statusMessage && (
                                     <div className="text-yellow-400 text-xs mb-2">{statusMessage}</div>
                                 )}
-                                {parsingBubbles.length === 0 ? (
+                                {(parsingBubbles || []).length === 0 ? (
                                     <div className="text-white text-sm">Aguardando resposta da IA...</div>
                                 ) : (
                                     parsingBubbles.map((b, i) => (
@@ -707,7 +710,7 @@ export default function ImportWizardClient() {
                                 </div>
 
                                 {/* Curriculum sections chip pool - detected from PDF */}
-                                {availableCurriculumChips.length > 0 && (
+                                {(availableCurriculumChips || []).length > 0 && (
                                     <div className="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/10">
                                         <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3">{t('import.yourResumeSections')} — {t('import.dragToMap')}</p>
                                         <div className="flex flex-wrap gap-2">
@@ -728,7 +731,7 @@ export default function ImportWizardClient() {
                                 )}
 
                                 {/* Chip pool */}
-                                {poolChips.length > 0 && (
+                                {(poolChips || []).length > 0 && (
                                     <div className="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t('import.availableSections')} — {t('import.dragToMap')}</p>
                                         <div className="flex flex-wrap gap-2">

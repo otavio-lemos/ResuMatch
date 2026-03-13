@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    const resumesList = await listResumes();
+    const resumesList = (await listResumes()) || [];
 
     if (resumesList.length === 0) {
         redirect('/modelos');
     }
 
-    const resumes = resumesList.sort((a, b) =>
+    const resumes = [...resumesList].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 

@@ -3,7 +3,7 @@
 // export const metadata = {}; // SEO bypass
 import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
-import { ResumeData, AppearanceSettings } from '@/store/useResumeStore';
+import { ResumeData, AppearanceSettings, PersonalInfo } from '@/store/useResumeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const LABELS = { pt: 'Atual', en: 'Current' };
@@ -69,7 +69,8 @@ function ResumePhoto({ url, size = '80px' }: { url?: string, size?: string }) {
 
 // ─── TEMPLATE 1: Classic Executive ─────────────────────────────────────────────
 function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -89,6 +90,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                             personalInfo.phone ? `• ${personalInfo.phone}` : '',
                             personalInfo.location ? `• ${personalInfo.location}` : '',
                             personalInfo.linkedin ? `• ${personalInfo.linkedin}` : '',
+                            personalInfo.github ? `• ${personalInfo.github}` : '',
                             personalInfo.portfolio ? `• ${personalInfo.portfolio}` : ''
                         ].filter(Boolean).map((item, idx) => (
                             <span key={idx}>{stripEmojis(item)}</span>
@@ -97,7 +99,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
@@ -230,7 +232,8 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
 
 // ─── TEMPLATE 2: Modern Two-Column ─────────────────────────────────────────────
 function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -255,6 +258,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         { label: personalInfo.phone },
                         { label: personalInfo.location },
                         { label: personalInfo.linkedin },
+                        { label: personalInfo.github },
                         { label: personalInfo.portfolio },
                     ].filter(i => i.label).map((item, idx) => (
                         <p key={idx} style={{ fontSize: '0.75em', color: '#cbd5e1', marginBottom: '4px', wordBreak: 'break-all' }}>{item.label}</p>
@@ -280,7 +284,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
 
             {/* Right Main Content */}
             <div style={{ flex: 1, padding: '36px 28px', overflow: 'hidden' }}>
-                {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+                {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                     const sectionStyle = { marginBottom: '20px' };
                     const headingStyle = { fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: '#1e40af', borderBottom: '2px solid #1e40af', paddingBottom: '4px', marginBottom: '12px' };
 
@@ -394,7 +398,8 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
 
 // ─── TEMPLATE 3: Vienna (With Photo) ──────────────────────────────────────────
 function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -413,12 +418,13 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                         {personalInfo.email && <span>• {stripEmojis(personalInfo.email)}</span>}
                         {personalInfo.phone && <span>• {stripEmojis(personalInfo.phone)}</span>}
                         {personalInfo.linkedin && <span>• {stripEmojis(personalInfo.linkedin)}</span>}
+                        {personalInfo.github && <span>• {stripEmojis(personalInfo.github)}</span>}
                         {personalInfo.portfolio && <span>• {stripEmojis(personalInfo.portfolio)}</span>}
                     </div>
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 const sectionStyle = { marginBottom: '24px' };
                 const headingStyle = { fontSize: '0.9em', fontWeight: 700, textTransform: 'uppercase' as const, color: '#1e3a8a', borderBottom: '1px solid #bfdbfe', paddingBottom: '4px', marginBottom: '12px', letterSpacing: '0.05em' };
 
@@ -537,7 +543,8 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
 }
 // ─── TEMPLATE 3: Minimalist Clean ──────────────────────────────────────────────
 function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -559,10 +566,12 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     {personalInfo.location && <span>{personalInfo.location}</span>}
                     {personalInfo.linkedin && <span>|</span>}
                     {personalInfo.linkedin && <span>{personalInfo.linkedin}</span>}
+                    {personalInfo.github && <span>|</span>}
+                    {personalInfo.github && <span>{personalInfo.github}</span>}
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 const sectionStyle = { marginBottom: '18px' };
                 const headingStyle = { fontSize: '0.65em', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: '#6b7280', marginBottom: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '12px' };
 
@@ -681,7 +690,8 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
 
 // ─── TEMPLATE 5: Tech Dark Mode ──────────────────────────────────────────────
 function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     const containerStyle = { ...style, backgroundColor: '#0F172A', color: '#94A3B8', padding: '40px', boxSizing: 'border-box' as const, fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace" };
@@ -696,13 +706,14 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                     {[
                         personalInfo.email,
                         personalInfo.linkedin && `in/${personalInfo.linkedin.replace('https://linkedin.com/in/', '')}`,
+                        personalInfo.github && `gh/${personalInfo.github.replace('https://github.com/', '')}`,
                         personalInfo.phone,
                         personalInfo.portfolio
                     ].filter(Boolean).join(' // ')}
                 </p>
             </div>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <div key={section.id} style={{ marginBottom: '16px' }}>
@@ -817,7 +828,8 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
 
 // ─── TEMPLATE 6: Compact High-Density ─────────────────────────────────────────
 function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     const containerStyle = { ...style, padding: '30px', backgroundColor: 'white', boxSizing: 'border-box' as const };
@@ -836,6 +848,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                         personalInfo.email,
                         personalInfo.phone,
                         personalInfo.linkedin,
+                        personalInfo.github,
                         personalInfo.portfolio,
                         personalInfo.location
                     ].filter(Boolean).map((text, i) => (
@@ -844,7 +857,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                 </div>
             </div>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <div key={section.id}>
@@ -943,7 +956,8 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
 }
 // ─── TEMPLATE 7: Harvard Strict ATS ─────────────────────────────────────────────
 function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -957,11 +971,12 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                     {personalInfo.phone && <span>• {personalInfo.phone}</span>}
                     {personalInfo.email && <span>• {personalInfo.email}</span>}
                     {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                    {personalInfo.github && <span>• {personalInfo.github}</span>}
                     {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: '16px' }}>
@@ -1086,7 +1101,8 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
 
 // ─── TEMPLATE 8: Corporate Standard ─────────────────────────────────────────────
 function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     return (
@@ -1103,11 +1119,12 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                     {personalInfo.email && <span>• {personalInfo.email}</span>}
                     {personalInfo.phone && <span>• {personalInfo.phone}</span>}
                     {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+                    {personalInfo.github && <span>• {personalInfo.github}</span>}
                     {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: '20px' }}>
@@ -1239,7 +1256,8 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
 
 // ─── TEMPLATE 9: ATS Optimal Max ────────────────────────────────────────────────
 function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
-    const { personalInfo, summary, experiences, education, skills, appearance } = data;
+    if (!data) return null;
+    const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
     // Hardcode an ATS-safe font (Times New Roman or Arial) to override any creative font from appearance,
@@ -1259,12 +1277,13 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                         personalInfo.phone,
                         personalInfo.email,
                         personalInfo.linkedin,
+                        personalInfo.github,
                         personalInfo.portfolio
                     ].filter(Boolean).map(stripEmojis).join(' • ')}
                 </div>
             </header>
 
-            {data.sectionsConfig.filter(s => s.active && s.id !== 'personal').map(section => {
+            {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: '16px' }}>

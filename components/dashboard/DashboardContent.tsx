@@ -40,9 +40,10 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
     const router = useRouter();
 
     useEffect(() => {
-        setResumes(initialResumes);
-        if (currentIndex >= initialResumes.length && initialResumes.length > 0) {
-            setCurrentIndex(Math.max(0, initialResumes.length - 1));
+        const list = initialResumes || [];
+        setResumes(list);
+        if (currentIndex >= list.length && list.length > 0) {
+            setCurrentIndex(Math.max(0, list.length - 1));
         }
     }, [initialResumes, currentIndex]);
 
@@ -220,7 +221,7 @@ export default function DashboardContent({ initialResumes }: { initialResumes: R
     };
 
     // Not rendering an empty state here because Home (page.tsx) handles redirect to /modelos
-    if (resumes.length === 0) return null;
+    if ((resumes || []).length === 0) return null;
 
     return (
         <div className="w-full">
