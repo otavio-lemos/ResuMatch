@@ -8,9 +8,8 @@ import { saveImportedResume } from '@/app/dashboard/actions';
 import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeData, AppearanceSettings, PersonalInfo } from '@/store/useResumeStore';
+import { useImportStore, WizardStep, ChatBubble, MappingRow } from '@/store/useImportStore';
 import { useTranslation } from '@/hooks/useTranslation';
-
-type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING';
 
 const WIZARD_DELAYS = {
     PARSING_COMPLETE: 10500,
@@ -34,28 +33,13 @@ interface ImportResumeData extends Omit<Partial<ResumeData>, 'certifications'> {
     _sectionHeaders?: Record<string, string>;
 }
 
-// ─── Chat bubbles ─────────────────────────────────────────────────────────────
-
-interface Bubble { from: 'user' | 'ai'; text: string; delay: number; }
-
-function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: any }) {
-    const [visible, setVisible] = useState(0);
+function ChatView({ bubbles, title, t, isProcessing, onAbort }: { bubbles: ChatBubble[]; title: string; t: any; isProcessing: boolean; onAbort?: () => void }) {
     const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!Array.isArray(bubbles)) return;
-        // Use defer with setTimeout to avoid sync setState in effect
-        const timeout = setTimeout(() => {
-            setVisible((bubbles || []).length);
-        }, 0);
-        const timeouts = bubbles.map((b, i) => setTimeout(() => setVisible(v => Math.max(v, i + 1)), b.delay));
-        return () => {
-            clearTimeout(timeout);
-            timeouts.forEach(t => clearTimeout(t));
-        };
-    }, [bubbles]);
-
-    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [visible]);
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [bubbles.length, bubbles]);
 
     if (!Array.isArray(bubbles)) return null;
 
@@ -68,25 +52,37 @@ function ChatView({ bubbles, title, t }: { bubbles: Bubble[]; title: string; t: 
                     <span className="size-2.5 rounded-full bg-emerald-500/70" />
                 </div>
                 <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{title}</span>
-                <div className="ml-auto flex items-center gap-1.5">
-                    <Brain className="size-3.5 text-blue-500 animate-pulse" />
-                    <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">{t('import.processing')}</span>
+                <div className="ml-auto flex items-center gap-3">
+                    {isProcessing && onAbort && (
+                        <button 
+                            onClick={onAbort}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-red-900/30 hover:bg-red-900/50 border border-red-800/50 text-[9px] font-black text-red-400 uppercase tracking-widest transition-colors group"
+                        >
+                            <X className="size-3 group-hover:scale-110 transition-transform" />
+                            {t('common.stop') || 'PARAR'}
+                        </button>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                        <Brain className={`size-3.5 text-blue-500 ${isProcessing ? 'animate-pulse' : ''}`} />
+                        <span className={`text-[9px] font-bold text-blue-400 uppercase tracking-widest ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? t('import.processing') : t('import.ready')}</span>
+                    </div>
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {bubbles.slice(0, visible).map((b, i) => (
-                    <div key={i} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
-                            {b.from === 'user' ? t('labels.me') || 'EU' : t('labels.ai') || 'IA'}
+                {bubbles.map((b, i) => (
+                    <div key={b.id} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.sender === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
+                            {b.sender === 'user' ? t('labels.me') || 'EU' : t('labels.ai') || 'IA'}
                         </div>
-                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user'
+                        <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.sender === 'user'
                             ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl'
                             : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
                             {b.text}
                         </div>
                     </div>
                 ))}
-                {(visible || 0) < (bubbles || []).length && (
+                {/* Show typing indicator only when processing */}
+                {isProcessing && (
                     <div className="flex gap-3">
                         <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">{t('labels.ai') || 'IA'}</div>
                         <div className="bg-[#1c2c3e] border border-blue-900/50 px-4 py-3 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl flex gap-1 items-center">
@@ -140,24 +136,29 @@ export default function ImportWizardClient() {
         { key: 'volunteer', label: t('import.sections.volunteer') },
     ], [t]);
 
-    const [step, setStep] = useState<WizardStep>('UPLOAD');
-    const [error, setError] = useState<string | null>(null);
-    const [parsedData, setParsedData] = useState<ImportResumeData | null>(null);
+    const { 
+        step, setStep, 
+        error, setError, 
+        parsedData, setParsedData,
+        mappingRows, setMappingRows,
+        curriculumChips, setCurriculumChips,
+        parsingBubbles, setParsingBubbles, addParsingBubble, updateParsingBubble,
+        analysingBubbles, setAnalysingBubbles, addAnalysingBubble, updateAnalysingBubble,
+        isProcessing, setIsProcessing,
+        reset
+    } = useImportStore();
+
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
     
-    // Simple status message for debugging
-    const [statusMessage, setStatusMessage] = useState<string>('');
+    // Hydration check for Zustand persist
+    const [hasHydrated, setHasHydrated] = useState(false);
+    useEffect(() => {
+        setHasHydrated(true);
+    }, []);
 
-    const [rows, setRows] = useState<MapRow[]>([]);
     const [hasValidationResult, setHasValidationResult] = useState(false);
-    
-    // Pool of curriculum sections (detected from PDF but not yet mapped to ATS)
-    const [curriculumChips, setCurriculumChips] = useState<{key: string; label: string}[]>([]);
-    
-    // Empty initial bubbles - will be populated when needed
-    const [parsingBubbles, setParsingBubbles] = useState<Bubble[]>([]);
-    const [analysingBubbles, setAnalysingBubbles] = useState<Bubble[]>([]);
 
     // Auto-scroll when bubbles change
     useEffect(() => {
@@ -176,13 +177,13 @@ export default function ImportWizardClient() {
 
     // ── Derived ──────────────────────────────────────────────────────────────
 
-    const assignedKeys = new Set(rows.map(r => r.atsKey).filter(Boolean) as string[]);
+    const assignedKeys = new Set(mappingRows.map(r => r.atsKey).filter(Boolean) as string[]);
     const poolChips = ATS_SECTIONS.filter(s => !assignedKeys.has(s.key));
-    const mappedRows = rows.filter(r => r.userLabel.trim() && r.atsKey);
+    const mappedRows = mappingRows.filter(r => r.userLabel.trim() && r.atsKey);
     const allValidated = mappedRows.length > 0 && mappedRows.every(r => r.validated);
 
     // Curriculum sections assigned to rows
-    const assignedCurriculumLabels = new Set(rows.map(r => r.userLabel.toLowerCase().trim()));
+    const assignedCurriculumLabels = new Set(mappingRows.map(r => r.userLabel.toLowerCase().trim()));
     // Available curriculum chips (not yet mapped)
     const availableCurriculumChips = curriculumChips.filter(c => !assignedCurriculumLabels.has(c.label.toLowerCase()));
 
@@ -205,11 +206,7 @@ export default function ImportWizardClient() {
     };
 
     const resetToUpload = () => {
-        setStep('UPLOAD');
-        setError(null);
-        setParsingBubbles([]);
-        setParsedData(null);
-        setRows([]);
+        reset();
     };
 
     const processFile = async (selectedFile: File) => {
@@ -217,7 +214,8 @@ export default function ImportWizardClient() {
         setStep('PARSING');
         setError(null);
         
-        const controller = new AbortController();
+        abortControllerRef.current = new AbortController();
+        const controller = abortControllerRef.current;
         const timeoutMs = 300000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
@@ -292,25 +290,16 @@ export default function ImportWizardClient() {
                             if (data.type === 'info') {
                                 skillInfo = data.skill;
                                 promptInfo = data.prompt;
-                                setParsingBubbles(prev => [
-                                    ...prev,
-                                    { from: 'user', text: `PROMPT:\n${promptInfo}`, delay: 0 }
-                                ]);
+                                addParsingBubble({ sender: 'user', text: `PROMPT:\n${promptInfo}`, type: 'text' });
                             } else if (data.type === 'progress') {
-                                setParsingBubbles(prev => [
-                                    ...prev,
-                                    { from: 'ai', text: data.message, delay: 0 }
-                                ]);
+                                addParsingBubble({ sender: 'ai', text: data.message, type: 'progress' });
                             } else if (data.type === 'chunk') {
                                 rawResponse += data.content;
                                 // Update streaming response in real-time
-                                setParsingBubbles(prev => {
-                                    const filtered = prev.filter(b => !b.text.startsWith('RESPONSE:'));
-                                    return [
-                                        ...filtered,
-                                        { from: 'ai', text: `RESPONSE:\n${rawResponse}`, delay: 0 }
-                                    ];
-                                });
+                                setParsingBubbles([
+                                    ...parsingBubbles.filter(b => !b.text.startsWith('RESPONSE:')),
+                                    { id: 'parsing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
+                                ]);
                             } else if (data.type === 'done') {
                                 clearTimeout(timeoutId);
                                 const extractedData = data.data;
@@ -355,17 +344,17 @@ export default function ImportWizardClient() {
     // ── Row editing ───────────────────────────────────────────────────────────
 
     const updateRowLabel = (id: string, value: string) => {
-        setRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));
+        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));
         setHasValidationResult(false);
     };
 
     const clearRowLabel = (id: string) => {
-        setRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: '', validated: false, isAiSuggestion: false } : r));
+        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, userLabel: '', validated: false, isAiSuggestion: false } : r));
         setHasValidationResult(false);
     };
 
     const clearRowAts = (id: string) => {
-        setRows(prev => prev.map(r => r.id === id ? { ...r, atsKey: null, validated: false } : r));
+        setMappingRows(prev => prev.map(r => r.id === id ? { ...r, atsKey: null, validated: false } : r));
         setHasValidationResult(false);
     };
 
@@ -378,7 +367,7 @@ export default function ImportWizardClient() {
         if (chipType === 'curriculum') {
             const curriculumChip = curriculumChips.find(c => c.key === chipDrag);
             if (curriculumChip) {
-                setRows(prev => prev.map(r => {
+                setMappingRows(prev => prev.map(r => {
                     // Check if this curriculum label is already used in another row
                     const labelExists = prev.some(row => row.userLabel.toLowerCase() === curriculumChip.label.toLowerCase() && row.id !== rowId);
                     if (r.id === rowId && !labelExists) {
@@ -389,7 +378,7 @@ export default function ImportWizardClient() {
             }
         } else {
             // ATS chip drop - set the atsKey (right column)
-            setRows(prev => prev.map(r => {
+            setMappingRows(prev => prev.map(r => {
                 if (r.atsKey === chipDrag) return { ...r, atsKey: null, validated: false };
                 if (r.id === rowId) return { ...r, atsKey: chipDrag, validated: false };
                 return r;
@@ -408,7 +397,7 @@ export default function ImportWizardClient() {
             setRowDragOver(null);
             return;
         }
-        setRows(prev => {
+        setMappingRows(prev => {
             const next = [...prev];
             const fromIdx = next.findIndex(r => r.id === rowDragId);
             const toIdx = next.findIndex(r => r.id === targetId);
@@ -428,7 +417,7 @@ export default function ImportWizardClient() {
             .filter(h => h != null)
             .map(h => String(h).toLowerCase().trim());
 
-        setRows(prev => prev.map(r => {
+        setMappingRows(prev => prev.map(r => {
             const label = (r.userLabel || '').trim().toLowerCase();
             if (!label || !r.atsKey) return { ...r, validated: false };
 
@@ -461,12 +450,17 @@ export default function ImportWizardClient() {
             if (!skipAnalysis) {
                 setStep('ANALYSING');
                 setAnalysingBubbles([]);
+                setIsProcessing(true);
                 
+                abortControllerRef.current = new AbortController();
+                const controller = abortControllerRef.current;
+
                 // Real-time conversation for ATS analysis
-                const conversation: Bubble[] = [
-                    { from: 'user', text: language === 'pt' ? 'Quero uma auditoria ATS completa do meu currículo.' : 'I want a complete ATS audit of my resume.', delay: 0 },
-                ];
-                setAnalysingBubbles([...conversation]);
+                addAnalysingBubble({ 
+                    sender: 'user', 
+                    text: t('import.wantsAudit'), 
+                    type: 'text' 
+                });
                 
                 const aiSettings = primaryAI?.provider ? {
                     provider: primaryAI.provider,
@@ -484,6 +478,7 @@ export default function ImportWizardClient() {
                         aiSettings,
                         language
                     }),
+                    signal: controller.signal
                 });
 
                 if (!response.ok) {
@@ -516,13 +511,10 @@ export default function ImportWizardClient() {
                                 
                                 if (data.type === 'chunk') {
                                     rawResponse += data.content;
-                                    setAnalysingBubbles(prev => {
-                                        const filtered = prev.filter(b => !b.text.startsWith('RESPONSE:'));
-                                        return [
-                                            ...filtered,
-                                            { from: 'ai', text: `RESPONSE:\n${rawResponse}`, delay: 0 }
-                                        ];
-                                    });
+                                    setAnalysingBubbles([
+                                        ...analysingBubbles.filter(b => !b.text.startsWith('RESPONSE:')),
+                                        { id: 'analysing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
+                                    ]);
                                 } else if (data.type === 'done') {
                                     const atsResult = data.data;
                                     console.log('[IMPORT] ATS Result:', atsResult);
@@ -545,29 +537,48 @@ export default function ImportWizardClient() {
                 console.log('[IMPORT] saveImportedResume result:', res);
                 if (res?.error) throw new Error(res.message);
                 console.log('[IMPORT] Redirecting to:', `/dashboard/${res.id}`);
+                reset();
                 router.push(`/dashboard/${res.id}`);
             } catch (saveErr: any) {
                 console.error('[IMPORT] Save error:', saveErr);
                 setError(saveErr.message || t('import.errorSaving'));
                 setStep('REVIEW');
                 setParsedData(null);
-                setRows([]);
+                setMappingRows([]);
             }
         } catch (err: any) {
             setError(err.message || t('import.errorSaving'));
             setStep('REVIEW');
             setParsedData(null);
-            setRows([]);
+            setMappingRows([]);
+        }
+    };
+ 
+    const handleAbort = () => {
+        if (abortControllerRef.current) {
+            console.log('[IMPORT] Aborting AI request...');
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+            setIsProcessing(false);
+            
+            const msg = language === 'pt' ? 'Operação cancelada pelo usuário.' : 'Operation cancelled by user.';
+            setError(msg);
+
+            // Return to a stable step
+            if (step === 'PARSING') setStep('UPLOAD');
+            if (step === 'ANALYSING') setStep('REVIEW');
         }
     };
 
     // ── Auto-populate rows from parsed data on REVIEW step ─────────────────────
     useEffect(() => {
+        if (!hasHydrated) return;
         if (step === 'REVIEW' && parsedData && (curriculumChips || []).length === 0) {
-            // Get original section headers from curriculum (if returned by AI)
+            console.log('[IMPORT] Populating curriculum chips from parsedData...');
+            
+            // Get original section headers from curriculum
             const sectionHeaders = (parsedData as any)._sectionHeaders || {};
 
-            // Helper to check if a section has data
             const sectionHasData = (key: string): boolean => {
                 const val = (parsedData as any)[key];
                 if (val == null || val === '') return false;
@@ -581,51 +592,72 @@ export default function ImportWizardClient() {
             const newRows: MapRow[] = [];
             let rowId = 1;
 
-            // Define the order and mapping for curriculum sections
-            // 1. Get all keys from either _sectionHeaders or parsedData directly
-            const rawKeys = new Set([
-                ...Object.keys(sectionHeaders),
-                ...Object.keys(parsedData as any).filter(k => !k.startsWith('_') && k !== 'personalInfo')
-            ]);
-
-            for (const key of Array.from(rawKeys)) {
+            // Use ATS_SECTIONS as base to ensure all sections are shown
+            // Then try to get original headers from _sectionHeaders
+            for (const atsSection of ATS_SECTIONS) {
+                const key = atsSection.key;
+                const originalHeader = sectionHeaders[key];
+                
+                // Use original header if available and not empty, otherwise use ATS section label
+                const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
+                    ? String(originalHeader).trim() 
+                    : atsSection.label;
+                
+                // Always add the chip for display - it's okay if it has no data
+                newCurriculumChips.push({ key, label: curriculumLabel });
+                
+                // Only add to mapping rows if it has data OR has a valid ATS key
                 if (sectionHasData(key)) {
-                    const atsSection = ATS_SECTIONS.find(s => s.key === key);
-                    const originalHeader = sectionHeaders[key];
-                    
-                    const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
-                                            ? String(originalHeader).trim() 
-                                            : (atsSection?.label || key);
-                    
-                    // Add to curriculum chips pool
-                    newCurriculumChips.push({ key, label: curriculumLabel });
-                    
-                    // Auto-map if it's a known ATS key
-                    if (atsSection) {
-                        newRows.push({
-                            id: `row-${rowId++}`,
-                            userLabel: curriculumLabel,
-                            atsKey: key,
-                            validated: true,
-                            isAiSuggestion: false,
-                        });
-                    }
+                    newRows.push({
+                        id: `row-${rowId++}`,
+                        userLabel: curriculumLabel,
+                        atsKey: key,
+                        validated: true,
+                        isAiSuggestion: false,
+                    });
                 }
             }
 
-            console.log('[IMPORT] Detected curriculum sections:', newCurriculumChips.map(c => c.label));
-            console.log('[IMPORT] Original headers from AI:', sectionHeaders);
-            console.log('[IMPORT] Auto-mapped rows:', newRows.map(r => ({ label: r.userLabel, atsKey: r.atsKey })));
+            // Also add any extra keys from the data that aren't in standard ATS sections
+            const aiKeys = Object.keys(parsedData as any).filter(k => 
+                !k.startsWith('_') && 
+                k !== 'personalInfo' && 
+                !ATS_SECTIONS.some(s => s.key === k)
+            );
             
-            setCurriculumChips(newCurriculumChips);
-            if (newRows.length > 0) {
-                setRows(newRows);
-                setHasValidationResult(true);
+            for (const key of aiKeys) {
+                if (sectionHasData(key)) {
+                    const originalHeader = sectionHeaders[key];
+                    const curriculumLabel = originalHeader && String(originalHeader).trim() !== '' 
+                        ? String(originalHeader).trim() 
+                        : key;
+                    
+                    newCurriculumChips.push({ key, label: curriculumLabel });
+                    newRows.push({
+                        id: `row-${rowId++}`,
+                        userLabel: curriculumLabel,
+                        atsKey: key,
+                        validated: false, // Unknown key, needs validation
+                        isAiSuggestion: false,
+                    });
+                }
+            }
+
+            if (newCurriculumChips.length > 0) {
+                setCurriculumChips(newCurriculumChips);
+                if (newRows.length > 0) {
+                    setMappingRows(newRows);
+                    setHasValidationResult(true);
+                }
+            } else {
+                console.warn('[IMPORT] No curriculum sections detected in parsedData');
             }
         }
-    }, [step, parsedData, (curriculumChips || []).length, ATS_SECTIONS]);
+    }, [hasHydrated, step, parsedData, curriculumChips.length, ATS_SECTIONS, setCurriculumChips, setMappingRows]);
 
     // ── Render ────────────────────────────────────────────────────────────────
+
+    if (!hasHydrated) return null;
 
     return (
         <div className="flex flex-col min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-[#0b1219]">
@@ -658,34 +690,13 @@ export default function ImportWizardClient() {
 
                     {/* ── PARSING ─────────────────────────────── */}
                     {step === 'PARSING' && (
-                        <div className="flex flex-col min-h-[500px] bg-[#0d1117] border border-slate-800">
-                            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
-                                <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{t('import.parsingTitle')}</span>
-                                <div className="ml-auto flex items-center gap-1.5">
-                                    <Brain className="size-3.5 text-blue-500 animate-pulse" />
-                                    <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">{t('import.processing')}</span>
-                                </div>
-                            </div>
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4">
-                                {statusMessage && (
-                                    <div className="text-yellow-400 text-xs mb-2">{statusMessage}</div>
-                                )}
-                                {(parsingBubbles || []).length === 0 ? (
-                                    <div className="text-white text-sm">Aguardando resposta da IA...</div>
-                                ) : (
-                                    parsingBubbles.map((b, i) => (
-                                        <div key={i} className={`flex gap-3 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                            <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
-                                                {b.from === 'user' ? 'EU' : 'IA'}
-                                            </div>
-                                            <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user' ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl' : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
-                                                {b.text}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
+                        <ChatView 
+                            bubbles={parsingBubbles} 
+                            title={t('import.parsingTitle')} 
+                            t={t} 
+                            isProcessing={isProcessing} 
+                            onAbort={handleAbort}
+                        />
                     )}
 
                     {/* ── REVIEW ──────────────────────────────── */}
@@ -763,7 +774,7 @@ export default function ImportWizardClient() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {rows.map((row) => {
+                                            {mappingRows.map((row) => {
                                                 const atsSection = ATS_SECTIONS.find(s => s.key === row.atsKey);
                                                 const isMapped = row.userLabel.trim() && row.atsKey;
                                                 const isChipOver = rowDragOver === row.id && chipDrag;
@@ -820,8 +831,8 @@ export default function ImportWizardClient() {
                                                                 </div>
                                                                 {row.userLabel.trim() && (
                                                                     <button onClick={() => {
-                                                                        if (row.isAiSuggestion) {
-                                                                            setRows(prev => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r));
+                                                                         if (row.isAiSuggestion) {
+                                                                            setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === row.id ? { ...r, userLabel: '', atsKey: null, validated: false, isAiSuggestion: false } : r));
                                                                         } else {
                                                                             clearRowLabel(row.id);
                                                                         }
@@ -896,7 +907,16 @@ export default function ImportWizardClient() {
                     })()}
 
                     {/* ── ANALYSING ───────────────────────────── */}
-                    {step === 'ANALYSING' && <ChatView key="analysing" bubbles={analysingBubbles} title={t('import.analysingTitle')} t={t} />}
+                    {step === 'ANALYSING' && (
+                        <ChatView 
+                            key="analysing" 
+                            bubbles={analysingBubbles} 
+                            title={t('import.analysingTitle')} 
+                            t={t} 
+                            isProcessing={isProcessing} 
+                            onAbort={handleAbort}
+                        />
+                    )}
 
 
                     {/* ── SAVING ──────────────────────────────── */}

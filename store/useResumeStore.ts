@@ -123,10 +123,22 @@ export interface AIAnalysis {
     design: number;
     estrutura: number;
     conteudo: number;
+    structure?: number;
+    content?: number;
   };
   designChecks: AICheck[];
   estruturaChecks: AICheck[];
+  structureChecks?: AICheck[];
   conteudoMetrics: {
+    wordCount: AIMetric;
+    paragraphsPerSection: AIMetric;
+    charsPerParagraph: AIMetric;
+    experienceDescriptions: AIMetric;
+    starBullets?: AIMetric;
+    keywordCount?: AIMetric;
+    pageCount?: AIMetric;
+  };
+  contentMetrics?: {
     wordCount: AIMetric;
     paragraphsPerSection: AIMetric;
     charsPerParagraph: AIMetric;

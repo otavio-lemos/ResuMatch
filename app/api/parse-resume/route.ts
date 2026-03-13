@@ -73,9 +73,10 @@ export async function POST(req: NextRequest) {
         }
 
         const language = currentLanguage || 'pt';
+        // Force explicit language instruction for local/Ollama models
         const languageInstruction = language === 'pt' 
-          ? 'Responda APENAS em português brasileiro.' 
-          : 'Respond ONLY in English.';
+          ? 'Responda APENAS em português brasileiro. PRESTAÇÃO DE CONTAS: Você DEVE capturar os NOMES EXATOS das seções no _sectionHeaders - use o texto original do documento, não traduza.'
+          : 'Respond ONLY in English. IMPORTANT: You MUST capture the EXACT section names in _sectionHeaders - use the original text from the document, do NOT translate.';
 
         let aiConfig;
         try {

@@ -294,7 +294,7 @@ export default function ATSAnalysisView() {
         if (analysis?.improvedBullets) {
             analysis.improvedBullets.forEach((b: any) => {
                 allSuggestions.push({
-                    type: 'conteudo',
+                    type: 'content',
                     field: b.section || 'experience',
                     original: b.original,
                     issue: b.reason || t('labels.missingActionVerb'),
@@ -317,11 +317,12 @@ export default function ATSAnalysisView() {
                 }
             });
         }
-        if (analysis?.estruturaChecks) {
-            analysis.estruturaChecks.forEach((c: AICheck) => {
+        if (analysis?.structureChecks || analysis?.estruturaChecks) {
+            const checks = analysis.structureChecks || analysis.estruturaChecks;
+            checks.forEach((c: AICheck) => {
                 if (!c.passed) {
                     allSuggestions.push({
-                        type: 'estrutura',
+                        type: 'structure',
                         field: c.label.toLowerCase(),
                         original: t('labels.invalidData'),
                         issue: c.feedback,
@@ -354,8 +355,11 @@ export default function ATSAnalysisView() {
 
     const getAnalysisScore = (a: any): number => {
         if (a?.score !== undefined) return a.score;
-        if (a?.scores?.design !== undefined) return Math.round((a.scores.design + a.scores.estrutura + a.scores.conteudo) / 3);
-        return 0;
+        const scores = a?.scores || {};
+        const design = scores.design ?? 0;
+        const structure = scores.structure ?? scores.estrutura ?? 0;
+        const content = scores.content ?? scores.conteudo ?? 0;
+        return Math.round((design + structure + content) / 3);
     };
 
     const displayScore = analysis ? getAnalysisScore(analysis) : 0;
@@ -501,18 +505,24 @@ export default function ATSAnalysisView() {
                             <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 dark:text-white">{t('dashboard.structureScore')}</h3>
                             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{t('analysis.structureSubtitle')}</p>
                         </div>
-                        <CircularProgress percent={analysis?.scores?.estrutura ?? 0} colorClass={(analysis?.scores?.estrutura ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.estrutura ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} />
+                        <CircularProgress 
+                            percent={analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0} 
+                            colorClass={(analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
+                        />
                     </div>
                     <ul className="space-y-2">
-                        {analysis?.estruturaChecks?.map((c: AICheck, i: number) => (
-                            <li key={i} className="flex items-start gap-2 text-[11px]">
-                                {c.passed ? <CheckCircle2 className="size-3.5 text-emerald-500 mt-0.5 shrink-0" /> : <ShieldAlert className="size-3.5 text-amber-500 mt-0.5 shrink-0" />}
-                                <div className="flex flex-col">
-                                    <span className="text-slate-900 dark:text-white font-bold text-[10px] uppercase leading-none mb-0.5">{c.label}</span>
-                                    <span className="text-slate-500 dark:text-slate-400 leading-tight text-[10px]">{c.feedback}</span>
-                                </div>
-                            </li>
-                        ))}
+                        {(() => {
+                            const checks = analysis?.structureChecks || analysis?.estruturaChecks;
+                            return checks?.map((c: AICheck, i: number) => (
+                                <li key={i} className="flex items-start gap-2 text-[11px]">
+                                    {c.passed ? <CheckCircle2 className="size-3.5 text-emerald-500 mt-0.5 shrink-0" /> : <ShieldAlert className="size-3.5 text-amber-500 mt-0.5 shrink-0" />}
+                                    <div className="flex flex-col">
+                                        <span className="text-slate-900 dark:text-white font-bold text-[10px] uppercase leading-none mb-0.5">{c.label}</span>
+                                        <span className="text-slate-500 dark:text-slate-400 leading-tight text-[10px]">{c.feedback}</span>
+                                    </div>
+                                </li>
+                            ));
+                        })()}
                     </ul>
                 </div>
 
@@ -525,40 +535,46 @@ export default function ATSAnalysisView() {
                             <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 dark:text-white">{t('dashboard.contentScore')}</h3>
                             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{t('analysis.contentSubtitle')}</p>
                         </div>
-                        <CircularProgress percent={analysis?.scores?.conteudo ?? 0} colorClass={(analysis?.scores?.conteudo ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.conteudo ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} />
+                        <CircularProgress 
+                            percent={analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0} 
+                            colorClass={(analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
+                        />
                     </div>
                     <div className="space-y-3">
-                        {analysis?.conteudoMetrics ? Object.entries(analysis.conteudoMetrics).map(([key, metric]: [string, any]) => (
-                            <div key={key} className="space-y-1">
-                                <div className="flex justify-between items-center text-[9px] font-black uppercase">
-                                    <span className="text-slate-500">{t(`analysis.metrics.${key}` as any) || key.replace(/([A-Z])/g, ' $1')}</span>
-                                    <span className={metric.status === 'good' ? 'text-emerald-500' : metric.status === 'warning' ? 'text-amber-500' : 'text-red-500'}>
-                                        {metric.value} ({t('analysis.metrics.target')}: {metric.target})
-                                    </span>
+                        {(() => {
+                            const metrics = analysis?.contentMetrics || analysis?.conteudoMetrics;
+                            return metrics ? Object.entries(metrics).map(([key, metric]: [string, any]) => (
+                                <div key={key} className="space-y-1">
+                                    <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                                        <span className="text-slate-500">{t(`analysis.metrics.${key}` as any) || key.replace(/([A-Z])/g, ' $1')}</span>
+                                        <span className={metric.status === 'good' ? 'text-emerald-500' : metric.status === 'warning' ? 'text-amber-500' : 'text-red-500'}>
+                                            {metric.value} ({t('analysis.metrics.target')}: {metric.target})
+                                        </span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all ${metric.status === 'good' ? 'bg-emerald-500' : metric.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'}`}
+                                            style={{ 
+                                                width: (() => {
+                                                    const target = metric.target;
+                                                    if (target.includes('-')) {
+                                                        const parts = target.split('-');
+                                                        const maxVal = parseInt(parts[1]) || 100;
+                                                        return `${Math.min(100, (metric.value / maxVal) * 100)}%`;
+                                                    } else if (target.includes('>')) {
+                                                        const threshold = parseInt(target.replace(/\D/g, '')) || 70;
+                                                        return `${Math.min(100, (metric.value / threshold) * 100)}%`;
+                                                    }
+                                                    return `${Math.min(100, metric.value)}%`;
+                                                })()
+                                            }}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700 overflow-hidden">
-                                    <div
-                                        className={`h-full transition-all ${metric.status === 'good' ? 'bg-emerald-500' : metric.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'}`}
-                                        style={{ 
-                                            width: (() => {
-                                                const target = metric.target;
-                                                if (target.includes('-')) {
-                                                    const parts = target.split('-');
-                                                    const maxVal = parseInt(parts[1]) || 100;
-                                                    return `${Math.min(100, (metric.value / maxVal) * 100)}%`;
-                                                } else if (target.includes('>')) {
-                                                    const threshold = parseInt(target.replace(/\D/g, '')) || 70;
-                                                    return `${Math.min(100, (metric.value / threshold) * 100)}%`;
-                                                }
-                                                return `${Math.min(100, metric.value)}%`;
-                                            })()
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        )) : (
-                            <p className="text-[10px] text-slate-400 italic">{t('analysis.analyzing')}</p>
-                        )}
+                            )) : (
+                                <p className="text-[10px] text-slate-400 italic">{t('analysis.analyzing')}</p>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

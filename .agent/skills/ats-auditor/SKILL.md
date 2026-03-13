@@ -214,16 +214,16 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
     - "Habilidades" ou "Competências" (não "Skills" em currículo PT)
     - "Resumo Profissional" ou "Professional Summary" (não "Sobre")
 
-RETORNE APENAS JSON:
+RETURN ONLY JSON:
 {
-  "scores": { "design": 0-100, "estrutura": 0-100, "conteudo": 0-100 },
+  "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },
   "designChecks": [
     { "label": "string", "passed": boolean, "feedback": "string" }
   ],
-  "estruturaChecks": [
+  "structureChecks": [
     { "label": "string", "passed": boolean, "feedback": "string" }
   ],
-  "conteudoMetrics": {
+  "contentMetrics": {
     "wordCount": { "value": 0, "target": "330-573", "status": "good|warning|danger" },
     "paragraphsPerSection": { "value": 0, "target": "3-5", "status": "good|warning|danger" },
     "charsPerParagraph": { "value": 0, "target": "67-94", "status": "good|warning|danger" },

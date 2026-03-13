@@ -53,8 +53,13 @@ export async function POST(req: NextRequest) {
           ? `JOB DESCRIPTION: ${jobDescription}\n\nRESUME DATA (JSON): ${JSON.stringify(resumeData)}`
           : `RESUME DATA (JSON): ${JSON.stringify(resumeData)}`;
 
+        // Force language instruction for Ollama/local models that may ignore skill language directives
+        const languageInstruction = language === 'en'
+          ? 'CRITICAL: You MUST respond in ENGLISH only. All feedback, labels, and suggestions must be in English. JSON keys must be in English (structure, not estrutura).'
+          : 'CRITICAL: Responda apenas em português. Todas as etiquetas e sugestões devem estar em português.';
+
         const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
-        const finalPrompt = `${userInstructions}${basePrompt}`;
+        const finalPrompt = `${languageInstruction}\n\n${userInstructions}${basePrompt}`;
 
         skillUsed = getAtsAnalyzerSkill(language);
         userPrompt = finalPrompt;
