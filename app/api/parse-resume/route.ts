@@ -240,27 +240,40 @@ export async function POST(req: NextRequest) {
             if (done) break;
             bufferStr += decoder.decode(value, { stream: true });
             
-            // Process chunks from Gemini stream format
-            try {
-              const lines = bufferStr.split('\n');
-              bufferStr = lines.pop() || '';
-              
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed === '[' || trimmed === ',' || trimmed === ']') continue;
-                
+            // Gemini stream handling: extract valid JSON objects from buffer
+            let startIdx = bufferStr.indexOf('{');
+            while (startIdx !== -1) {
+              let endIdx = -1;
+              let stack = 0;
+              for (let i = startIdx; i < bufferStr.length; i++) {
+                if (bufferStr[i] === '{') stack++;
+                else if (bufferStr[i] === '}') {
+                  stack--;
+                  if (stack === 0) {
+                    endIdx = i;
+                    break;
+                  }
+                }
+              }
+
+              if (endIdx !== -1) {
                 try {
-                  const chunk = JSON.parse(trimmed.startsWith(',') ? trimmed.slice(1) : trimmed);
+                  const chunkStr = bufferStr.substring(startIdx, endIdx + 1);
+                  const chunk = JSON.parse(chunkStr);
                   const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (text) {
                     fullText += text;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`));
                   }
+                  bufferStr = bufferStr.substring(endIdx + 1);
+                  startIdx = bufferStr.indexOf('{');
                 } catch (e) {
-                  bufferStr = trimmed + bufferStr;
+                  break; 
                 }
+              } else {
+                break; 
               }
-            } catch (e) {}
+            }
           }
           
           rawResponse = fullText;

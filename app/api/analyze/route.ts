@@ -103,30 +103,41 @@ export async function POST(req: NextRequest) {
             
             buffer += decoder.decode(value, { stream: true });
             
-            // Process chunks from Gemini stream format
-            // Gemini returns chunks like: [{"candidates": [...]}, {"candidates": [...]}]
-            try {
-              // Simple heuristic to extract text chunks from the stream
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-              
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed === '[' || trimmed === ',' || trimmed === ']') continue;
-                
+            // Gemini stream handling: chunks are wrapped in [ ... ] and separated by commas
+            // We look for valid JSON objects within the buffer
+            let startIdx = buffer.indexOf('{');
+            while (startIdx !== -1) {
+              let endIdx = -1;
+              let stack = 0;
+              for (let i = startIdx; i < buffer.length; i++) {
+                if (buffer[i] === '{') stack++;
+                else if (buffer[i] === '}') {
+                  stack--;
+                  if (stack === 0) {
+                    endIdx = i;
+                    break;
+                  }
+                }
+              }
+
+              if (endIdx !== -1) {
                 try {
-                  const chunk = JSON.parse(trimmed.startsWith(',') ? trimmed.slice(1) : trimmed);
+                  const chunkStr = buffer.substring(startIdx, endIdx + 1);
+                  const chunk = JSON.parse(chunkStr);
                   const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (text) {
                     fullText += text;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`));
                   }
+                  buffer = buffer.substring(endIdx + 1);
+                  startIdx = buffer.indexOf('{');
                 } catch (e) {
-                  // Partial JSON, wait for next buffer
-                  buffer = trimmed + buffer;
+                  break; // Wait for more data
                 }
+              } else {
+                break; // Incomplete object
               }
-            } catch (e) {}
+            }
           }
           
           rawResponse = fullText;
