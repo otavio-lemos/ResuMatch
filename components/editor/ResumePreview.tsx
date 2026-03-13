@@ -92,7 +92,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {section.title}
                             </h2>
-                            <p style={{ fontSize: '0.9em', color: '#374151', textAlign: 'justify' }}>{summary}</p>
+                            <p style={{ fontSize: '0.9em', color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -276,7 +276,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
-                                <p style={{ fontSize: '0.88em', color: '#374151', textAlign: 'justify' }}>{summary}</p>
+                                <p style={{ fontSize: '0.88em', color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
                             </section>
                         );
                     }
@@ -414,7 +414,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: '0.95em', textAlign: 'justify', lineHeight: 1.6, color: '#334155' }}>{summary}</p>
+                            <p style={{ fontSize: '0.95em', textAlign: 'justify', lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -558,7 +558,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={{ ...headingStyle, borderTop: 'none', paddingTop: 0, marginBottom: '6px' }}>{section.title}</h2>
-                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: 1.7 }}>{summary}</p>
+                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -695,7 +695,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                     return (
                         <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={headingStyle}>~/{section.id}</h2>
-                            <p style={{ fontSize: '0.75em', lineHeight: 1.6 }}>{summary}</p>
+                            <p style={{ fontSize: '0.75em', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{summary}</p>
                         </div>
                     );
                 }
@@ -837,7 +837,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: '0.75em', color: '#475569', textAlign: 'justify' }}>{summary}</p>
+                            <p style={{ fontSize: '0.75em', color: '#475569', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
                         </div>
                     );
                 }
@@ -956,7 +956,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                             <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
-                            <p style={{ fontSize: '0.9em', textAlign: 'justify' }}>{summary}</p>
+                            <p style={{ fontSize: '0.9em', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -1102,7 +1102,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                             <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
-                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: '1.6' }}>{summary}</p>
+                            <p style={{ fontSize: '0.9em', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
