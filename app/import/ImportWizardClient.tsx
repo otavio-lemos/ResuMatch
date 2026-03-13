@@ -14,7 +14,6 @@ type WizardStep = 'UPLOAD' | 'PARSING' | 'REVIEW' | 'ANALYSING' | 'SAVING';
 const WIZARD_DELAYS = {
     PARSING_COMPLETE: 10500,
     REVALIDATION_BUFFER: 900,
-    IMPORT_TIMEOUT_MS: 60000,
 } as const;
 
 interface ATSAnalysis {
@@ -151,6 +150,9 @@ export default function ImportWizardClient() {
     const [rows, setRows] = useState<MapRow[]>([]);
     const [hasValidationResult, setHasValidationResult] = useState(false);
     
+    // Pool of curriculum sections (detected from PDF but not yet mapped to ATS)
+    const [curriculumChips, setCurriculumChips] = useState<{key: string; label: string}[]>([]);
+    
     // Empty initial bubbles - will be populated when needed
     const [parsingBubbles, setParsingBubbles] = useState<Bubble[]>([]);
     const [analysingBubbles, setAnalysingBubbles] = useState<Bubble[]>([]);
@@ -167,6 +169,11 @@ export default function ImportWizardClient() {
     const poolChips = ATS_SECTIONS.filter(s => !assignedKeys.has(s.key));
     const mappedRows = rows.filter(r => r.userLabel.trim() && r.atsKey);
     const allValidated = mappedRows.length > 0 && mappedRows.every(r => r.validated);
+
+    // Curriculum sections assigned to rows
+    const assignedCurriculumLabels = new Set(rows.map(r => r.userLabel.toLowerCase().trim()));
+    // Available curriculum chips (not yet mapped)
+    const availableCurriculumChips = curriculumChips.filter(c => !assignedCurriculumLabels.has(c.label.toLowerCase()));
 
     // ── Upload ───────────────────────────────────────────────────────────────
 
@@ -204,17 +211,14 @@ export default function ImportWizardClient() {
         console.log('[IMPORT] Starting processFile');
         console.log('[IMPORT] importAI settings:', importAI);
         
-        // Create conversation and set immediately
-        const newBubbles = [
-            { from: 'user' as const, text: `📄 Enviando arquivo: ${selectedFile.name}`, delay: 0 },
-        ];
-        
-        setParsingBubbles(newBubbles);
+        // Start with empty chat - will be populated as conversation happens
+        setParsingBubbles([]);
         setStatusMessage(`Enviando para ${importAI?.provider || 'gemini'} (${importAI?.model || 'gemini-2.0-flash'})...`);
         
         // Simple timeout using AbortController
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), WIZARD_DELAYS.IMPORT_TIMEOUT_MS);
+        const timeoutMs = 60000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         try {
             const formData = new FormData();
@@ -250,26 +254,72 @@ export default function ImportWizardClient() {
             console.log('[IMPORT] Got response:', response.status);
             
             if (!response.ok) {
-                const errorData = await response.json();
-                console.log('[IMPORT] Error response:', response.status, errorData);
-                setError(`Erro ${response.status}: ${errorData.error || 'Erro desconhecido'}`);
+                const errorText = await response.text();
+                console.log('[IMPORT] Error response:', response.status, errorText);
+                setError(`Erro ${response.status}: ${errorText.substring(0, 200)}`);
                 resetToUpload();
                 return;
             }
 
+            const reader = response.body?.getReader();
+            if (!reader) {
+                setError('Erro ao ler resposta do servidor');
+                resetToUpload();
+                return;
+            }
+
+            const decoder = new TextDecoder();
+            let extractedData: any = null;
+            let aiMessage = '';
+            
             setParsingBubbles(prev => [...prev, { from: 'ai', text: '⏳ Processando resposta...', delay: 0 }]);
             setStatusMessage('Recebendo dados da IA...');
 
-            const result = await response.json();
-            
-            if (result.error) {
-                setError(result.error);
-                resetToUpload();
-                return;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            console.log('[IMPORT] Received data type:', data.type);
+                            
+                            if (data.type === 'progress' || data.type === 'skill' || data.type === 'prompt') {
+                                setParsingBubbles(prev => [...prev, { 
+                                    from: 'ai' as const, 
+                                    text: data.message || data.content || 'Processando...', 
+                                    delay: 0 
+                                }]);
+                            } else if (data.type === 'chunk') {
+                                aiMessage += data.content;
+                                setParsingBubbles(prev => {
+                                    const newBubbles = [...prev];
+                                    // Update last AI message
+                                    const lastAiIndex = newBubbles.findLastIndex(b => b.from === 'ai');
+                                    if (lastAiIndex >= 0) {
+                                        newBubbles[lastAiIndex] = { ...newBubbles[lastAiIndex], text: aiMessage };
+                                    }
+                                    return newBubbles;
+                                });
+                            } else if (data.type === 'complete') {
+                                extractedData = data.data;
+                                console.log('[IMPORT] Complete, data keys:', Object.keys(extractedData || {}));
+                            } else if (data.type === 'error') {
+                                console.log('[IMPORT] Error from server:', data.message);
+                                setError(data.message);
+                                setStep('UPLOAD');
+                                return;
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                }
             }
-
-            const extractedData = result.data;
-            const debugInfo = result.debug;
 
             if (!extractedData?.personalInfo) {
                 setError('Dados inválidos recebidos da IA');
@@ -277,21 +327,8 @@ export default function ImportWizardClient() {
                 return;
             }
 
-            // Adicionar transparência total - skill, prompt e resposta
-            if (debugInfo) {
-                setParsingBubbles(prev => [...prev, 
-                    { from: 'ai', text: '🎯 SKILL (System Instruction):', delay: 0 },
-                    { from: 'ai', text: debugInfo.skill.substring(0, 500) + (debugInfo.skill.length > 500 ? '...[TRUNCATED]' : ''), delay: 0 },
-                    { from: 'ai', text: '📤 USER PROMPT:', delay: 0 },
-                    { from: 'ai', text: debugInfo.userPrompt.substring(0, 500) + (debugInfo.userPrompt.length > 500 ? '...[TRUNCATED]' : ''), delay: 0 },
-                    { from: 'ai', text: '📥 RAW LLM RESPONSE:', delay: 0 },
-                    { from: 'ai', text: debugInfo.rawResponse.substring(0, 1000) + (debugInfo.rawResponse.length > 1000 ? '...[TRUNCATED]' : ''), delay: 0 }
-                ]);
-            }
-
             setParsedData(extractedData);
             setParsingBubbles(prev => [...prev, { from: 'ai', text: `✅ Concluído! Dados: ${Object.keys(extractedData).join(', ')}`, delay: 0 }]);
-            setStatusMessage('');
             await new Promise(r => setTimeout(r, 1000));
             setStep('REVIEW');
             
@@ -320,15 +357,32 @@ export default function ImportWizardClient() {
         setHasValidationResult(false);
     };
 
-    // ── Chip drop (assign ATS key to right column) ───────────────────────────
+    // ── Chip drop (assign ATS key to right column OR curriculum label to left column) ───────────────────────────
 
-    const handleChipDrop = (rowId: string) => {
-        if (!chipDrag || rowDragId) return; // ignore if row-reorder is active
-        setRows(prev => prev.map(r => {
-            if (r.atsKey === chipDrag) return { ...r, atsKey: null, validated: false };
-            if (r.id === rowId) return { ...r, atsKey: chipDrag, validated: false };
-            return r;
-        }));
+    const handleChipDrop = (rowId: string, chipType?: 'ats' | 'curriculum') => {
+        if (!chipDrag || rowDragId) return;
+        
+        // If dropping curriculum chip, set the userLabel (left column)
+        if (chipType === 'curriculum') {
+            const curriculumChip = curriculumChips.find(c => c.key === chipDrag);
+            if (curriculumChip) {
+                setRows(prev => prev.map(r => {
+                    // Check if this curriculum label is already used in another row
+                    const labelExists = prev.some(row => row.userLabel.toLowerCase() === curriculumChip.label.toLowerCase() && row.id !== rowId);
+                    if (r.id === rowId && !labelExists) {
+                        return { ...r, userLabel: curriculumChip.label, validated: false };
+                    }
+                    return r;
+                }));
+            }
+        } else {
+            // ATS chip drop - set the atsKey (right column)
+            setRows(prev => prev.map(r => {
+                if (r.atsKey === chipDrag) return { ...r, atsKey: null, validated: false };
+                if (r.id === rowId) return { ...r, atsKey: chipDrag, validated: false };
+                return r;
+            }));
+        }
         setHasValidationResult(false);
         setChipDrag(null);
         setRowDragOver(null);
@@ -420,14 +474,73 @@ export default function ImportWizardClient() {
                     throw new Error(errorData.error || 'Erro na análise');
                 }
 
-                const result = await response.json();
-                
-                if (result.error) {
-                    throw new Error(result.error);
+                const reader = response.body?.getReader();
+                if (!reader) throw new Error('Erro ao ler resposta');
+
+                const decoder = new TextDecoder();
+                let atsResult: any = null;
+                let aiMessage = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.type === 'progress') {
+                                    const progressBubble: Bubble = {
+                                        from: 'ai',
+                                        text: data.message,
+                                        delay: 0
+                                    };
+                                    conversation.push(progressBubble);
+                                    setAnalysingBubbles([...conversation]);
+                                } else if (data.type === 'skill') {
+                                    conversation.push({
+                                        from: 'ai',
+                                        text: `📋 SKILL USADA:\n${data.content.substring(0, 1000)}...`,
+                                        delay: 0
+                                    });
+                                    setParsingBubbles([...conversation]);
+                                } else if (data.type === 'prompt') {
+                                    conversation.push({
+                                        from: 'user',
+                                        text: `📝 PROMPT ENVIADO:\n${data.content.substring(0, 1500)}...`,
+                                        delay: 0
+                                    });
+                                    setParsingBubbles([...conversation]);
+                                } else if (data.type === 'chunk') {
+                                    aiMessage += data.content;
+                                    const latestBubble: Bubble = {
+                                        from: 'ai',
+                                        text: aiMessage,
+                                        delay: 0
+                                    };
+                                    const lastIndex = conversation.length - 1;
+                                    if (conversation[lastIndex]?.from === 'ai') {
+                                        conversation[lastIndex] = latestBubble;
+                                    } else {
+                                        conversation.push(latestBubble);
+                                    }
+                                    setAnalysingBubbles([...conversation]);
+                                } else if (data.type === 'complete') {
+                                    atsResult = data.data;
+                                } else if (data.type === 'error') {
+                                    throw new Error(data.message);
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON
+                            }
+                        }
+                    }
                 }
 
-                const atsResult = result.data;
-                
                 if (atsResult) finalData.atsScore = atsResult;
             }
 
@@ -453,6 +566,72 @@ export default function ImportWizardClient() {
             setRows([]);
         }
     };
+
+    // ── Auto-populate rows from parsed data on REVIEW step ─────────────────────
+    useEffect(() => {
+        if (step === 'REVIEW' && parsedData && curriculumChips.length === 0) {
+            // Get original section headers from curriculum (if returned by AI)
+            const sectionHeaders = (parsedData as any)._sectionHeaders || {};
+
+            // Helper to check if a section has data
+            const sectionHasData = (key: string): boolean => {
+                const val = (parsedData as any)[key];
+                if (val == null || val === '') return false;
+                if (typeof val === 'string') return val.trim().length > 0;
+                if (Array.isArray(val)) return val.length > 0;
+                if (typeof val === 'object') return Object.values(val).some((v: any) => String(v ?? '').trim().length > 0);
+                return false;
+            };
+
+            const newCurriculumChips: {key: string; label: string}[] = [];
+            const newRows: MapRow[] = [];
+            let rowId = 1;
+
+            // Define the order and mapping for curriculum sections
+            const sectionOrder = [
+                { key: 'personalInfo', atsKey: 'personalInfo' },
+                { key: 'summary', atsKey: 'summary' },
+                { key: 'experiences', atsKey: 'experiences' },
+                { key: 'education', atsKey: 'education' },
+                { key: 'projects', atsKey: 'projects' },
+                { key: 'skills', atsKey: 'skills' },
+                { key: 'certifications', atsKey: 'certifications' },
+                { key: 'languages', atsKey: 'languages' },
+                { key: 'volunteer', atsKey: 'volunteer' },
+            ];
+
+            for (const section of sectionOrder) {
+                if (sectionHasData(section.key)) {
+                    const atsSection = ATS_SECTIONS.find(s => s.key === section.atsKey);
+                    // Use original section header from curriculum if available, otherwise use ATS label
+                    const originalHeader = sectionHeaders[section.key];
+                    const curriculumLabel = originalHeader && originalHeader.trim() ? originalHeader : (atsSection?.label || section.key);
+                    
+                    // Add to curriculum chips pool (for dragging)
+                    newCurriculumChips.push({ key: section.key, label: curriculumLabel });
+                    
+                    // Auto-map: create row with mapping already done
+                    newRows.push({
+                        id: `row-${rowId++}`,
+                        userLabel: curriculumLabel,
+                        atsKey: section.atsKey,
+                        validated: true,
+                        isAiSuggestion: false,
+                    });
+                }
+            }
+
+            console.log('[IMPORT] Detected curriculum sections:', newCurriculumChips.map(c => c.label));
+            console.log('[IMPORT] Original headers from AI:', sectionHeaders);
+            console.log('[IMPORT] Auto-mapped rows:', newRows.map(r => ({ label: r.userLabel, atsKey: r.atsKey })));
+            
+            setCurriculumChips(newCurriculumChips);
+            if (newRows.length > 0) {
+                setRows(newRows);
+                setHasValidationResult(true);
+            }
+        }
+    }, [step, parsedData, curriculumChips.length, ATS_SECTIONS]);
 
     // ── Render ────────────────────────────────────────────────────────────────
 
@@ -538,6 +717,27 @@ export default function ImportWizardClient() {
                                     )}
                                 </div>
 
+                                {/* Curriculum sections chip pool - detected from PDF */}
+                                {availableCurriculumChips.length > 0 && (
+                                    <div className="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/10">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3">{t('import.yourResumeSections')} — {t('import.dragToMap')}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {availableCurriculumChips.map(s => (
+                                                <div
+                                                    key={s.key}
+                                                    draggable
+                                                    onDragStart={e => { e.dataTransfer.setData('type', 'curriculum'); e.dataTransfer.setData('chipType', 'curriculum'); setChipDrag(s.key); }}
+                                                    onDragEnd={() => { setChipDrag(null); setRowDragOver(null); }}
+                                                    className={`px-3 py-1.5 text-[11px] font-black uppercase tracking-wider border cursor-grab select-none transition-all
+                                                        ${chipDrag === s.key ? 'opacity-40 scale-95' : 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:border-blue-400 hover:text-blue-600'}`}
+                                                >
+                                                    {s.label}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Chip pool */}
                                 {poolChips.length > 0 && (
                                     <div className="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
@@ -547,7 +747,7 @@ export default function ImportWizardClient() {
                                                 <div
                                                     key={s.key}
                                                     draggable
-                                                    onDragStart={e => { e.dataTransfer.setData('type', 'chip'); setChipDrag(s.key); }}
+                                                    onDragStart={e => { e.dataTransfer.setData('type', 'chip'); e.dataTransfer.setData('chipType', 'ats'); setChipDrag(s.key); }}
                                                     onDragEnd={() => { setChipDrag(null); setRowDragOver(null); }}
                                                     className={`px-3 py-1.5 text-[11px] font-black uppercase tracking-wider border cursor-grab select-none transition-all
                                                         ${chipDrag === s.key ? 'opacity-40 scale-95' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600'}`}
@@ -587,9 +787,12 @@ export default function ImportWizardClient() {
                                                             ${rowDragId === row.id ? 'opacity-50' : ''}`}
                                                         onDragOver={e => { e.preventDefault(); setRowDragOver(row.id); }}
                                                         onDragLeave={() => setRowDragOver(null)}
-                                                        onDrop={() => {
+                                                        onDrop={(e) => {
                                                             if (rowDragId) handleRowDrop(row.id);
-                                                            else if (chipDrag) handleChipDrop(row.id);
+                                                            else if (chipDrag) {
+                                                                const chipType = e.dataTransfer.getData('chipType') as 'ats' | 'curriculum';
+                                                                handleChipDrop(row.id, chipType || 'ats');
+                                                            }
                                                         }}
                                                     >
                                                         {/* Grip handle for row reorder */}

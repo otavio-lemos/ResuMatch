@@ -18,6 +18,12 @@ const DEFAULT_SECTIONS_CONFIG = (lang: string) => [
     { id: 'volunteer', title: getTranslation('import.sections.volunteer', lang as Language), type: 'DATED_LIST', active: false, items: [] },
 ];
 
+function generateResumeCode(language: string): string {
+    const number = Math.floor(1000 + Math.random() * 9000);
+    const suffix = language === 'en' ? 'USA' : 'BRA';
+    return `${number}${suffix}`;
+}
+
 const DEFAULT_PERSONAL_INFO = {
     fullName: '',
     title: '',
@@ -127,6 +133,7 @@ export async function POST(request: NextRequest) {
         ];
 
         const finalData: any = {
+            resumeCode: generateResumeCode(language),
             personalInfo: {
                 ...DEFAULT_PERSONAL_INFO,
                 ...(extractedData.personalInfo || {})

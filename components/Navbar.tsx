@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Edit3, Download, Upload, LayoutDashboard, Sparkles, Settings, PlusSquare, Loader2 } from 'lucide-react';
+import { Edit3, Download, Upload, LayoutDashboard, Sparkles, Settings, PlusSquare, Loader2, ChevronDown, Copy, Trash2, Languages } from 'lucide-react';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { duplicateResume, translateResumeAction, deleteResume } from '@/app/dashboard/actions';
 
 function getResumeIdFromPathname(pathname: string): string | null {
   const match = pathname.match(/\/(?:editor|dashboard)\/([^/]+)/);
@@ -43,19 +44,30 @@ function LanguageToggle() {
 }
 
 export default function Navbar() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [resumesCount, setResumesCount] = useState<number | null>(null);
+  const [resumesList, setResumesList] = useState<Array<{ id: string; resumeCode?: string; title?: string }>>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const isEditorPage = pathname.startsWith('/editor/');
 
-  const resumeId = useMemo(() => {
-    const id = getResumeIdFromPathname(pathname);
-    return id || null;
-  }, [pathname]);
-
-  const atsHref = resumeId ? `/dashboard/${resumeId}` : '/modelos';
-  const editHref = resumeId ? `/editor/${resumeId}` : '/modelos';
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.resume-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isDropdownOpen]);
 
   // Check resumes existence on mount and pathname changes
   // Use useCallback with empty deps + useEffect to avoid sync setState in effect
@@ -68,6 +80,7 @@ export default function Navbar() {
         // Defer state update to avoid sync setState in effect
         setTimeout(() => {
             setResumesCount(list.length);
+            setResumesList(list);
         }, 0);
         
         // Redirecionamento condicional: apenas se estiver em páginas que dependem de dados
@@ -82,11 +95,88 @@ export default function Navbar() {
     }
   }, [pathname, router]);
 
+  const hasResumes = resumesCount !== null ? resumesCount > 0 : false;
+
+  const resumeId = useMemo(() => {
+    const id = getResumeIdFromPathname(pathname);
+    if (id) return id;
+    return getLastResumeId();
+  }, [pathname]);
+
+  const currentResume = useMemo(() => {
+    return resumesList.find(r => r.id === resumeId) || resumesList[0];
+  }, [resumesList, resumeId]);
+
   useEffect(() => {
     checkResumes();
   }, [checkResumes]);
 
-  const hasResumes = resumesCount !== null ? resumesCount > 0 : false;
+  const handleSelectResume = (id: string) => {
+    if (pathname.startsWith('/dashboard')) {
+      router.push(`/dashboard/${id}`);
+    } else if (pathname.startsWith('/editor')) {
+      router.push(`/editor/${id}`);
+    } else {
+      router.push(`/dashboard/${id}`);
+    }
+    setIsDropdownOpen(false);
+  };
+
+  const handleTranslate = async () => {
+    if (!currentResume) return;
+    setIsTranslating(true);
+    try {
+      const targetLang = language === 'pt' ? 'en' : 'pt';
+      const result = await translateResumeAction(currentResume.id, targetLang, null);
+      if (result.success && result.id) {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+    } finally {
+      setIsTranslating(false);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!currentResume) return;
+    setIsDuplicating(true);
+    try {
+      const result = await duplicateResume(currentResume.id, language);
+      if (result.success && result.id) {
+        checkResumes();
+        router.push(`/dashboard/${result.id}`);
+      }
+    } catch (err) {
+      console.error('Duplicate error:', err);
+    } finally {
+      setIsDuplicating(false);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentResume) return;
+    const confirmMsg = language === 'pt' 
+      ? 'Tem certeza que deseja excluir o currículo selecionado? Ele será deletado permanentemente.'
+      : 'Are you sure you want to delete the selected resume? It will be permanently deleted.';
+    if (!confirm(confirmMsg)) return;
+    setIsDeleting(true);
+    try {
+      await deleteResume(currentResume.id, language);
+      checkResumes();
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Delete error:', err);
+    } finally {
+      setIsDeleting(false);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const editHref = hasResumes && resumeId ? `/editor/${resumeId}` : '/modelos';
+  const atsHref = hasResumes && resumeId ? `/dashboard/${resumeId}` : '/modelos';
   const dashboardHref = hasResumes ? '/dashboard' : '/modelos';
   const importHref = '/import'; // Import is always accessible
 
@@ -155,6 +245,66 @@ export default function Navbar() {
         <div className="flex items-center gap-2 mr-auto">
           <LanguageToggle />
         </div>
+
+        {/* RESUME SELECTOR DROPDOWN */}
+        {hasResumes && resumesList.length > 0 && (
+          <div className="relative resume-dropdown">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center px-3 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            >
+              <span className="mr-2">{currentResume?.resumeCode || currentResume?.title || t('dashboard.untitled')}</span>
+              <ChevronDown className={`size-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg z-50">
+                {/* Resume List */}
+                <div className="max-h-48 overflow-y-auto">
+                  {resumesList.map((resume, index) => (
+                    <button
+                      key={resume.id}
+                      onClick={() => handleSelectResume(resume.id)}
+                      className={`w-full text-left px-3 py-2 text-xs font-bold border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                        resume.id === currentResume?.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {resume.resumeCode || `${index + 1} - ${resume.title || t('dashboard.untitled')}`}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Actions */}
+                <div className="border-t border-slate-200 dark:border-slate-700 py-1">
+                  <button
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {isTranslating ? <Loader2 className="size-3 animate-spin" /> : <Languages className="size-3" />}
+                    {t('dashboard.translateResume')}
+                  </button>
+                  <button
+                    onClick={handleDuplicate}
+                    disabled={isDuplicating}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {isDuplicating ? <Loader2 className="size-3 animate-spin" /> : <Copy className="size-3" />}
+                    {t('dashboard.duplicateResume')}
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                  >
+                    {isDeleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+                    {t('dashboard.deleteResume')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 7 BOTÕES FIXOS (Incluindo TEMA) */}
         <div className="flex items-center gap-0">

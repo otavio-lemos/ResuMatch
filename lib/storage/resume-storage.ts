@@ -35,6 +35,7 @@ export async function listResumes(): Promise<Array<{
   id: string;
   createdAt: string;
   title?: string;
+  resumeCode?: string;
   score?: number;
   scores?: {
     design?: number;
@@ -64,6 +65,7 @@ export async function listResumes(): Promise<Array<{
             id,
             createdAt: stats.mtime.toISOString(),
             title,
+            resumeCode: data.resumeCode,
             score: data.aiAnalysis?.scores ? Math.round((data.aiAnalysis.scores.design + data.aiAnalysis.scores.estrutura + data.aiAnalysis.scores.conteudo) / 3) : undefined,
             scores: data.aiAnalysis?.scores ? {
               design: data.aiAnalysis.scores.design,

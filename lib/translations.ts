@@ -173,7 +173,11 @@ export const translations = {
       invalidData: "Dado inválido",
       missingActionVerb: "Falta verbo de ação ou métrica",
       recommendedPro: "(recomendado gemini-2.5-pro)",
-      recommendedFlash: "(recomendado gemini-2.5-flash)"
+      recommendedFlash: "(recomendado gemini-2.5-flash)",
+      darkMode: "Escuro",
+      lightMode: "Claro",
+      toggleDarkMode: "Ativar modo escuro",
+      toggleLightMode: "Ativar modo claro"
     },
     providers: {
       gemini: "Google Gemini",
@@ -226,6 +230,9 @@ export const translations = {
       workspaceSubtitle: "Selecione e gerencie seu modelo atual",
       resumeLabel: "Currículo:",
       untitled: "Sem Título",
+      translateResume: "Traduzir Currículo",
+      duplicateResume: "Duplicar Currículo",
+      deleteResume: "Excluir Currículo",
       atsAnalysisTitle: "ANÁLISE ATS FRIENDLY",
       atsAnalysisDescription: "Faça a análise completa do seu currículo para ver as notas detalhadas e recomendações.",
       statusApproved: "Aprovado",
@@ -287,6 +294,7 @@ export const translations = {
       atsSection: "Seção ATS (Sistema)",
       availableSections: "Seções ATS disponíveis",
       dragToMap: "arraste para o mapeamento",
+      yourResumeSections: "Seu Currículo",
       sectionMapping: "Mapeamento de Seções — De / Para",
       saveRedirect: "Salvando e Redirecionando…",
       syncResults: "Sincronizando resultados da análise.",
@@ -666,7 +674,11 @@ export const translations = {
       invalidData: "Invalid data",
       missingActionVerb: "Missing action verb or metric",
       recommendedPro: "(recommended gemini-2.5-pro)",
-      recommendedFlash: "(recommended gemini-2.5-flash)"
+      recommendedFlash: "(recommended gemini-2.5-flash)",
+      darkMode: "Dark",
+      lightMode: "Light",
+      toggleDarkMode: "Enable dark mode",
+      toggleLightMode: "Enable light mode"
     },
     providers: {
       gemini: "Google Gemini",
@@ -719,6 +731,9 @@ export const translations = {
       workspaceSubtitle: "Select and manage your current template",
       resumeLabel: "Resume:",
       untitled: "Untitled",
+      translateResume: "Translate Resume",
+      duplicateResume: "Duplicate Resume",
+      deleteResume: "Delete Resume",
       atsAnalysisTitle: "ATS FRIENDLY ANALYSIS",
       atsAnalysisDescription: "Perform a complete analysis of your resume to see detailed scores and recommendations.",
       statusApproved: "Approved",
@@ -780,6 +795,7 @@ export const translations = {
       atsSection: "ATS Section (System)",
       availableSections: "Available ATS Sections",
       dragToMap: "drag to map",
+      yourResumeSections: "Your Resume",
       sectionMapping: "Section Mapping — From / To",
       saveRedirect: "Saving and Redirecting...",
       syncResults: "Synchronizing analysis results.",
