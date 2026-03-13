@@ -74,7 +74,7 @@ Exemplo para currículo inglês:
 ```
 
 2. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie.
-3. **description** em experiences: inclua TODOS os bullets e parágrafos.
+3. **description** em experiences: inclua TODOS os bullets e parágrafos. Use \n para quebras de linha (ex: "- Liderança\n- Desenvolvimento\n- Code review").
 4. **Sanitização ATS (Crítico):** Ignore emojis, símbolos decorativos (📞, ✉️, 🎯) ou aspas tipográficas. Mantenha os valores puramente textuais.
 5. **Certeza de Headers**: Só deixe vazio "" se o documento original realmente não possuir um cabeçalho explícito para aquela seção.
 

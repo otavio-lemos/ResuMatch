@@ -66,7 +66,7 @@ Example for resume with custom headers:
    - **NEVER** include these generic labels as part of section content if they are just standalone words at the end of the document.
 
 2. **COPY ORIGINAL TEXT** - Do not summarize, do not abbreviate.
-3. **description** in experiences: include ALL bullets and paragraphs.
+3. **description** in experiences: include ALL bullets and paragraphs. Use \n for line breaks (ex: "- Leadership\n- Development\n- Code review").
 4. **ATS Sanitization (Critical):** Ignore emojis, decorative symbols (📞, ✉️, 🎯) or smart quotes. Keep values purely textual.
 5. **Header Certainty**: Only leave empty "" if the original document really doesn't have an explicit header for that section.
 

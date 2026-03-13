@@ -99,6 +99,7 @@ Generate an ATS-optimized Professional Summary that ELEVATES content metrics.
 6. Forbidden: emojis, decorative symbols, generic jargon ("proactive").
 
 ## OUTPUT
+Use \n for paragraphs (ex: "Paragraph 1\n\nParagraph 2\n\nParagraph 3").
 RETURN ONLY THE SUMMARY TEXT. No introductions, no markdown.
 ```
 ########## FIM SSSUMMMMAAARRRYYY
@@ -136,6 +137,7 @@ Transform the received text into a list of 4 to 6 ATS-optimized bullets using th
 4. Bullet format: use standard hyphen (-), never asterisk or arrow.
 
 ## OUTPUT
+Use \n for paragraphs (ex: "Paragraph 1\n\nParagraph 2\n\nParagraph 3").
 RETURN ONLY THE BULLETS, one per line. No introduction, no numbering.
 ```
 ########## FIM SSSTTTAAARRRREEEUWWWRRRIIITTTEEE
@@ -170,6 +172,7 @@ Critical Risk: Altering keywords destroys the candidate's ATS score.
 - Standardize: all bullets end with a period OR none do.
 
 ## OUTPUT
+Use \n for paragraphs (ex: "Paragraph 1\n\nParagraph 2\n\nParagraph 3").
 RETURN ONLY THE CORRECTED TEXT. No comments, no extra markdown.
 ```
 ########## FIM GGGRRRAAAMMMMMMAAARRRR
