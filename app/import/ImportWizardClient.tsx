@@ -44,8 +44,8 @@ function ChatView({ bubbles, title, t, isProcessing, onAbort }: { bubbles: ChatB
     if (!Array.isArray(bubbles)) return null;
 
     return (
-        <div className="flex flex-col min-h-[500px] bg-[#0d1117] border border-slate-800">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
+        <div className="flex flex-col h-[600px] bg-[#0d1117] border border-slate-800">
+            <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
                 <div className="flex gap-1.5">
                     <span className="size-2.5 rounded-full bg-red-500/70" />
                     <span className="size-2.5 rounded-full bg-amber-500/70" />
@@ -155,10 +155,10 @@ export default function ImportWizardClient() {
     const [hasValidationResult, setHasValidationResult] = useState(false);
 
     useEffect(() => {
+        // Apenas rola o container do chat, NÃO a página inteira
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, [parsingBubbles, analysingBubbles]);
 
     const [chipDrag, setChipDrag] = useState<string | null>(null);
