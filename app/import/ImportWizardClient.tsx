@@ -314,6 +314,7 @@ export default function ImportWizardClient() {
                             } else if (data.type === 'complete') {
                                 extractedData = data.data;
                                 console.log('[IMPORT] Complete, data keys:', Object.keys(extractedData || {}));
+                                console.log('[IMPORT] personalInfo:', extractedData?.personalInfo);
                             } else if (data.type === 'error') {
                                 console.log('[IMPORT] Error from server:', data.message);
                                 setError(data.message);
@@ -328,6 +329,7 @@ export default function ImportWizardClient() {
             }
 
             if (!extractedData?.personalInfo) {
+                console.log('[IMPORT] Invalid data - no personalInfo:', extractedData);
                 setError('Dados inválidos recebidos da IA');
                 resetToUpload();
                 return;
