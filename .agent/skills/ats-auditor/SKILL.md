@@ -13,12 +13,14 @@ allowed-tools: Read, Write, Edit
 ########## AAAUUUDDDIIITTTOOORRRIIIAAA
 ## 2. Fase de Auditoria (Pontuação ATS)
 
-Quando a tarefa for auditar um currículo já estruturado em JSON, a avaliação deve seguir EXATAMENTE os padrões de mercado ATS 2026 baseados em pesquisas com os maiores sistemas: Workday, Greenhouse, iCIMS, Taleo, Lever, SmartRecruiters.
+### 🚨 REGRAS ANTI-ALUCINAÇÃO (LEITURA OBRIGATÓRIA)
+1. **DADOS JSON = SEM LAYOUT:** Você está analisando um objeto JSON. Um JSON **NUNCA** tem colunas, caixas de texto, cabeçalhos físicos ou rodapés. 
+2. **PASSED POR PADRÃO:** Marque OBRIGATORIAMENTE `passed: true` para: `Layout Colunas`, `Text Boxes`, `Headers/Footers`, `Tabelas`. Você não tem como ver esses problemas em um JSON.
+3. **SÓ REPORTE O QUE VER:** Se você não encontrar um emoji no texto (ex: 📞), marque `Ícones/Emoji` como `passed: true`.
+4. **DATAS CORRETAS:** Se a data estiver em `MM/AAAA` (ex: 05/2025), ela está PERFEITA. Não reporte como erro.
+5. **ESTADO PADRÃO:** Assuma que o currículo é perfeito até que o texto prove o contrário.
 
-### ⚠️ REGRA CRÍTICA: ANALISE TODOS OS CAMPOS
-- **OBRIGATÓRIO:** Analise ABSOLUTAMENTE TODOS os campos existentes e preenchidos
-- Não ignore nenhuma seção existente
-- Se um campo tem conteúdo, ele deve ser analisado com as regras específicas ATS
+Quando a tarefa for auditar um currículo já estruturado em JSON...
 
 ### PILARES DE AVALIAÇÃO (Padrão de Mercado 2026)
 

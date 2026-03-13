@@ -180,6 +180,14 @@ export default function Navbar() {
   const dashboardHref = hasResumes ? '/dashboard' : '/modelos';
   const importHref = '/import'; // Import is always accessible
 
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  useEffect(() => {
+    const handleFinishExport = () => setIsExportingPDF(false);
+    window.addEventListener('finish-export-pdf', handleFinishExport);
+    return () => window.removeEventListener('finish-export-pdf', handleFinishExport);
+  }, []);
+
   const handleDownload = useCallback(() => {
     // Se não tem currículo, SEMPRE vai para /modelos
     if (!hasResumes) {
@@ -194,9 +202,9 @@ export default function Navbar() {
     }
 
     if (isEditorPage) {
-      // Dispacha um evento customizado que o Editor vai escutar
-      // para utilizar o react-to-print e preservar todo o CSS original
-      window.dispatchEvent(new CustomEvent('print-resume'));
+      // Dispacha o novo evento Hardened que o EditorPanel escuta
+      setIsExportingPDF(true);
+      window.dispatchEvent(new CustomEvent('print-resume-hardened'));
     } else {
       // Fora do editor, se tiver ID, tenta imprimir a página atual ou vai para o editor
       window.print();
@@ -325,10 +333,11 @@ export default function Navbar() {
           <button
             type="button"
             onClick={handleDownload}
-            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            disabled={isExportingPDF}
+            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50"
           >
-            <Download className="size-3 mr-2" />
-            {t('nav.download').toUpperCase()}
+            {isExportingPDF ? <Loader2 className="size-3 mr-2 animate-spin" /> : <Download className="size-3 mr-2" />}
+            {isExportingPDF ? t('actions.exporting') || 'EXPORTANDO...' : t('nav.download').toUpperCase()}
           </button>
           <ThemeToggle />
         </div>

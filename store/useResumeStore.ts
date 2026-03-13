@@ -436,19 +436,62 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             clearTimeout(timeoutId);
 
             if (!response.ok) {
-                const result = await response.json();
-                const errorMessage = result.error || (response.status === 503 ? "AI service overloaded. Please try again." : "Erro ao processar análise.");
+                let errorMessage = 'Erro ao processar análise.';
+                try {
+                    const result = await response.json();
+                    errorMessage = result.error || errorMessage;
+                } catch (e) {
+                    // Se não for JSON, tenta pegar o texto
+                    try {
+                        const text = await response.text();
+                        if (text) errorMessage = text;
+                    } catch (e2) {}
+                }
+
+                if (response.status === 429 || errorMessage.toLowerCase().includes('too many requests')) {
+                    throw new Error('Too many requests. Please wait a moment before trying again.');
+                }
+                
                 throw new Error(errorMessage);
             }
 
-            // Handle streaming response
-            const result = await response.json();
-            
-            if (result.error) {
-                throw new Error(result.error);
+            // Handle streaming response (SSE)
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let finalResult = null;
+
+            if (!reader) throw new Error('Falha ao ler stream de resposta');
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.type === 'done') {
+                                finalResult = data.data;
+                            } else if (data.error) {
+                                throw new Error(data.error);
+                            }
+                        } catch (e) {
+                            // Ignora erros de parsing de linhas parciais
+                        }
+                    }
+                }
             }
 
-            const parsedResult = normalizeApiResponse(result.data);
+            if (!finalResult) {
+                throw new Error('Análise incompleta ou inválida recebida da IA');
+            }
+
+            const parsedResult = normalizeApiResponse(finalResult);
 
             set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
 

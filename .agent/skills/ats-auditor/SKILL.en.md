@@ -13,12 +13,15 @@ allowed-tools: Read, Write, Edit
 ########## AAAUUUDDDIIITTTOOORRRIIIAAA
 ## 2. Audit Phase (ATS Scoring)
 
-When the task is to audit a resume already structured in JSON, the evaluation must follow EXACTLY the 2026 ATS market standards based on research with major systems: Workday, Greenhouse, iCIMS, Taleo, Lever, SmartRecruiters.
+### 🚨 ANTI-HALLUCINATION RULES (MANDATORY READING)
+1. **JSON DATA = NO LAYOUT:** You are analyzing a JSON object. A JSON **NEVER** has columns, text boxes, physical headers, or footers.
+2. **PASSED BY DEFAULT:** You MUST mark `passed: true` for: `Column Layout`, `Text Boxes`, `Headers/Footers`, `Tables`. You cannot see these issues in a JSON.
+3. **REPORT ONLY WHAT YOU SEE:** If you don't find an emoji in the text (e.g., 📞), mark `Icons/Emoji` as `passed: true`.
+4. **CORRECT DATES:** If the date is in `MM/YYYY` format (e.g., 05/2025), it is PERFECT. Do not report as error.
+5. **DEFAULT STATE:** Assume the resume is perfect until the text proves otherwise.
 
-### ⚠️ CRITICAL RULE: ANALYZE ALL FIELDS
-- **MANDATORY:** Analyze ABSOLUTELY ALL existing and filled fields
-- Don't ignore any existing section
-- If a field has content, it must be analyzed with specific ATS rules
+When the task is to audit a resume already structured in JSON...
+
 
 ### EVALUATION PILLARS (2026 Market Standard)
 

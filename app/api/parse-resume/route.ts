@@ -216,8 +216,12 @@ export async function POST(req: NextRequest) {
           });
 
           if (!response.ok) {
-            const errorText = await response.text();
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorText })}\n\n`));
+            if (response.status === 429) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Too many requests. Please wait a moment before trying again.' })}\n\n`));
+            } else {
+              const errorText = await response.text();
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: `AI Provider Error (${response.status}): ${errorText}` })}\n\n`));
+            }
             controller.close();
             return;
           }
@@ -317,7 +321,13 @@ export async function POST(req: NextRequest) {
 
       } catch (error: any) {
         console.error("Error in parse-resume:", error);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message || 'Internal server error' })}\n\n`));
+        let errorMessage = error.message || 'Internal server error';
+        
+        if (error.status === 429 || errorMessage.toLowerCase().includes('too many requests') || errorMessage.toLowerCase().includes('rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment before trying again.';
+        }
+
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
         controller.close();
       }
     }

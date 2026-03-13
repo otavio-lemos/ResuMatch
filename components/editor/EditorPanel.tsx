@@ -245,6 +245,65 @@ export function EditorPanel() {
         reader.readAsDataURL(file);
     };
 
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+    useEffect(() => {
+        const handlePrint = () => handleExportPDF();
+        window.addEventListener('print-resume-hardened', handlePrint);
+        return () => window.removeEventListener('print-resume-hardened', handlePrint);
+    }, [isExportingPDF]);
+
+    const handleExportPDF = async () => {
+        if (isExportingPDF) return;
+        setIsExportingPDF(true);
+        try {
+            const resumeElement = document.querySelector('.resume-container');
+            if (!resumeElement) throw new Error('Currículo não encontrado na tela');
+
+            const previewContainer = resumeElement.parentElement;
+            const html = previewContainer?.innerHTML || '';
+
+            const response = await fetch('/api/export-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    html: `
+                        <html>
+                            <head>
+                                <meta charset="utf-8">
+                                <script src="https://cdn.tailwindcss.com"></script>
+                                <style>
+                                    body { margin: 0; padding: 0; background: white; }
+                                    .resume-container { width: 100% !important; min-height: 0 !important; }
+                                </style>
+                            </head>
+                            <body>${html}</body>
+                        </html>
+                    `,
+                    fileName: `Curriculo_${personalInfo.fullName.replace(/\s+/g, '_')}.pdf`,
+                    pageSize: data.appearance.pageSize || 'A4'
+                }),
+            });
+
+            if (!response.ok) throw new Error('Falha ao gerar PDF');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Curriculo_${personalInfo.fullName.replace(/\s+/g, '_') || 'ATS'}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (error: any) {
+            console.error(error);
+            setAiError(error.message || 'Erro ao exportar PDF');
+        } finally {
+            setIsExportingPDF(false);
+            window.dispatchEvent(new CustomEvent('finish-export-pdf'));
+        }
+    };
+
     const analysis = data.aiAnalysis;
     const overallScore = getScore(data);
 
@@ -976,14 +1035,14 @@ export function EditorPanel() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('editor.font')}</label>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">FONT ({t('editor.recommendedAts')})</label>
                                     <select
                                         value={data.appearance.fontFamily}
                                         onChange={(e) => updateAppearance({ fontFamily: e.target.value })}
                                         className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
                                     >
-                                        <option value="Inter">Inter ({t('editor.fontDefault')})</option>
-                                        <option value="Arial">Arial ({t('editor.fontSafe')})</option>
+                                        <option value="Inter">Inter ({t('editor.recommendedAts')})</option>
+                                        <option value="Arial">Arial ({t('editor.recommendedAts')})</option>
                                         <option value="Calibri">Calibri</option>
                                         <option value="Georgia">Georgia</option>
                                         <option value="Times New Roman">Times New Roman</option>
@@ -992,26 +1051,26 @@ export function EditorPanel() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('editor.fontSize') || 'Tamanho'}</label>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">SIZE ({t('editor.recommendedAts')})</label>
                                         <select
                                             value={data.appearance.fontSize}
                                             onChange={(e) => updateAppearance({ fontSize: e.target.value })}
                                             className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
                                         >
-                                            <option value="10">10pt</option>
-                                            <option value="11">11pt</option>
+                                            <option value="10">10pt ({t('editor.recommendedAts')})</option>
+                                            <option value="11">11pt ({t('editor.recommendedAts')})</option>
                                             <option value="12">12pt</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{t('editor.spacing')}</label>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">SPACING ({t('editor.recommendedAts')})</label>
                                         <select
                                             value={data.appearance.lineSpacing}
                                             onChange={(e) => updateAppearance({ lineSpacing: e.target.value })}
                                             className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
                                         >
-                                            <option value="1.2">{t('editor.dense')}</option>
-                                            <option value="1.5">{t('editor.normal')}</option>
+                                            <option value="1.2">{t('editor.dense')} ({t('editor.recommendedAts')})</option>
+                                            <option value="1.5">{t('editor.normal')} ({t('editor.recommendedAts')})</option>
                                             <option value="1.8">{t('editor.relaxed')}</option>
                                         </select>
                                     </div>

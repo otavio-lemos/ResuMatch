@@ -53,16 +53,12 @@ export async function POST(req: NextRequest) {
           ? `JOB DESCRIPTION: ${jobDescription}\n\nRESUME DATA (JSON): ${JSON.stringify(resumeData)}`
           : `RESUME DATA (JSON): ${JSON.stringify(resumeData)}`;
 
-        // Force language instruction for Ollama/local models that may ignore skill language directives
         const languageInstruction = language === 'en'
-          ? 'CRITICAL INSTRUCTION: Your entire response MUST be in ENGLISH. All labels, feedback, suggestions, and JSON keys MUST be in English. Example: label: string NOT label: string (no Portuguese). FAILURE TO COMPLY WILL RESULT IN INCORRECT OUTPUT.'
-          : 'CRITICAL INSTRUCTION: Responda APENAS em português. Todas as etiquetas, feedbacks e sugestões DEVEM estar em português. Exemplo: estrutura não structure, feedback não feedback. FALHA EM OBEDECER IRÁ RESULTAR EM SAÍDA INCORRETA.';
+          ? 'CRITICAL: YOU MUST RESPOND IN ENGLISH. ALL JSON VALUES MUST BE IN ENGLISH.'
+          : 'CRÍTICO: VOCÊ DEVE RESPONDER EM PORTUGUÊS. TODOS OS VALORES DO JSON DEVEM ESTAR EM PORTUGUÊS.';
 
-        const userInstructions = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n` : '';
-        const finalPrompt = `${languageInstruction}\n\n${userInstructions}${basePrompt}`;
-
-        skillUsed = getAtsAnalyzerSkill(language);
-        userPrompt = finalPrompt;
+        skillUsed = `${getAtsAnalyzerSkill(language)}\n\n${languageInstruction}`;
+        userPrompt = atsPrompt ? `USER SPECIFIC RULES: ${atsPrompt}\n\n${basePrompt}` : basePrompt;
 
         // Send initial info
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: skillUsed, prompt: userPrompt })}\n\n`));
@@ -75,15 +71,19 @@ export async function POST(req: NextRequest) {
               'x-goog-api-key': aiConfig.apiKey
             },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: finalPrompt }] }],
+              contents: [{ parts: [{ text: userPrompt }] }],
               systemInstruction: { parts: [{ text: skillUsed }] },
               generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
             })
           });
 
           if (!response.ok) {
-            const errorText = await response.text();
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorText })}\n\n`));
+            if (response.status === 429) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Too many requests. Please wait a moment before trying again.' })}\n\n`));
+            } else {
+              const errorText = await response.text();
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: `AI Provider Error (${response.status}): ${errorText}` })}\n\n`));
+            }
             controller.close();
             return;
           }
@@ -156,10 +156,16 @@ export async function POST(req: NextRequest) {
 
       } catch (error: any) {
         console.error("Error in analyze:", error);
+        let errorMessage = error.message || 'Internal server error';
+        
+        if (error.status === 429 || errorMessage.toLowerCase().includes('too many requests') || errorMessage.toLowerCase().includes('rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment before trying again.';
+        }
+
         if (error instanceof ZodError) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Validation error', details: error.issues })}\n\n`));
         } else {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message || 'Internal server error' })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
         }
         controller.close();
       }
