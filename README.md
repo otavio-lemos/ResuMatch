@@ -1,36 +1,69 @@
-# ResuMatch
+# ResuMatch 🚀
 
-AI-powered resume builder with ATS scoring, intelligent parsing, and multilingual support.
+> **Open-Source AI Resume Builder & ATS Auditor.** Stop guessing if your resume passes the bot. ResuMatch ensures 100% compatibility with modern Applicant Tracking Systems (ATS).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+
+ResuMatch is a professional-grade platform designed to level the playing field for job seekers. While most builders focus on human aesthetics, ResuMatch prioritizes **machine readability** without sacrificing professional design.
+
+---
+
+## 🌟 Why ResuMatch?
+
+Most free resume builders (and even some paid ones like Canva) create PDFs that are "invisible" or "garbled" to ATS systems like **Workday, Taleo, and Greenhouse**. 
+
+ResuMatch solves this with a dedicated **ATS-Optimal Engine**:
+- **Linear Reading Flow**: No multi-column layouts that confuse parsers.
+- **Character Sanitization**: Automatic removal of emojis, icons, and "smart quotes" that break OCR.
+- **Date Normalization**: All dates are automatically converted to standard `MM/YYYY` format.
+- **Standard Fonts**: Enforced use of high-legibility fonts (Arial, Helvetica) for maximum extraction accuracy.
+- **Clean PDF Metadata**: Blocks browser-injected headers/footers during export.
+
+---
+
+## 📋 Key Features
+
+### 🧠 Intelligent AI Engine
+- **Local & Cloud Support**: Use Google Gemini, OpenAI, or run everything locally with **Ollama**.
+- **Resume Parsing**: Upload a PDF/DOCX and let AI map your data instantly.
+- **STAR Method Rewriting**: Transform weak bullets into high-impact, measurable achievements.
+- **Multilingual Mastery**: Native support for Portuguese and English with seamless translation.
+
+### 🤖 ATS Audit & Scoring
+- **Real-time Scoring**: Get a breakdown of content density, keyword optimization, and formatting risks.
+- **Job Matching**: Paste a Job Description (JD) and get a compatibility score with actionable gaps.
+- **Grammar & Impact**: Automated professional tone correction and STAR achievement generation.
 
 ---
 
 ## 🚀 Quick Start (Docker)
 
+The fastest way to get ResuMatch running is via Docker.
+
 ```bash
-# Clone
+# 1. Clone the repository
 git clone https://github.com/otavio-lemos/ResuMatch.git
 cd ResuMatch
 
-# Production
+# 2. Start the production stack
 docker-compose up -d --build
-
-# Development (with live reload)
-docker build -f Dockerfile-DevOps -t resumatch-dev .
-docker run -p 3000:3000 resumatch-dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Access the app at: [**http://localhost:3000**](http://localhost:3000)
+
+> [!TIP]
+> To run with a local LLM, install [Ollama](https://ollama.com/) and download your preferred model (e.g., `ollama run qwen2.5:7b`).
 
 ---
 
 ## ⚙️ Configuration
 
-Configure AI providers through the built-in settings page (`/config`). No `.env` files required.
-
-Supported providers:
-- **Google Gemini** (default)
-- **OpenAI** (GPT models)
-- **Ollama** (local models)
+No complex `.env` setup required for basic use. Once the app is running, navigate to the **Settings (`/config`)** page to:
+1. Select your **AI Provider** (Gemini, OpenAI, or Ollama).
+2. Enter your API Keys (stored securely in your browser's local storage).
+3. Select your preferred Model.
 
 ---
 
@@ -43,14 +76,8 @@ npm install --legacy-peer-deps
 # Start development server
 npm run dev
 
-# Production build
-npm run build
-
-# Run linter
-npm run lint
-
-# Run tests
-npm run test
+# Run full validation suite
+npm run lint && npm test
 ```
 
 ---
@@ -59,58 +86,24 @@ npm run test
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS 4 |
-| State | Zustand |
-| AI | OpenAI, Google Gemini, Ollama |
-| Testing | Jest, Playwright |
+| **Core** | Next.js 15 (App Router), TypeScript |
+| **Design** | Tailwind CSS 4 |
+| **State** | Zustand |
+| **AI** | Google Gemini SDK, OpenAI SDK, Ollama (Local) |
+| **Parsing** | Mammoth (DOCX), PDF-Parse |
+| **Testing** | Jest, Playwright |
 
 ---
 
-## 📁 Project Structure
+## 📁 Architecture
 
-```
-├── app/
-│   ├── api/              # API routes
-│   ├── dashboard/        # Dashboard pages
-│   ├── editor/           # Resume editor
-│   ├── modelos/          # Template selection
-│   ├── import/           # Import wizard
-│   └── config/           # Settings page
-├── components/           # React components
-├── lib/                 # Utilities
-│   ├── templates/        # Resume templates
-│   ├── ats-engine.ts    # ATS scoring
-│   └── translations.ts  # i18n
-├── store/               # Zustand stores
-└── .agent/              # AI agent skills
-```
-
----
-
-## 🔧 Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server |
-| `npm run build` | Production build |
-| `npm run lint` | Run ESLint |
-| `npm run test` | Run Jest tests |
-
----
-
-## 📋 Features
-
-- **ATS Scoring Engine** - Real-time feedback on readability, content density, and keyword optimization
-- **AI Writing Assistance** - STAR method optimization, grammar correction, and text rewriting
-- **Intelligent Parsing** - Import from PDF, DOCX, or TXT with AI-filled fields
-- **Job Match Analysis** - Paste a job description and get compatibility scoring
-- **Multilingual** - Automatic translation between Portuguese and English
-- **8 Professional Templates** - ATS-optimized, executive, tech, academic, and more
+ResuMatch follows a modular "Skill-Based" AI architecture:
+- **`.agent/skills/`**: Contains professional prompt engineering rules for Parsing, Auditing, and Rewriting.
+- **`lib/ats-engine.ts`**: The core logic for calculating resume health scores.
+- **`components/editor/ResumePreview.tsx`**: The hardened rendering engine for ATS-safe PDFs.
 
 ---
 
 ## License
 
-MIT
+Distributed under the MIT License. See `LICENSE` for more information.
