@@ -574,13 +574,10 @@ export default function ImportWizardClient() {
     useEffect(() => {
         if (!hasHydrated) return;
         if (step === 'REVIEW' && parsedData && (curriculumChips || []).length === 0) {
-            console.log('[IMPORT] Populating curriculum chips from parsedData...');
-            console.log('[IMPORT] Full parsedData keys:', Object.keys(parsedData));
-            console.log('[IMPORT] parsedData:', JSON.stringify(parsedData, null, 2).substring(0, 2000));
+            console.log('[IMPORT] Full parsedData:', JSON.stringify(parsedData, null, 2));
             
             // Get original section headers from curriculum
             const sectionHeaders = (parsedData as any)._sectionHeaders || {};
-            console.log('[IMPORT] Section Headers:', sectionHeaders);
 
             const sectionHasData = (key: string): boolean => {
                 const val = (parsedData as any)[key];
@@ -595,7 +592,7 @@ export default function ImportWizardClient() {
             const newRows: MapRow[] = [];
             let rowId = 1;
 
-            // FIRST: Get ALL keys from parsedData that have data (not starting with _)
+            // PRIORITY: Get keys that have DATA from parsedData
             const dataKeys = Object.keys(parsedData as any).filter(k => 
                 !k.startsWith('_') && 
                 k !== 'personalInfo' &&
@@ -604,43 +601,77 @@ export default function ImportWizardClient() {
             );
             
             console.log('[IMPORT] Data keys with content:', dataKeys);
+            console.log('[IMPORT] Section Headers from AI:', sectionHeaders);
 
-            // Map each data key to ATS section if possible
-            for (const key of dataKeys) {
-                // Try to find matching ATS section
-                const atsSection = ATS_SECTIONS.find(s => s.key === key || s.key === key + 's' || s.key === key.replace(/s$/, ''));
+            // Map each curriculum key to ATS if possible
+            for (const dataKey of dataKeys) {
+                // Get the original header name from AI response
+                const originalHeader = sectionHeaders[dataKey];
                 
-                // Get original header - this is the REAL name from the curriculum
-                const originalHeader = sectionHeaders[key];
-                console.log(`[IMPORT] Key ${key}: originalHeader = "${originalHeader}", atsSection = ${atsSection?.key}`);
+                // Use original header if available and not empty
+                let displayLabel = originalHeader && String(originalHeader).trim() !== '' 
+                    ? String(originalHeader).trim() 
+                    : dataKey; // Fallback to key name if no header
                 
-                // Use original header if available, otherwise use ATS label or key
-                let curriculumLabel: string;
-                if (originalHeader && String(originalHeader).trim() !== '') {
-                    curriculumLabel = String(originalHeader).trim();
-                } else if (atsSection) {
-                    curriculumLabel = atsSection.label;
-                } else {
-                    // For unknown keys, use the key itself formatted nicely
-                    curriculumLabel = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                // Find matching ATS section (try exact match, singular/plural variations)
+                let atsKey: string | null = null;
+                
+                // Exact match
+                if (ATS_SECTIONS.find(s => s.key === dataKey)) {
+                    atsKey = dataKey;
+                }
+                // Try plural/singular
+                else if (ATS_SECTIONS.find(s => s.key + 's' === dataKey)) {
+                    atsKey = dataKey + 's';
+                }
+                else if (ATS_SECTIONS.find(s => s.key === dataKey.replace(/s$/, ''))) {
+                    atsKey = dataKey.replace(/s$/, '');
+                }
+                // Try partial match (experience vs experiences)
+                else if (dataKey.includes('experience') || dataKey.includes('work')) {
+                    atsKey = 'experiences';
+                }
+                else if (dataKey.includes('skill')) {
+                    atsKey = 'skills';
+                }
+                else if (dataKey.includes('certif')) {
+                    atsKey = 'certifications';
+                }
+                else if (dataKey.includes('educat')) {
+                    atsKey = 'education';
+                }
+                else if (dataKey.includes('project')) {
+                    atsKey = 'projects';
+                }
+                else if (dataKey.includes('lang')) {
+                    atsKey = 'languages';
+                }
+                else if (dataKey.includes('volunteer')) {
+                    atsKey = 'volunteer';
+                }
+                else if (dataKey.includes('summary') || dataKey.includes('about')) {
+                    atsKey = 'summary';
                 }
                 
-                newCurriculumChips.push({ key, label: curriculumLabel });
+                console.log(`[IMPORT] Mapping: dataKey="${dataKey}" -> atsKey="${atsKey}", label="${displayLabel}"`);
                 
-                // Create mapping row if there's an ATS match
-                if (atsSection) {
+                // Add to curriculum chips (left side - what came from resume)
+                newCurriculumChips.push({ key: dataKey, label: displayLabel });
+                
+                // Add to mapping rows
+                if (atsKey) {
                     newRows.push({
                         id: `row-${rowId++}`,
-                        userLabel: curriculumLabel,  // Show REAL name from curriculum
-                        atsKey: atsSection.key,     // Map to ATS standard key
+                        userLabel: displayLabel,  // REAL name from curriculum
+                        atsKey: atsKey,           // ATS standard key
                         validated: true,
                         isAiSuggestion: false,
                     });
                 } else {
-                    // Unknown key - allow manual mapping
+                    // Unknown key - user needs to map manually
                     newRows.push({
                         id: `row-${rowId++}`,
-                        userLabel: curriculumLabel,
+                        userLabel: displayLabel,
                         atsKey: null,
                         validated: false,
                         isAiSuggestion: false,
@@ -649,7 +680,7 @@ export default function ImportWizardClient() {
             }
 
             console.log('[IMPORT] Final curriculumChips:', newCurriculumChips);
-            console.log('[IMPORT] Final mappingRows:', newRows.map(r => ({ label: r.userLabel, atsKey: r.atsKey })));
+            console.log('[IMPORT] Final mappingRows:', newRows);
 
             if (newCurriculumChips.length > 0) {
                 setCurriculumChips(newCurriculumChips);
@@ -658,7 +689,7 @@ export default function ImportWizardClient() {
                     setHasValidationResult(true);
                 }
             } else {
-                console.warn('[IMPORT] No curriculum sections detected in parsedData');
+                console.warn('[IMPORT] No curriculum sections detected');
             }
         }
     }, [hasHydrated, step, parsedData, curriculumChips.length, ATS_SECTIONS, setCurriculumChips, setMappingRows]);
