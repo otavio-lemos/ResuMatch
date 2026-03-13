@@ -6,6 +6,50 @@ import { getAIClient, AIAuthSettings } from '@/app/actions/ai';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+// Extract section headers from raw text by detecting lines that look like section titles
+function extractSectionHeadersFromText(text: string): Record<string, string> {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const headers: Record<string, string> = {};
+  
+  // Common section name patterns to detect (case insensitive)
+  const sectionPatterns: Record<string, string[]> = {
+    personalInfo: ['contact', 'personal', 'dados pessoais', 'informações de contato', 'informacoes de contato'],
+    summary: ['summary', 'profile', 'about', 'resumo', 'objetivo', 'professional summary'],
+    experiences: ['experience', 'employment', 'work history', 'professional experience', 'trabalho', 'experiência', 'career'],
+    education: ['education', 'academic', 'formação', 'formacao', 'escolaridade'],
+    skills: ['skills', 'competencies', 'competências', 'habilidades', 'technical skills', 'knowledge'],
+    certifications: ['certifications', 'certificates', 'certificados', 'certificações', 'certifications'],
+    projects: ['projects', 'projetos', 'portfolio'],
+    languages: ['languages', 'idiomas', 'language proficiency'],
+    volunteer: ['volunteer', 'voluntariado', 'volunteering']
+  };
+  
+  // Find lines that are likely section headers (short, standalone, followed by content)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lowerLine = line.toLowerCase();
+    
+    // Skip lines that are too long (probably content, not headers)
+    if (line.length > 50) continue;
+    
+    // Check if line matches any section pattern
+    for (const [sectionKey, patterns] of Object.entries(sectionPatterns)) {
+      for (const pattern of patterns) {
+        // Exact or near match
+        if (lowerLine === pattern || lowerLine.includes(pattern)) {
+          // Only set if not already set and line looks like a header (not in the middle of content)
+          if (!headers[sectionKey]) {
+            headers[sectionKey] = line;
+          }
+          break;
+        }
+      }
+    }
+  }
+  
+  return headers;
+}
+
 export async function POST(req: NextRequest) {
   let skillUsed = '';
   let userPrompt = '';
@@ -67,6 +111,11 @@ export async function POST(req: NextRequest) {
           pdfTextContent = buffer.toString('utf-8');
         }
 
+        // Extract section headers from the raw text BEFORE sending to AI
+        // This helps both Gemini and Ollama get the section names
+        const sectionHeadersFromText = extractSectionHeadersFromText(pdfTextContent);
+        console.log('[PARSE-RESUME] Detected section headers from text:', sectionHeadersFromText);
+
         const authSettings: AIAuthSettings = aiSettings || {};
         if (!authSettings.provider && !authSettings.apiKey && !process.env.GEMINI_API_KEY) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No provider or API key specified' })}\n\n`));
@@ -90,13 +139,32 @@ export async function POST(req: NextRequest) {
         }
 
         const userInstructions = customPrompt ? `USER SPECIFIC RULES: ${customPrompt}\n\n` : '';
-        const fullLanguageInstruction = `${languageInstruction}\n\n${userInstructions}`;
+        
+        // Include detected section headers in the prompt to help the AI
+        const detectedHeadersStr = Object.keys(sectionHeadersFromText).length > 0
+          ? `\n\nIMPORTANT - DETECTED SECTION HEADERS FROM DOCUMENT:\n${JSON.stringify(sectionHeadersFromText, null, 2)}\nUse these EXACT section names in _sectionHeaders!`
+          : '';
+          
+        const fullLanguageInstruction = `${languageInstruction}\n\n${userInstructions}${detectedHeadersStr}`;
         
         let promptContent: string;
-        if (aiConfig.type === 'gemini') {
-          promptContent = mimeType === 'application/pdf' ? '[PDF CONTENT ATTACHED]' : `CONTENT TO ANALYZE:\n${pdfTextContent}`;
+        let filePart: any = null;
+        
+        // For Gemini with PDF, send the PDF directly as base64
+        if (aiConfig.type === 'gemini' && mimeType === 'application/pdf') {
+          const base64Data = Buffer.from(await file.arrayBuffer()).toString('base64');
+          const mimeTypePdf = 'application/pdf';
+          filePart = {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeTypePdf
+            }
+          };
+          promptContent = 'Analyze this resume PDF and extract all information to JSON format. Pay special attention to section headers - use the EXACT section names from the document.' + detectedHeadersStr;
+        } else if (aiConfig.type === 'gemini') {
+          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}`;
         } else {
-          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}`;
+          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}`;
         }
 
         skillUsed = getAtsParserSkill(currentLanguage) + '\n\n' + fullLanguageInstruction;
@@ -106,6 +174,21 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: skillUsed, prompt: userPrompt })}\n\n`));
 
         if (aiConfig.type === 'gemini') {
+          // Build contents with file part if PDF
+          const contents: any[] = [];
+          if (filePart) {
+            contents.push({
+              parts: [
+                filePart,
+                { text: promptContent }
+              ]
+            });
+          } else {
+            contents.push({
+              parts: [{ text: promptContent }]
+            });
+          }
+          
           const response = await fetch(aiConfig.endpoint, {
             method: 'POST',
             headers: {
@@ -113,7 +196,7 @@ export async function POST(req: NextRequest) {
               'x-goog-api-key': aiConfig.apiKey
             },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: promptContent }] }],
+              contents,
               systemInstruction: { parts: [{ text: skillUsed }] },
               generationConfig: { temperature: 0.2, responseModalities: 'TEXT' }
             })
