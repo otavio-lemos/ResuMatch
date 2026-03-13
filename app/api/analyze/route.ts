@@ -64,7 +64,9 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: skillUsed, prompt: userPrompt })}\n\n`));
 
         if (aiConfig.type === 'gemini') {
-          const response = await fetch(aiConfig.endpoint, {
+          // Use streaming endpoint for Gemini
+          const streamingEndpoint = aiConfig.endpoint.replace(':generateContent', ':streamGenerateContent');
+          const response = await fetch(streamingEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -98,17 +100,33 @@ export async function POST(req: NextRequest) {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
+            
             buffer += decoder.decode(value, { stream: true });
-          }
-
-          const finalJson = JSON.parse(buffer);
-          if (Array.isArray(finalJson)) {
-            for (const item of finalJson) {
-              const text = item.candidates?.[0]?.content?.parts?.[0]?.text || '';
-              fullText += text;
-            }
-          } else {
-            fullText = finalJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            
+            // Process chunks from Gemini stream format
+            // Gemini returns chunks like: [{"candidates": [...]}, {"candidates": [...]}]
+            try {
+              // Simple heuristic to extract text chunks from the stream
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+              
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed === '[' || trimmed === ',' || trimmed === ']') continue;
+                
+                try {
+                  const chunk = JSON.parse(trimmed.startsWith(',') ? trimmed.slice(1) : trimmed);
+                  const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  if (text) {
+                    fullText += text;
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`));
+                  }
+                } catch (e) {
+                  // Partial JSON, wait for next buffer
+                  buffer = trimmed + buffer;
+                }
+              }
+            } catch (e) {}
           }
           
           rawResponse = fullText;

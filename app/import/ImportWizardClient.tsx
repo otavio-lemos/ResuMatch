@@ -287,8 +287,8 @@ export default function ImportWizardClient() {
                             addParsingBubble({ sender: 'ai', text: data.message, type: 'progress' });
                         } else if (data.type === 'chunk') {
                             rawResponse += data.content;
-                            setParsingBubbles([
-                                ...parsingBubbles.filter(b => !b.text.startsWith('RESPONSE:')),
+                            setParsingBubbles(prev => [
+                                ...prev.filter(b => b.id !== 'parsing-response'),
                                 { id: 'parsing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
                             ]);
                         } else if (data.type === 'done') {
@@ -456,8 +456,8 @@ export default function ImportWizardClient() {
                             const data = JSON.parse(trimmedLine.slice(6));
                             if (data.type === 'chunk') {
                                 rawResponse += data.content;
-                                setAnalysingBubbles([
-                                    ...analysingBubbles.filter(b => !b.text.startsWith('RESPONSE:')),
+                                setAnalysingBubbles(prev => [
+                                    ...prev.filter(b => b.id !== 'analysing-response'),
                                     { id: 'analysing-response', sender: 'ai', text: `RESPONSE:\n${rawResponse}`, type: 'text' }
                                 ]);
                             } else if (data.type === 'done') {
