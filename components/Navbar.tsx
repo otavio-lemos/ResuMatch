@@ -69,8 +69,7 @@ export default function Navbar() {
     }
   }, [isDropdownOpen]);
 
-  // Check resumes existence on mount and pathname changes
-  // Use useCallback with empty deps + useEffect to avoid sync setState in effect
+  // Check resumes existence on mount
   const checkResumes = useCallback(async () => {
     try {
       const res = await fetch('/api/resumes');
@@ -82,18 +81,21 @@ export default function Navbar() {
             setResumesCount(list.length);
             setResumesList(list);
         }, 0);
-        
-        // Redirecionamento condicional: apenas se estiver em páginas que dependem de dados
-        const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/editor');
-        
-        if (list.length === 0 && isProtectedPage) {
-           router.push('/modelos');
-        }
       }
     } catch (err) {
       console.error('Failed to check resumes:', err);
     }
-  }, [pathname, router]);
+  }, []);
+
+  // Handle protected page redirects separately
+  useEffect(() => {
+    if (resumesCount === 0) {
+      const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/editor');
+      if (isProtectedPage) {
+        router.push('/modelos');
+      }
+    }
+  }, [resumesCount, pathname, router]);
 
   const hasResumes = resumesCount !== null ? resumesCount > 0 : false;
 
@@ -109,7 +111,7 @@ export default function Navbar() {
 
   useEffect(() => {
     checkResumes();
-  }, [checkResumes]);
+  }, [checkResumes]); // Re-fetch only on mount or if checkResumes changes (which it doesn't)
 
   const handleSelectResume = (id: string) => {
     if (pathname.startsWith('/dashboard')) {
@@ -166,7 +168,7 @@ export default function Navbar() {
     try {
       await deleteResume(currentResume.id, language);
       checkResumes();
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       console.error('Delete error:', err);
     } finally {
@@ -177,7 +179,7 @@ export default function Navbar() {
 
   const editHref = hasResumes && resumeId ? `/editor/${resumeId}` : '/modelos';
   const atsHref = hasResumes && resumeId ? `/dashboard/${resumeId}` : '/modelos';
-  const dashboardHref = hasResumes ? '/dashboard' : '/modelos';
+  const dashboardHref = hasResumes ? (resumeId ? `/dashboard/${resumeId}` : (resumesList[0]?.id ? `/dashboard/${resumesList[0].id}` : '/')) : '/modelos';
   const importHref = '/import'; // Import is always accessible
 
   const handleDownload = useCallback(() => {
@@ -254,14 +256,6 @@ export default function Navbar() {
                 {/* Actions */}
                 <div className="border-t border-slate-200 dark:border-slate-700 py-1">
                   <button
-                    onClick={handleTranslate}
-                    disabled={isTranslating}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    {isTranslating ? <Loader2 className="size-3 animate-spin" /> : <Languages className="size-3" />}
-                    {t('dashboard.translateResume')}
-                  </button>
-                  <button
                     onClick={handleDuplicate}
                     disabled={isDuplicating}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
@@ -285,10 +279,6 @@ export default function Navbar() {
 
         {/* 7 BOTÕES FIXOS (Incluindo TEMA) */}
         <div className="flex items-center gap-0">
-          <Link href={dashboardHref} className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            <LayoutDashboard className="size-3 mr-2" />
-            {t('nav.dashboard')}
-          </Link>
           
           <Link
             href={atsHref}

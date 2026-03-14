@@ -7,6 +7,7 @@ export function AutoSaveSync() {
     const data = useResumeStore(state => state.data);
     const syncStatus = useResumeStore(state => state.syncStatus);
     const saveLocalResume = useResumeStore(state => state.saveLocalResume);
+    const lastSavedData = useRef(JSON.stringify(data));
     const isFirstRender = useRef(true);
 
     useEffect(() => {
@@ -21,8 +22,15 @@ export function AutoSaveSync() {
             return;
         }
 
+        // Verificar se os dados realmente mudaram
+        const currentDataStr = JSON.stringify(data);
+        if (currentDataStr === lastSavedData.current) {
+            return;
+        }
+
         // Debounce de 1.5s antes de bater no banco para salvar as alterações
         const timeoutId = setTimeout(() => {
+            lastSavedData.current = currentDataStr;
             saveLocalResume();
         }, 1500);
 

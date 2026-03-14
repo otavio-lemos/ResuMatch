@@ -372,6 +372,7 @@ export default function ATSAnalysisView() {
 
     const handleAnalyze = async (jobDescription?: string) => {
         const aiSettings = primaryAI ? {
+            provider: primaryAI.provider,
             apiKey: primaryAI.apiKey,
             model: primaryAI.model,
             baseUrl: primaryAI.baseUrl
