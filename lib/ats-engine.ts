@@ -1,69 +1,69 @@
 /**
- * ATS ENGINE - Precision Logic
+ * ATS ENGINE - Single Source of Truth
  * 
- * Combines AI qualitative analysis with strict functional metrics.
+ * Only uses AI Analysis as source. No local fallback.
  */
 
 import { ResumeData } from '@/store/useResumeStore';
+import { SKILL_DICTIONARY } from './skill-dictionary';
 
-// ─── Regex for Validation ───────────────────────────────────────────────────
+// ─── Constants & Regex ────────────────────────────────────────────────────────
 
-const DATE_FORMAT_RE = /^(0[1-9]|1[0-2])\/\d{4}$|^(Atual|Presente|Present)$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DATE_FORMAT_RE = /^(0[1-9]|1[0-2])\/\d{4}$|^\d{4}-\d{2}$|^[A-Z][a-z]+\s\d{4}$/i;
+const METRIC_RE = /(\d+\s*(%|mil|k\b|m\b|milhões?|bilhões?|reais|usd|\$|€|funcionários?|projetos?|clientes?|usuários?|horas?|dias?|meses?|semanas?|sprint|vezes|vendas|conversão|pontos|recorrência))/i;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function countWords(text: string): number {
     return (text || '').split(/\s+/).filter(w => w.length > 2).length;
 }
 
-function checkDateFormat(date: string): boolean {
-    return DATE_FORMAT_RE.test(date?.trim());
+function hasStandardBullets(text: string): boolean {
+    if (!text) return false;
+    const lines = text.split('\n').filter(l => l.trim().length > 0);
+    return lines.some(l => /^[•\-\*]/.test(l.trim()));
 }
 
-// ─── Main Score Logic ─────────────────────────────────────────────────────
+function detectSTAR(text: string): boolean {
+    const hasAction = /(liderou|gerenciou|desenvolveu|criou|aumentou|reduziu|facilitou|liderança|otimizou|led|managed|created|built|increased|reduced|optimized|achieved|conquistou|entregou|delivered)/i.test(text);
+    const hasResult = METRIC_RE.test(text) || /(resultou|gerando|impacto|entregando|economizou|resulting|achieving|delivery|impact|saved|revenue|receita|lucro)/i.test(text);
+    return hasAction && hasResult;
+}
 
-export function getScore(data: ResumeData): number {
-    const analysis = data.aiAnalysis;
-    
-    // 1. Mandatory Section Check
-    const mandatory = ['personalInfo', 'summary', 'experiences', 'education', 'skills'];
-    let missingCount = 0;
-    if (!data.personalInfo?.fullName || !data.personalInfo?.email) missingCount++;
-    if (!data.summary || data.summary.length < 30) missingCount++;
-    if (!data.experiences || data.experiences.length === 0) missingCount++;
-    if (!data.education || data.education.length === 0) missingCount++;
-    if (!data.skills || data.skills.length === 0) missingCount++;
+const STOP_WORDS = new Set([
+    'a', 'o', 'de', 'da', 'do', 'em', 'para', 'com', 'que', 'e', 'é',
+    'the', 'and', 'of', 'to', 'in', 'for', 'with', 'on', 'at', 'by'
+]);
 
-    const sectionScore = Math.max(0, 100 - (missingCount * 25));
+function extractKeywords(text: string): string[] {
+    return text
+        .toLowerCase()
+        .split(/[\s,\.\n\r\t\-•*+()\[\]{}&/]+/)
+        .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+}
 
-    // 2. Date Format Check
-    let dateChecks = 0;
-    let datePasses = 0;
-    [...(data.experiences || []), ...(data.education || [])].forEach(item => {
-        if (item.startDate) { dateChecks++; if (checkDateFormat(item.startDate)) datePasses++; }
-        if (item.endDate && !item.current) { dateChecks++; if (checkDateFormat(item.endDate)) datePasses++; }
-    });
-    const dateScore = dateChecks > 0 ? (datePasses / dateChecks) * 100 : 100;
-
-    const functionalBase = (sectionScore * 0.6) + (dateScore * 0.4);
-
-    // 3. Final Integration
-    if (!analysis) return Math.round(functionalBase);
-
-    const aiOverall = analysis.score ?? Math.round(((analysis.scores?.design || 0) + (analysis.scores?.estrutura || 0) + (analysis.scores?.conteudo || 0)) / 3);
-
-    // Capped by functional reality
-    const final = Math.max(0, Math.min(100, Math.round((aiOverall * 0.7) + (functionalBase * 0.3))));
-
-    if (missingCount > 0 && final > 80) return 80;
-
-    return final;
+function levenshteinDistance(a: string, b: string): number {
+    const matrix: number[][] = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+            else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+        }
+    }
+    return matrix[b.length][a.length];
 }
 
 export function calculateJDMatch(resume: ResumeData, jobDescription: string): { 
     matchScore: number; 
     matchedKeywords: string[];
     missingKeywords: string[];
+    jdKeywords: string[];
 } {
-    if (!jobDescription?.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [] };
+    if (!jobDescription?.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [], jdKeywords: [] };
+    const jdKeywords = extractKeywords(jobDescription);
     const resumeText = [
         resume?.summary || '',
         ...(resume?.experiences || []).map(e => e?.description || ''),
@@ -71,13 +71,32 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
         resume?.personalInfo?.title || ''
     ].join(' ').toLowerCase();
     
-    const jdWords = jobDescription.toLowerCase().split(/[\s,\.\n\r\t\-•*+()\[\]{}&/]+/).filter(w => w.length > 3);
-    const uniqueJDWords = Array.from(new Set(jdWords));
-    const matched: string[] = [];
-    const missing: string[] = [];
-    uniqueJDWords.forEach(word => {
-        if (resumeText.includes(word)) matched.push(word);
-        else missing.push(word);
-    });
-    return { matchScore: uniqueJDWords.length > 0 ? Math.round((matched.length / uniqueJDWords.length) * 100) : 0, matchedKeywords: matched, missingKeywords: missing };
+    const resumeKeywords = extractKeywords(resumeText);
+    const matchedKeywords: string[] = [];
+    const missingKeywords: string[] = [];
+    
+    for (const keyword of jdKeywords) {
+        if (resumeKeywords.some(rk => rk.includes(keyword) || keyword.includes(rk) || (rk.length > 0 && keyword.length > 0 && levenshteinDistance(rk, keyword) <= 2))) {
+            matchedKeywords.push(keyword);
+        } else {
+            missingKeywords.push(keyword);
+        }
+    }
+    return { matchScore: jdKeywords.length > 0 ? Math.min(100, Math.round((matchedKeywords.length / jdKeywords.length) * 100)) : 0, matchedKeywords, missingKeywords, jdKeywords };
+}
+
+// ─── Main Score Function - SINGLE SOURCE ────────────────────────────────────────
+
+export function getScore(data: ResumeData): number {
+    const analysis = data.aiAnalysis;
+    
+    if (analysis?.score !== undefined) {
+        return analysis.score;
+    }
+    
+    if (analysis?.scores?.design !== undefined) {
+        return Math.round((analysis.scores.design + analysis.scores.estrutura + analysis.scores.conteudo) / 3);
+    }
+    
+    return 0;
 }

@@ -5,9 +5,8 @@ import { logger } from './logger';
  * markdown code blocks, preamble text, or trailing content.
  */
 export function robustJsonParse(text: string): any {
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-        console.warn('Robust parsing received empty input. Returning empty object.');
-        return {};
+    if (!text || typeof text !== 'string') {
+        throw new Error('Robust parsing failed: Input is empty or not a string');
     }
 
     let cleaned = text.trim();
