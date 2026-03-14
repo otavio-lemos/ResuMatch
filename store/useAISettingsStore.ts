@@ -249,6 +249,27 @@ export const useAISettingsStore = create<AIConfigState>()(
       }),
       setImportAI: (settings) => set((state) => ({ importAI: { ...state.importAI, ...settings } })),
       setEditorAI: (settings) => set((state) => ({ editorAI: { ...state.editorAI, ...settings } })),
+      syncFromAuth: (auth: Partial<AISettings>) => {
+        const { primaryAI, importAI } = get();
+        
+        // Se o provider mudou ou se as chaves mudaram, atualizamos mantendo os parâmetros de geração se existirem
+        const updateProviderSettings = (current: any, authSettings: any) => ({
+            ...current,
+            provider: authSettings.provider || current.provider,
+            model: authSettings.model || current.model,
+            apiKey: authSettings.apiKey || current.apiKey,
+            baseUrl: authSettings.baseUrl || current.baseUrl,
+            // Mantém os parâmetros de geração se já estiverem definidos, senão usa os da auth ou defaults
+            temperature: current.temperature ?? authSettings.temperature ?? 0.7,
+            topP: current.topP ?? authSettings.topP ?? 1,
+            topK: current.topK ?? authSettings.topK ?? 40
+        });
+
+        set({
+            primaryAI: updateProviderSettings(primaryAI, auth),
+            importAI: updateProviderSettings(importAI, auth)
+        });
+    },
       setSyncAllModels: (sync) => set((state) => {
         if (sync) {
            return {

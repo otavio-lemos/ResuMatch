@@ -503,9 +503,11 @@ export default function ImportWizardClient() {
                     buffer = lines.pop() || '';
                     
                     for (const line of lines) {
-                        if (line.startsWith('data: ')) {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('data: ')) {
                             try {
-                                const data = JSON.parse(line.slice(6));
+                                const jsonStr = trimmedLine.slice(6).trim();
+                                const data = JSON.parse(jsonStr);
                                 
                                 if (data.type === 'chunk') {
                                     rawResponse += data.content;
@@ -521,7 +523,7 @@ export default function ImportWizardClient() {
                                     throw new Error(data.error);
                                 }
                             } catch (e) {
-                                console.log('[ANALYZE] SSE parse error:', e);
+                                console.log('[ANALYZE] SSE parse error:', e, '| line:', trimmedLine.substring(0, 100));
                             }
                         }
                     }

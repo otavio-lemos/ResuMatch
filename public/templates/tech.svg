@@ -1,21 +1,21 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="#0F172A"/>
+  <text x="40" y="40" font-family="monospace" font-size="16" font-weight="900" fill="#3B82F6">SEU NOME</text>
+  <text x="40" y="55" font-family="monospace" font-size="7" fill="#94A3B8">seu.email@exemplo.com // in/seulinkedin // (11) 99999-9999</text>
   
-  <text x="40" y="55" font-family="monospace" font-size="14" font-weight="900" fill="#3B82F6">PEDRO_HENRIQUE.js</text>
-  <text x="40" y="70" font-family="monospace" font-size="6" fill="#94A3B8">const contact = { email: "pedro@dev.io", github: "github.com/pedro" }</text>
+  <text x="40" y="85" font-family="monospace" font-size="9" font-weight="900" fill="#F8FAFC">~/summary</text>
+  <text x="40" y="98" font-family="monospace" font-size="6.5" fill="#94A3B8">Senior Designer transforming requirements into code-ready UI.</text>
   
-  <text x="40" y="105" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/profile</text>
-  <text x="40" y="120" font-family="monospace" font-size="7" fill="#94A3B8">Software Engineer focado em sistemas distribuídos e performance.</text>
-  <text x="40" y="130" font-family="monospace" font-size="7" fill="#94A3B8">Especialista em ecossistema Node.js, Go e Kubernetes.</text>
+  <text x="40" y="125" font-family="monospace" font-size="9" font-weight="900" fill="#F8FAFC">~/experience</text>
+  <text x="40" y="140" font-family="monospace" font-size="8" font-weight="700" fill="#3B82F6">Senior Product Designer @ TechFlow</text>
+  <text x="40" y="150" font-family="monospace" font-size="7" fill="#94A3B8">> Redesign core platform // 2021-Present</text>
   
-  <text x="40" y="160" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/work_history</text>
+  <text x="40" y="170" font-family="monospace" font-size="8" font-weight="700" fill="#3B82F6">Product Designer @ Agency</text>
+  <text x="40" y="180" font-family="monospace" font-size="7" fill="#94A3B8">> Fintech &amp; Health apps // 2018-2021</text>
   
-  <text x="40" y="175" font-family="monospace" font-size="7" font-weight="bold" fill="#3B82F6">Lead Backend Dev @ Mercado Livre</text>
-  <text x="40" y="185" font-family="monospace" font-size="6" fill="#64748B">&gt; 2020 - Present</text>
-  <text x="40" y="195" font-family="monospace" font-size="6.5" fill="#CBD5E1">- Refatoração de microserviços reduzindo latência em 200ms.</text>
-  <text x="40" y="205" font-family="monospace" font-size="6.5" fill="#CBD5E1">- Implementação de arquitetura orientada a eventos com Kafka.</text>
-
-  <text x="40" y="235" font-family="monospace" font-size="8" font-weight="900" fill="#F8FAFC">~/tech_stack</text>
-  <text x="40" y="250" font-family="monospace" font-size="7" fill="#3B82F6">languages:</text>
-  <text x="110" y="250" font-family="monospace" font-size="7" fill="#94A3B8">["TypeScript", "Go", "Rust", "Python"]</text>
+  <text x="40" y="205" font-family="monospace" font-size="9" font-weight="900" fill="#F8FAFC">~/education</text>
+  <text x="40" y="220" font-family="monospace" font-size="8" font-weight="700" fill="#3B82F6">MSc IHC @ USP // BSc Digital Design @ UFRJ</text>
+  
+  <text x="40" y="245" font-family="monospace" font-size="9" font-weight="900" fill="#F8FAFC">~/skills</text>
+  <text x="40" y="260" font-family="monospace" font-size="7" fill="#94A3B8">Figma, React, Tailwind, Git, TypeScript, Agile.</text>
 </svg>

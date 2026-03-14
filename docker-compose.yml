@@ -21,8 +21,7 @@ services:
       - DOCKER_CONTAINER=true
     volumes:
       # Dados de currículos persistem entre restarts/atualizações
-      # Mapeado para a pasta local ./data para fácil acesso
-      - ./data:/app/data
+      - resumatch-data:/app/data
     healthcheck:
       test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
       interval: 30s
@@ -30,3 +29,6 @@ services:
       retries: 3
       start_period: 15s
     restart: unless-stopped
+
+volumes:
+  resumatch-data:

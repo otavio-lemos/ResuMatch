@@ -1,29 +1,68 @@
 <svg width="400" height="560" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="560" fill="white"/>
-  <text x="200" y="45" font-family="'Georgia', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">LUCAS MENEZES SILVA</text>
-  <text x="200" y="58" font-family="'Georgia', serif" font-size="7" text-anchor="middle" fill="black">São Paulo, Brasil • +55 11 98888-7777 • lucas.silva@email.com • linkedin.com/in/lucasms</text>
   
-  <text x="40" y="85" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EDUCATION</text>
-  <line x1="40" y1="88" x2="360" y2="88" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="100" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">Harvard Business School</text>
-  <text x="360" y="100" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">Boston, MA</text>
-  <text x="40" y="108" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Master of Business Administration (MBA)</text>
-  <text x="360" y="108" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">May 2022</text>
-  <text x="45" y="118" font-family="'Georgia', serif" font-size="7" fill="black">• Honors: Baker Scholar (Top 5% of graduating class).</text>
-  <text x="45" y="126" font-family="'Georgia', serif" font-size="7" fill="black">• Leadership: President of the Management Consulting Club.</text>
+  <!-- Header -->
+  <text x="200" y="30" font-family="Arial" font-size="16" font-weight="900" text-anchor="middle" fill="#0F172A">SEU NOME</text>
+  <text x="200" y="42" font-family="Arial" font-size="7" text-anchor="middle" fill="#64748B">seu.email@exemplo.com | (11) 99999-9999 | São Paulo, SP</text>
+  <text x="200" y="52" font-family="Arial" font-size="7" text-anchor="middle" fill="#64748B">linkedin.com/in/seulinkedin | www.seuportfolio.com</text>
+  <rect x="40" y="60" width="320" height="1" fill="#E2E8F0"/>
   
-  <text x="40" y="145" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">EXPERIENCE</text>
-  <line x1="40" y1="148" x2="360" y2="148" stroke="black" stroke-width="0.5"/>
+  <!-- Summary -->
+  <text x="40" y="75" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">RESUMO PROFISSIONAL</text>
+  <text x="40" y="88" font-family="Arial" font-size="6" fill="#334155">Designer de Produto com 8+ anos de experiência. Especialista em Design Systems,</text>
+  <text x="40" y="96" font-family="Arial" font-size="6" fill="#334155">metodologias ágeis e UX orientada a dados. Foco em alinhar negócio e usuário.</text>
   
-  <text x="40" y="160" font-family="'Georgia', serif" font-size="8" font-weight="bold" fill="black">McKinsey &amp; Company</text>
-  <text x="360" y="160" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">2022 – Present</text>
-  <text x="40" y="168" font-family="'Georgia', serif" font-size="7" font-style="italic" fill="black">Engagement Manager</text>
-  <text x="360" y="168" font-family="'Georgia', serif" font-size="7" text-anchor="end" fill="black">New York, NY</text>
-  <text x="45" y="178" font-family="'Georgia', serif" font-size="7" fill="#333333">• Orchestrated a strategic turnaround for a Fortune 100 retail client.</text>
-  <text x="45" y="186" font-family="'Georgia', serif" font-size="7" fill="#333333">• Identified $500M in annual efficiency gains through AI implementation.</text>
-
-  <text x="40" y="210" font-family="'Georgia', serif" font-size="9" font-weight="bold" fill="black">SKILLS &amp; INTERESTS</text>
-  <line x1="40" y1="213" x2="360" y2="213" stroke="black" stroke-width="0.5"/>
-  <text x="40" y="225" font-family="'Georgia', serif" font-size="7.5" fill="black"><tspan font-weight="bold">Languages:</tspan> English (Native), Portuguese (Fluent), Spanish (Basic).</text>
-  <text x="40" y="235" font-family="'Georgia', serif" font-size="7.5" fill="black"><tspan font-weight="bold">Technical:</tspan> Python, SQL, Tableau, Strategic Financial Modeling.</text>
+  <!-- Experience -->
+  <text x="40" y="115" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">EXPERIÊNCIA PROFISSIONAL</text>
+  
+  <text x="40" y="128" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Senior Product Designer | TechFlow Solutions</text>
+  <text x="360" y="128" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">03/2021 - Present</text>
+  <text x="40" y="138" font-family="Arial" font-size="6" fill="#334155">- Redesign core e-commerce (+15% conversão). Design System global (4 squads).</text>
+  <text x="40" y="146" font-family="Arial" font-size="6" fill="#334155">- NPS subiu de 45 para 72 através de testes semanais e melhoria de UX.</text>
+  
+  <text x="40" y="162" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Product Designer Pleno | Creative Agency Ltd</text>
+  <text x="360" y="162" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">05/2018 - 02/2021</text>
+  <text x="40" y="172" font-family="Arial" font-size="6" fill="#334155">- UX para apps fintech e saúde premiados. Pesquisas e protótipos complexos.</text>
+  
+  <text x="40" y="188" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">UI Designer Júnior | StartUp Inovadora</text>
+  <text x="360" y="188" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">01/2016 - 04/2018</text>
+  <text x="40" y="198" font-family="Arial" font-size="6" fill="#334155">- Design visual para marketing e bibliotecas iniciais de componentes.</text>
+  
+  <!-- Education -->
+  <text x="40" y="218" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">FORMAÇÃO ACADÊMICA</text>
+  <text x="40" y="231" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Mestrado em IHC | Universidade de São Paulo (USP)</text>
+  <text x="360" y="231" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">2019 - 2021</text>
+  
+  <text x="40" y="245" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Bacharelado em Design Digital | Uni Federal (UFRJ)</text>
+  <text x="360" y="245" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">2012 - 2016</text>
+  
+  <!-- Projects -->
+  <text x="40" y="265" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">PROJETOS DE DESTAQUE</text>
+  <text x="40" y="278" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Sistema de Telemedicina 24h | Líder de Design</text>
+  <text x="360" y="278" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">2023</text>
+  <text x="40" y="288" font-family="Arial" font-size="6" fill="#334155">Redução no tempo de espera de 15 para 4 min. Projeto premiado.</text>
+  
+  <text x="40" y="302" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Plataforma Educacional Open Source | Contribuidor</text>
+  <text x="360" y="302" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">2022</text>
+  
+  <!-- Skills -->
+  <text x="40" y="325" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">HABILIDADES &amp; COMPETÊNCIAS</text>
+  <text x="40" y="338" font-family="Arial" font-size="6.5" fill="#334155">Design: Figma, Adobe CC, Protopie, Design Systems</text>
+  <text x="40" y="348" font-family="Arial" font-size="6.5" fill="#334155">Research: Testes Usabilidade, Pesquisa Usuário, Hotjar</text>
+  <text x="40" y="358" font-family="Arial" font-size="6.5" fill="#334155">Tech: HTML5, CSS3, React.js, Tailwind, Git, WCAG</text>
+  
+  <!-- Certifications -->
+  <text x="40" y="380" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">CERTIFICAÇÕES</text>
+  <text x="40" y="393" font-family="Arial" font-size="6.5" fill="#334155">- Google UX Design Professional (12/2023)</text>
+  <text x="40" y="401" font-family="Arial" font-size="6.5" fill="#334155">- Nielsen Norman Group Certification (06/2022)</text>
+  <text x="40" y="409" font-family="Arial" font-size="6.5" fill="#334155">- Certified Scrum Product Owner (01/2024)</text>
+  
+  <!-- Voluneteering -->
+  <text x="40" y="430" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">VOLUNTARIADO</text>
+  <text x="40" y="443" font-family="Arial" font-size="7" font-weight="700" fill="#0F172A">Mentor de Carreira | ONG Tech Pro</text>
+  <text x="360" y="443" font-family="Arial" font-size="6" text-anchor="end" fill="#64748B">2022 - Present</text>
+  
+  <!-- Languages -->
+  <text x="40" y="465" font-family="Arial" font-size="8" font-weight="900" fill="#0F172A">IDIOMAS</text>
+  <text x="40" y="478" font-family="Arial" font-size="6.5" fill="#334155">Português (Nativo), Inglês (Avançado), Espanhol (Intermediário)</text>
 </svg>

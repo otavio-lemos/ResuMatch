@@ -3,23 +3,8 @@
 # ============================================================
 FROM node:20-alpine AS deps
 
-# Necessário para módulos nativos: pdf-parse (node-gyp), Chromium para Puppeteer
-RUN apk add --no-cache \
-    libc6-compat \
-    python3 \
-    make \
-    g++ \
-    udev \
-    ttf-freefont \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    font-noto-emoji
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Necessário para módulos nativos: pdf-parse (node-gyp), etc.
+RUN apk add --no-cache libc6-compat python3 make g++
 
 WORKDIR /app
 
@@ -47,20 +32,6 @@ RUN npm run build
 # Estágio 3: Runner de produção (imagem final — mínima)
 # ============================================================
 FROM node:20-alpine AS runner
-
-# Instala bibliotecas do Chromium necessárias para rodar o Puppeteer
-RUN apk add --no-cache \
-    udev \
-    ttf-freefont \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    font-noto-emoji
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
 

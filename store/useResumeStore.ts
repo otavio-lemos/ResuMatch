@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { getScore } from '@/lib/ats-engine';
+import { robustJsonParse } from '@/lib/ai-utils';
 
 function normalizeApiResponse(data: any): any {
   if (!data) return data;
@@ -437,99 +437,72 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             clearTimeout(timeoutId);
 
             if (!response.ok) {
-                let errorMessage = 'Erro ao processar análise.';
-                try {
-                    const result = await response.json();
-                    errorMessage = result.error || errorMessage;
-                } catch (e) {
-                    // Se não for JSON, tenta pegar o texto
-                    try {
-                        const text = await response.text();
-                        if (text) errorMessage = text;
-                    } catch (e2) {}
-                }
-
-                if (response.status === 429 || errorMessage.toLowerCase().includes('too many requests')) {
-                    throw new Error('Too many requests. Please wait a moment before trying again.');
-                }
-                
+                const result = await response.json();
+                const errorMessage = result.error || (response.status === 503 ? "AI service overloaded. Please try again." : "Erro ao processar análise.");
                 throw new Error(errorMessage);
             }
 
-            // Handle streaming response (SSE)
+            // Handle streaming SSE response
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
-            let finalResult = null;
-
-            if (!reader) throw new Error('Falha ao ler stream de resposta');
+            let fullResponse = '';
+            
+            if (!reader) {
+                throw new Error('No reader available');
+            }
 
             while (true) {
                 const { done, value } = await reader.read();
+                if (done) break;
                 
-                if (value) {
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        const trimmedLine = line.trim();
-                        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
-                        
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('data: ')) {
                         try {
-                            const data = JSON.parse(trimmedLine.slice(6));
-                            if (data.type === 'done') {
-                                finalResult = data.data;
+                            const jsonStr = trimmedLine.slice(6).trim();
+                            const data = JSON.parse(jsonStr);
+                            
+                            if (data.type === 'chunk') {
+                                fullResponse += data.content;
+                                set((state) => ({ streamProgress: [...state.streamProgress, data.content] }));
+                            } else if (data.type === 'done') {
+                                const parsedResult = normalizeApiResponse(data.data);
+                                set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
+
+                                if (jobDescription) {
+                                    set((state) => ({
+                                        data: { ...state.data, jdAnalysis: parsedResult },
+                                        isAnalyzing: false,
+                                        needsNewAnalysis: false,
+                                        streamProgress: []
+                                    }));
+                                } else {
+                                    set((state) => ({
+                                        data: { ...state.data, aiAnalysis: parsedResult },
+                                        isAnalyzing: false,
+                                        needsNewAnalysis: false,
+                                        streamProgress: []
+                                    }));
+                                }
+
+                                get().saveLocalResume();
+                                return;
                             } else if (data.error) {
                                 throw new Error(data.error);
                             }
                         } catch (e) {
-                            // Ignora erros de parsing de linhas parciais
+                            // Ignore parse errors for incomplete lines
                         }
                     }
                 }
-
-                if (done) {
-                    // Processar buffer residual
-                    const finalLine = buffer.trim();
-                    if (finalLine.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(finalLine.slice(6));
-                            if (data.type === 'done') finalResult = data.data;
-                        } catch (e) {}
-                    }
-                    break;
-                }
             }
-
-            if (!finalResult) {
-                throw new Error('Análise incompleta ou inválida recebida da IA');
-            }
-
-            const parsedResult = normalizeApiResponse(finalResult);
-
-            set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
-
-            set((state) => {
-                const updatedData = {
-                    ...state.data,
-                    [jobDescription ? 'jdAnalysis' : 'aiAnalysis']: parsedResult
-                };
-
-                const finalScore = getScore(updatedData);
-                if (updatedData.aiAnalysis) {
-                    updatedData.aiAnalysis.score = finalScore;
-                }
-
-                return {
-                    data: updatedData,
-                    isAnalyzing: false,
-                    needsNewAnalysis: false,
-                    streamProgress: []
-                };
-            });
-
-            get().saveLocalResume();
+            
+            throw new Error('No complete response received');
         } catch (err: any) {
             set({ error: err.message, isAnalyzing: false, streamProgress: [] });
         }
@@ -541,22 +514,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     setTemplateId: (templateId) => set((state) => ({ data: { ...state.data, templateId } })),
     updateAppearance: (settings) => set((state) => ({ data: { ...state.data, appearance: { ...state.data.appearance, ...settings } } })),
     setAiAnalysis: (analysis, isJD) => {
-        set((state) => {
-            const updatedData = {
+        set((state) => ({
+            needsNewAnalysis: false,
+            data: {
                 ...state.data,
                 [isJD ? 'jdAnalysis' : 'aiAnalysis']: analysis
-            };
-            
-            const finalScore = getScore(updatedData);
-            if (updatedData.aiAnalysis) {
-                updatedData.aiAnalysis.score = finalScore;
             }
-
-            return {
-                needsNewAnalysis: false,
-                data: updatedData
-            };
-        });
+        }));
         get().saveLocalResume();
     },
 

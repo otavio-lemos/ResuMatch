@@ -353,16 +353,22 @@ export default function ATSAnalysisView() {
 
     const analysis = activeAnalysisMode === 'general' ? data?.aiAnalysis : data?.jdAnalysis;
 
-    const getAnalysisScore = (a: any): number => {
-        if (a?.score !== undefined) return a.score;
+    const getAnalysisScore = (a: any, hasJobDescription: boolean): number => {
+        // Se tem job description e jdMatch, usa o score de match
+        if (hasJobDescription && a?.jdMatch?.score !== undefined) {
+            return a.jdMatch.score;
+        }
+        
+        // Senão, usa a média dos 3 scores
         const scores = a?.scores || {};
         const design = scores.design ?? 0;
         const structure = scores.structure ?? scores.estrutura ?? 0;
         const content = scores.content ?? scores.conteudo ?? 0;
+        
         return Math.round((design + structure + content) / 3);
     };
 
-    const displayScore = analysis ? getAnalysisScore(analysis) : 0;
+    const displayScore = analysis ? getAnalysisScore(analysis, !!data?.jobDescription) : 0;
 
     const handleAnalyze = async (jobDescription?: string) => {
         const aiSettings = primaryAI ? {
@@ -383,10 +389,11 @@ export default function ATSAnalysisView() {
     }
 
     const unresolvedCount = (suggestions || []).filter(s => !s.resolved).length;
+    const hasAtsData = data?.aiAnalysis || data?.jdAnalysis;
 
     return (
         <div className="space-y-6">
-            {storeError && (
+            {storeError && !hasAtsData && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 border-l-4 border-l-red-500">
                     <div className="flex items-center gap-3">
                         <ShieldAlert className="size-5 text-red-600 dark:text-red-400" />
@@ -408,9 +415,9 @@ export default function ATSAnalysisView() {
                     </p>
                     <button
                         onClick={() => setShowBenchmarking(!showBenchmarking)}
-                        className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase text-blue-600 hover:underline tracking-widest"
+                        className="mt-4 flex items-center gap-2 px-4 py-2 text-xs font-black uppercase bg-blue-600 text-white hover:bg-blue-700 tracking-widest shadow-md"
                     >
-                        <Target className="size-3" />
+                        <Target className="size-4" />
                         {t('analysis.jobMatchTitle')}
                     </button>
                 </div>

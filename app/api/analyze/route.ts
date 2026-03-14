@@ -34,6 +34,11 @@ export async function POST(req: NextRequest) {
         const { resumeData, atsPrompt, jobDescription, aiSettings, language = 'pt' } = validated;
         
         const authSettings: AIAuthSettings = aiSettings || {};
+        
+        // DEBUG: Log received settings
+        console.log('[ANALYZE] Received aiSettings:', JSON.stringify(aiSettings));
+        console.log('[ANALYZE] ENV GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+        
         if (!authSettings.provider && !authSettings.apiKey && !process.env.GEMINI_API_KEY) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No provider or API key specified' })}\n\n`));
           controller.close();
@@ -43,6 +48,7 @@ export async function POST(req: NextRequest) {
         let aiConfig;
         try {
           aiConfig = await getAIClient(authSettings);
+          console.log('[ANALYZE] aiConfig type:', aiConfig.type);
         } catch (error: any) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message })}\n\n`));
           controller.close();
