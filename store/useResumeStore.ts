@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
+import { getScore } from '@/lib/ats-engine';
 
 function normalizeApiResponse(data: any): any {
   if (!data) return data;
@@ -465,16 +466,18 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                
+                if (value) {
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+                        
                         try {
-                            const data = JSON.parse(line.slice(6));
+                            const data = JSON.parse(trimmedLine.slice(6));
                             if (data.type === 'done') {
                                 finalResult = data.data;
                             } else if (data.error) {
@@ -484,6 +487,18 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                             // Ignora erros de parsing de linhas parciais
                         }
                     }
+                }
+
+                if (done) {
+                    // Processar buffer residual
+                    const finalLine = buffer.trim();
+                    if (finalLine.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(finalLine.slice(6));
+                            if (data.type === 'done') finalResult = data.data;
+                        } catch (e) {}
+                    }
+                    break;
                 }
             }
 
@@ -495,21 +510,24 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
             set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
 
-            if (jobDescription) {
-                set((state) => ({
-                    data: { ...state.data, jdAnalysis: parsedResult },
+            set((state) => {
+                const updatedData = {
+                    ...state.data,
+                    [jobDescription ? 'jdAnalysis' : 'aiAnalysis']: parsedResult
+                };
+
+                const finalScore = getScore(updatedData);
+                if (updatedData.aiAnalysis) {
+                    updatedData.aiAnalysis.score = finalScore;
+                }
+
+                return {
+                    data: updatedData,
                     isAnalyzing: false,
                     needsNewAnalysis: false,
                     streamProgress: []
-                }));
-            } else {
-                set((state) => ({
-                    data: { ...state.data, aiAnalysis: parsedResult },
-                    isAnalyzing: false,
-                    needsNewAnalysis: false,
-                    streamProgress: []
-                }));
-            }
+                };
+            });
 
             get().saveLocalResume();
         } catch (err: any) {
@@ -523,13 +541,22 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
     setTemplateId: (templateId) => set((state) => ({ data: { ...state.data, templateId } })),
     updateAppearance: (settings) => set((state) => ({ data: { ...state.data, appearance: { ...state.data.appearance, ...settings } } })),
     setAiAnalysis: (analysis, isJD) => {
-        set((state) => ({
-            needsNewAnalysis: false,
-            data: {
+        set((state) => {
+            const updatedData = {
                 ...state.data,
                 [isJD ? 'jdAnalysis' : 'aiAnalysis']: analysis
+            };
+            
+            const finalScore = getScore(updatedData);
+            if (updatedData.aiAnalysis) {
+                updatedData.aiAnalysis.score = finalScore;
             }
-        }));
+
+            return {
+                needsNewAnalysis: false,
+                data: updatedData
+            };
+        });
         get().saveLocalResume();
     },
 

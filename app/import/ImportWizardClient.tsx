@@ -250,47 +250,65 @@ export default function ImportWizardClient() {
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
                 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-                
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
-                    if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+                if (value) {
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
                     
-                    try {
-                        const data = JSON.parse(trimmedLine.slice(6));
-                        if (data.type === 'info') {
-                            addParsingBubble({ sender: 'user' as const, text: `PROMPT:\n${data.prompt}`, type: 'text' as const });
-                        } else if (data.type === 'progress') {
-                            addParsingBubble({ sender: 'ai' as const, text: data.message, type: 'progress' as const });
-                        } else if (data.type === 'chunk') {
-                            rawResponse += data.content;
-                            const currentBubbles = useImportStore.getState().parsingBubbles;
-                            setParsingBubbles([
-                                ...currentBubbles.filter(b => b.id !== 'parsing-response'),
-                                { id: 'parsing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
-                            ]);
-                        } else if (data.type === 'done') {
-                            clearTimeout(timeoutId);
-                            setParsedData(data.data);
-                            setStep('REVIEW');
-                            return;
-                        } else if (data.error) {
-                            setError(data.error);
-                            resetToUpload();
-                            return;
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+                        
+                        try {
+                            const data = JSON.parse(trimmedLine.slice(6));
+                            if (data.type === 'info') {
+                                addParsingBubble({ sender: 'user' as const, text: `PROMPT:\n${data.prompt}`, type: 'text' as const });
+                            } else if (data.type === 'progress') {
+                                addParsingBubble({ sender: 'ai' as const, text: data.message, type: 'progress' as const });
+                            } else if (data.type === 'chunk') {
+                                rawResponse += data.content;
+                                const currentBubbles = useImportStore.getState().parsingBubbles;
+                                setParsingBubbles([
+                                    ...currentBubbles.filter(b => b.id !== 'parsing-response'),
+                                    { id: 'parsing-response', sender: 'ai' as const, text: `RESPONSE:\n${rawResponse}`, type: 'text' as const }
+                                ]);
+                            } else if (data.type === 'done') {
+                                clearTimeout(timeoutId);
+                                setParsedData(data.data);
+                                setStep('REVIEW');
+                                return;
+                            } else if (data.error) {
+                                setError(data.error);
+                                resetToUpload();
+                                return;
+                            }
+                        } catch (e) {
+                            console.log('[IMPORT] SSE parse error:', e);
                         }
-                    } catch (e) {
-                        console.log('[IMPORT] SSE parse error:', e);
                     }
+                }
+
+                if (done) {
+                    // Process potential residual buffer
+                    const finalLine = buffer.trim();
+                    if (finalLine.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(finalLine.slice(6));
+                            if (data.type === 'done') {
+                                clearTimeout(timeoutId);
+                                setParsedData(data.data);
+                                setStep('REVIEW');
+                                return;
+                            }
+                        } catch (e) {}
+                    }
+                    break;
                 }
             }
             
             clearTimeout(timeoutId);
-            setError('Resposta incompleta');
+            setError('Resposta incompleta ou inválida recebida da IA');
             resetToUpload();
             
         } catch (err: any) {
@@ -299,6 +317,42 @@ export default function ImportWizardClient() {
             resetToUpload();
         }
     };
+
+    // ── Auto-populate rows from parsed data on REVIEW step ─────────────────────
+    useEffect(() => {
+        if (!hasHydrated) return;
+        if (step === 'REVIEW' && parsedData && (curriculumChips || []).length === 0) {
+            const sectionHeaders = (parsedData as any)._sectionHeaders || {};
+            const sectionHasData = (key: string): boolean => {
+                const val = (parsedData as any)[key];
+                return val != null && (typeof val === 'string' ? val.trim().length > 0 : Array.isArray(val) ? val.length > 0 : typeof val === 'object' ? Object.values(val).some((v: any) => String(v ?? '').trim().length > 0) : false);
+            };
+ 
+            const newCurriculumChips: {key: string; label: string}[] = [];
+            const newRows: MappingRow[] = [];
+            let rowId = 1;
+
+            const rawKeys = new Set([...Object.keys(sectionHeaders), ...Object.keys(parsedData as any).filter(k => !k.startsWith('_') && k !== 'personalInfo')]);
+
+            for (const key of Array.from(rawKeys)) {
+                if (sectionHeaders[key] || sectionHasData(key)) {
+                    const atsSection = ATS_SECTIONS.find(s => s.key === key);
+                    const curriculumLabel = sectionHeaders[key] && String(sectionHeaders[key]).trim() !== '' ? String(sectionHeaders[key]).trim() : (atsSection?.label || key);
+                    newCurriculumChips.push({ key, label: curriculumLabel });
+                    if (atsSection && sectionHasData(key)) {
+                        newRows.push({ id: `row-${rowId++}`, userLabel: curriculumLabel, atsKey: key, validated: true, isAiSuggestion: false });
+                    }
+                }
+            }
+            if (newCurriculumChips.length > 0) {
+                setCurriculumChips(newCurriculumChips);
+                if (newRows.length > 0) {
+                    setMappingRows(newRows);
+                    setHasValidationResult(true);
+                }
+            }
+        }
+    }, [hasHydrated, step, parsedData, curriculumChips.length, ATS_SECTIONS, setCurriculumChips, setMappingRows]);
 
     const updateRowLabel = (id: string, value: string) => {
         setMappingRows((prev: MappingRow[]) => prev.map(r => r.id === id ? { ...r, userLabel: value, validated: false } : r));

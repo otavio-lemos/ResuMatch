@@ -6,6 +6,47 @@ import { getAIClient, AIAuthSettings } from '@/app/actions/ai';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+// Extract section headers from raw text by detecting lines that look like section titles
+function extractSectionHeadersFromText(text: string): Record<string, string> {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const headers: Record<string, string> = {};
+  
+  const sectionPatterns: Record<string, string[]> = {
+    summary: ['summary', 'profile', 'about me', 'about', 'resumo', 'objetivo', 'professional summary', 'professional profile'],
+    experiences: ['experience', 'employment', 'work history', 'professional experience', 'trabalho', 'experiência', 'career', 'career history', 'professional background'],
+    education: ['education', 'academic', 'formação', 'formacao', 'escolaridade', 'academic background', 'educational background'],
+    skills: ['skills', 'competencies', 'competências', 'habilidades', 'technical skills', 'knowledge', 'technologies', 'core competencies'],
+    certifications: ['certifications', 'certificates', 'certificados', 'certificações', 'certifications and courses'],
+    projects: ['projects', 'projetos', 'portfolio', 'personal projects'],
+    languages: ['languages', 'idiomas', 'language proficiency', 'spoken languages'],
+    volunteer: ['volunteer', 'voluntariado', 'volunteering', 'community service']
+  };
+  
+  const isContentLine = (line: string): boolean => {
+    const lower = line.toLowerCase();
+    if (/\d{4}\s*[-–]\s*\d{4}|\d{4}\s*[-–]\s*present|present/i.test(line)) return true;
+    if (line.includes('|')) return true;
+    if (/\S+@\S+\.\S+|\b\d{10,}|linkedin|github|http/i.test(line)) return true;
+    if (line.length > 60) return true;
+    return false;
+  };
+  
+  for (let i = 0; i < Math.min(lines.length, 100); i++) {
+    const line = lines[i];
+    const lowerLine = line.toLowerCase();
+    if (isContentLine(line)) continue;
+    for (const [sectionKey, patterns] of Object.entries(sectionPatterns)) {
+      for (const pattern of patterns) {
+        if (lowerLine === pattern || lowerLine.startsWith(pattern + ':') || lowerLine === ' ' + pattern) {
+          if (!headers[sectionKey]) headers[sectionKey] = line;
+          break;
+        }
+      }
+    }
+  }
+  return headers;
+}
+
 export async function POST(req: NextRequest) {
   let skillUsed = '';
   let userPrompt = '';
@@ -65,6 +106,8 @@ export async function POST(req: NextRequest) {
           pdfTextContent = buffer.toString('utf-8');
         }
 
+        const sectionHeadersFromText = extractSectionHeadersFromText(pdfTextContent);
+
         const authSettings: AIAuthSettings = aiSettings || {};
         const language = currentLanguage || 'pt';
         const languageInstruction = language === 'pt' 
@@ -81,6 +124,9 @@ export async function POST(req: NextRequest) {
         }
 
         const userInstructions = customPrompt ? `USER SPECIFIC RULES: ${customPrompt}\n\n` : '';
+        const detectedHeadersStr = Object.keys(sectionHeadersFromText).length > 0
+          ? `\n\nSection headers found in document: ${Object.values(sectionHeadersFromText).join(', ')}`
+          : '';
         
         let promptContent: string;
         let filePart: any = null;
@@ -93,9 +139,11 @@ export async function POST(req: NextRequest) {
               mimeType: 'application/pdf'
             }
           };
-          promptContent = 'Analyze this resume PDF and extract all information to JSON format. Follow the system instructions strictly.';
+          promptContent = 'Analyze this resume PDF and extract all information to JSON format. IMPORTANT: You MUST capture the EXACT section names as they appear in the document for the "_sectionHeaders" field. ' + detectedHeadersStr;
+        } else if (aiConfig.type === 'gemini') {
+          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}\n\nIMPORTANT: Capture EXACT section names in "_sectionHeaders".`;
         } else {
-          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}`;
+          promptContent = `CONTENT TO ANALYZE:\n${pdfTextContent}${detectedHeadersStr}`;
         }
 
         skillUsed = getAtsParserSkill(currentLanguage) + '\n\n' + languageInstruction + '\n\n' + userInstructions;
@@ -195,6 +243,14 @@ export async function POST(req: NextRequest) {
           finalData = robustJsonParse(fullContent);
         }
         
+        // Merge detected section headers with the AI response
+        if (finalData && Object.keys(sectionHeadersFromText).length > 0) {
+          finalData._sectionHeaders = {
+            ...(finalData._sectionHeaders || {}),
+            ...sectionHeadersFromText
+          };
+        }
+
         if (finalData) {
           ['experiences', 'education', 'projects'].forEach(section => {
             if (Array.isArray(finalData[section])) {
