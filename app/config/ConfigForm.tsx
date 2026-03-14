@@ -539,7 +539,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.primary}
               testResult={testResult.primary || null}
-              modelHint={t('labels.recommendedPro')}
+              modelHint={primaryAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedPro')}
             />
 
             <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
@@ -569,7 +569,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.import}
               testResult={testResult.import || null}
-              modelHint={t('labels.recommendedFlash')}
+              modelHint={importAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedFlash')}
               isSynced={syncAllModels}
             />
 
@@ -600,7 +600,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.editor}
               testResult={testResult.editor || null}
-              modelHint={t('labels.recommendedFlash')}
+              modelHint={editorAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedFlash')}
               isSynced={syncAllModels}
             />
 

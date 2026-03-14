@@ -1328,15 +1328,13 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                 <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
                 </h1>
-                <div style={{ fontSize: '0.9em', color: 'black' }}>
-                    {[
-                        personalInfo.location,
-                        personalInfo.phone && `Phone: ${personalInfo.phone}`,
-                        personalInfo.email && `Email: ${personalInfo.email}`,
-                        personalInfo.linkedin && `LinkedIn: ${personalInfo.linkedin}`,
-                        personalInfo.github && `GitHub: ${personalInfo.github}`,
-                        personalInfo.portfolio && `Portfolio: ${personalInfo.portfolio}`
-                    ].filter(Boolean).map(s => stripEmojis(String(s))).join(' | ')}
+                <div style={{ fontSize: '0.9em', color: 'black', lineHeight: 1.4 }}>
+                    {personalInfo.email && <div>{stripEmojis(`Email: ${personalInfo.email}`)}</div>}
+                    {personalInfo.phone && <div>{stripEmojis(`Phone: ${personalInfo.phone}`)}</div>}
+                    {personalInfo.location && <div>{stripEmojis(personalInfo.location)}</div>}
+                    {personalInfo.linkedin && <div>{stripEmojis(`LinkedIn: ${personalInfo.linkedin}`)}</div>}
+                    {personalInfo.github && <div>{stripEmojis(`GitHub: ${personalInfo.github}`)}</div>}
+                    {personalInfo.portfolio && <div>{stripEmojis(`Portfolio: ${personalInfo.portfolio}`)}</div>}
                 </div>
             </div>
 

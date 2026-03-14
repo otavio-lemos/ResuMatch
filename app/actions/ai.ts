@@ -25,7 +25,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
         if (!apiKey) throw new Error('Configuração de IA não encontrada. Defina a chave API nas configurações (ícone de engrenagem) ou configure GEMINI_API_KEY no arquivo .env');
         
         // Se o usuário não definiu um modelo, usamos o flash como padrão seguro
-        const model = authSettings?.model || 'gemini-2.5-flash';
+        const model = authSettings?.model || 'gemini-2.5-pro';
         return {
             type: 'gemini' as const,
             apiKey: apiKey,
@@ -56,7 +56,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
         return {
             type: 'openai' as const,
             client: new OpenAI({ baseURL, apiKey }),
-            model: authSettings?.model || (provider === 'ollama' ? 'qwen2.5:7b' : 'gpt-3.5-turbo'),
+            model: authSettings?.model || (provider === 'ollama' ? 'qwen3:8b' : 'gpt-3.5-turbo'),
             temperature: authSettings?.temperature ?? 0.1,
             maxTokens: authSettings?.maxTokens ?? 4096
         };
