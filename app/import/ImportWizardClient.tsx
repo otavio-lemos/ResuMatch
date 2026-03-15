@@ -226,12 +226,20 @@ export default function ImportWizardClient() {
                 provider: importAI.provider,
                 apiKey: importAI.apiKey || '',
                 model: importAI.model,
-                baseUrl: importAI.baseUrl
+                baseUrl: importAI.baseUrl,
+                temperature: importAI.temperature,
+                topP: importAI.topP,
+                topK: importAI.topK,
+                maxTokens: importAI.maxTokens,
             } : (primaryAI?.provider) ? {
                 provider: primaryAI.provider,
                 apiKey: primaryAI.apiKey || '',
                 model: primaryAI.model,
-                baseUrl: primaryAI.baseUrl
+                baseUrl: primaryAI.baseUrl,
+                temperature: primaryAI.temperature,
+                topP: primaryAI.topP,
+                topK: primaryAI.topK,
+                maxTokens: primaryAI.maxTokens,
             } : null;
             
             if (aiSettings) {
@@ -274,9 +282,11 @@ export default function ImportWizardClient() {
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
                 
-                buffer += decoder.decode(value, { stream: true });
+                if (value) {
+                    buffer += decoder.decode(value, { stream: true });
+                }
+                
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
                 
@@ -300,6 +310,7 @@ export default function ImportWizardClient() {
                                 ]);
                             } else if (data.type === 'done') {
                                 clearTimeout(timeoutId);
+                                console.log('[IMPORT] Received DONE message from backend!');
                                 const extractedData = data.data;
                                 const debugInfo = data.debug;
                                 
@@ -325,11 +336,48 @@ export default function ImportWizardClient() {
                         }
                     }
                 }
+                
+                if (done) {
+                    // Process any remaining data in buffer after stream ends
+                    console.log('[IMPORT] Stream done, checking remaining buffer:', buffer.substring(0, 100));
+                    if (buffer.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(buffer.slice(6));
+                            console.log('[IMPORT] Processing final buffer data, type:', data.type);
+                            
+                            if (data.type === 'done') {
+                                clearTimeout(timeoutId);
+                                const extractedData = data.data;
+                                const debugInfo = data.debug;
+                                
+                                console.log('[IMPORT] Final buffer - Extracted data keys:', Object.keys(extractedData || {}));
+                                
+                                if (!extractedData?.personalInfo) {
+                                    setError('Dados inválidos recebidos da IA');
+                                    resetToUpload();
+                                    return;
+                                }
+                                
+                                (window as any).__importDebug = debugInfo;
+                                setParsedData(extractedData);
+                                setStep('REVIEW');
+                                return;
+                            } else if (data.error) {
+                                setError(data.error);
+                                resetToUpload();
+                                return;
+                            }
+                        } catch (e) {
+                            console.log('[IMPORT] Final buffer parse error:', e);
+                        }
+                    }
+                    
+                    clearTimeout(timeoutId);
+                    setError('Resposta incompleta');
+                    resetToUpload();
+                    break;
+                }
             }
-            
-            clearTimeout(timeoutId);
-            setError('Resposta incompleta');
-            resetToUpload();
             
         } catch (err: any) {
             clearTimeout(timeoutId);
@@ -496,9 +544,11 @@ export default function ImportWizardClient() {
 
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
                     
-                    buffer += decoder.decode(value, { stream: true });
+                    if (value) {
+                        buffer += decoder.decode(value, { stream: true });
+                    }
+                    
                     const lines = buffer.split('\n');
                     buffer = lines.pop() || '';
                     
@@ -526,6 +576,28 @@ export default function ImportWizardClient() {
                                 console.log('[ANALYZE] SSE parse error:', e, '| line:', trimmedLine.substring(0, 100));
                             }
                         }
+                    }
+                    
+                    if (done) {
+                        // Process any remaining data in buffer after stream ends
+                        if (buffer.startsWith('data: ')) {
+                            try {
+                                const jsonStr = buffer.slice(6).trim();
+                                const data = JSON.parse(jsonStr);
+                                console.log('[ANALYZE] Final buffer, type:', data.type);
+                                
+                                if (data.type === 'done') {
+                                    const atsResult = data.data;
+                                    console.log('[IMPORT] Final buffer - ATS Result:', atsResult);
+                                    if (atsResult) finalData.atsScore = atsResult;
+                                } else if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (e) {
+                                console.log('[ANALYZE] Final buffer parse error:', e);
+                            }
+                        }
+                        break;
                     }
                 }
             }

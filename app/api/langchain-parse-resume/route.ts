@@ -48,15 +48,19 @@ function extractSectionHeadersFromText(text: string): Record<string, string> {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('[langchain-parse-resume] Route started');
   const encoder = new TextEncoder();
   
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        console.log('[langchain-parse-resume] Inside stream start');
         const formData = await req.formData();
         const language = (formData.get('language') as string) || 'pt';
         const file = formData.get('file') as File;
         const aiSettingsJson = formData.get('aiSettings') as string;
+        
+        console.log('[langchain-parse-resume] File:', file?.name, 'type:', file?.type);
         
         if (!file) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'File Missing' })}\n\n`));
@@ -93,7 +97,7 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         let textContent = '';
         
-        // PDF/DOCX extraction - THIS IS THE PRIMARY STEP
+        // PDF/DOCX extraction
         if (file.type === 'application/pdf') {
           const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
           const pdfData = await pdfParse(buffer);
@@ -122,12 +126,17 @@ export async function POST(req: NextRequest) {
         const fullSkill = `${skill}\n\n${languageInstruction}`;
         const prompt = `CONTENT TO ANALYZE:\n${textContent}`;
         
+        console.log('[langchain-parse-resume] Text extracted, length:', textContent.length);
+        console.log('[langchain-parse-resume] Sending info to frontend...');
+        
         // Send skill and prompt info - SAME FORMAT AS ORIGINAL
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
         
-        // Send progress message - SAME FORMAT AS ORIGINAL
+        console.log('[langchain-parse-resume] Sending progress...');
+        // Send progress message
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Processando currículo com LangChain...' })}\n\n`));
         
+        console.log('[langchain-parse-resume] Calling parseResumeChain...');
         // Call LangChain to parse the resume
         const generator = parseResumeChain({
           resumeContent: textContent,
@@ -136,11 +145,17 @@ export async function POST(req: NextRequest) {
         });
         
         let fullContent = '';
+        let hasChunks = false;
         
         for await (const result of generator) {
+          hasChunks = true;
           if (result.type === 'chunk') {
             // Send streaming chunk - SAME FORMAT AS ORIGINAL
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
+            try {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
+            } catch (e: any) {
+              console.error('[langchain-parse-resume] Error sending chunk:', e.message);
+            }
             fullContent += result.content;
           } else if (result.type === 'done') {
             const data = result.data;
@@ -154,18 +169,32 @@ export async function POST(req: NextRequest) {
             }
             
             // Send done - SAME FORMAT AS ORIGINAL (with debug info)
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
-              type: 'done', 
-              data,
-              debug: {
-                skill: fullSkill,
-                userPrompt: prompt,
-                rawResponse: fullContent
-              }
-            })}\n\n`));
+            console.log('[langchain-parse-resume] Sending DONE message to frontend, data keys:', Object.keys(data));
+            try {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                type: 'done', 
+                data,
+                debug: {
+                  skill: fullSkill,
+                  userPrompt: prompt,
+                  rawResponse: fullContent
+                }
+              })}\n\n`));
+              console.log('[langchain-parse-resume] DONE message sent, closing controller');
+            } catch (e: any) {
+              console.error('[langchain-parse-resume] Error sending done:', e.message);
+            }
           } else if (result.type === 'error') {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: result.error })}\n\n`));
+            try {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: result.error })}\n\n`));
+            } catch (e: any) {
+              console.error('[langchain-parse-resume] Error sending error:', e.message);
+            }
           }
+        }
+        
+        if (!hasChunks) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'LangChain não retornou dados - verifique as configurações da API' })}\n\n`));
         }
         
         controller.close();

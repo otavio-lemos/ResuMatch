@@ -454,9 +454,11 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
                 
-                buffer += decoder.decode(value, { stream: true });
+                if (value) {
+                    buffer += decoder.decode(value, { stream: true });
+                }
+                
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
                 
@@ -500,9 +502,47 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                         }
                     }
                 }
+                
+                if (done) {
+                    // Process any remaining data in buffer after stream ends
+                    if (buffer.startsWith('data: ')) {
+                        try {
+                            const jsonStr = buffer.slice(6).trim();
+                            const data = JSON.parse(jsonStr);
+                            
+                            if (data.type === 'done') {
+                                const parsedResult = normalizeApiResponse(data.data);
+                                set({ debugInfo: { lastPayload: payload, lastResponse: parsedResult } });
+
+                                if (jobDescription) {
+                                    set((state) => ({
+                                        data: { ...state.data, jdAnalysis: parsedResult },
+                                        isAnalyzing: false,
+                                        needsNewAnalysis: false,
+                                        streamProgress: []
+                                    }));
+                                } else {
+                                    set((state) => ({
+                                        data: { ...state.data, aiAnalysis: parsedResult },
+                                        isAnalyzing: false,
+                                        needsNewAnalysis: false,
+                                        streamProgress: []
+                                    }));
+                                }
+
+                                get().saveLocalResume();
+                                return;
+                            } else if (data.error) {
+                                throw new Error(data.error);
+                            }
+                        } catch (e) {
+                            // Ignore parse errors for incomplete lines
+                        }
+                    }
+                    
+                    throw new Error('No complete response received');
+                }
             }
-            
-            throw new Error('No complete response received');
         } catch (err: any) {
             set({ error: err.message, isAnalyzing: false, streamProgress: [] });
         }

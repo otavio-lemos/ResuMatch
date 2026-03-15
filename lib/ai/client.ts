@@ -24,8 +24,10 @@ export function getChatModel(settings: AISettings): ChatOpenAI | ChatGoogleGener
   
   const resolvedApiKey = apiKey || (provider === 'ollama' ? 'ollama' : undefined);
   
+  const isOllama = provider === 'ollama';
+  
   return new ChatOpenAI({
-    model: model || (provider === 'ollama' ? 'qwen3:8b' : 'gpt-4o-mini'),
+    model: model || (isOllama ? 'qwen3:8b' : 'gpt-4o-mini'),
     temperature: temperature ?? 0.7,
     maxTokens: maxTokens ?? 2048,
     topP: topP ?? 0.9,
@@ -40,12 +42,25 @@ export async function* streamAI(
   model: ChatOpenAI | ChatGoogleGenerativeAI,
   messages: { role: 'system' | 'user'; content: string }[]
 ): AsyncGenerator<string> {
+  console.log('[streamAI] Calling model.stream()...');
   const stream = await model.stream(messages);
+  console.log('[streamAI] Got stream, type:', typeof stream);
   
+  let chunkCount = 0;
   for await (const chunk of stream) {
+    chunkCount++;
     const content = chunk.content;
-    if (typeof content === 'string') {
+    console.log('[streamAI] Chunk', chunkCount, ':', JSON.stringify(chunk).slice(0, 200));
+    
+    if (typeof content === 'string' && content.length > 0) {
       yield content;
+    } else if (Array.isArray(content)) {
+      for (const part of content) {
+        if (part.type === 'text' && part.text) {
+          yield part.text as string;
+        }
+      }
     }
   }
+  console.log('[streamAI] Total chunks:', chunkCount);
 }
