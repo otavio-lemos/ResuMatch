@@ -720,8 +720,8 @@ export default function ImportWizardClient() {
     if (!hasHydrated) return null;
 
     return (
-        <div className="flex flex-col min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-[#0b1219]">
-            <div className={`flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col ${step !== 'REVIEW' ? 'justify-center' : ''}`}>
+        <div className="flex flex-col h-screen bg-slate-50 dark:bg-[#0b1219] overflow-hidden">
+            <div className={`flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col overflow-hidden ${step !== 'REVIEW' ? 'justify-center' : ''}`}>
 
                 {error && (
                     <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-5 py-3 border border-red-100 dark:border-red-900/50 flex items-center justify-between text-xs font-bold uppercase tracking-widest">
