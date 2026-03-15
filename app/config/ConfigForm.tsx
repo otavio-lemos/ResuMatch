@@ -298,7 +298,7 @@ export default function ConfigForm() {
     resetToDefaults 
   } = useAISettingsStore();
   
-  const [activeTab, setActiveTab] = useState<'analysis' | 'import' | 'editor'>('analysis');
+  const [activeTab, setActiveTab] = useState<'analysis' | 'import' | 'editor'>('import');
   const [testLoading, setTestLoading] = useState<{ primary?: boolean; import?: boolean; editor?: boolean; comparison?: boolean }>({});
   const [testResult, setTestResult] = useState<{ primary?: { success: boolean; message: string; duration?: number }; import?: { success: boolean; message: string; duration?: number }; editor?: { success: boolean; message: string; duration?: number }; comparison?: { success: boolean; message: string; duration?: number } }>({});
   const [testLogs, setTestLogs] = useState<TestLog[]>([]);
@@ -441,17 +441,6 @@ export default function ConfigForm() {
       {/* Tabs Switcher - Very Compact with Solid Blue Highlight */}
       <div className="mb-6 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-none border border-slate-200 dark:border-slate-700 flex gap-1">
         <button
-          onClick={() => setActiveTab('analysis')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
-            activeTab === 'analysis' 
-              ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/30'
-          }`}
-        >
-          <Zap className={`size-3 ${activeTab === 'analysis' ? 'text-white' : 'text-slate-400'}`} />
-          {t('config.tabs.analysis')}
-        </button>
-        <button
           onClick={() => setActiveTab('import')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
             activeTab === 'import' 
@@ -461,6 +450,17 @@ export default function ConfigForm() {
         >
           <FileUp className={`size-3 ${activeTab === 'import' ? 'text-white' : 'text-slate-400'}`} />
           {t('config.tabs.import')}
+        </button>
+        <button
+          onClick={() => setActiveTab('analysis')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+            activeTab === 'analysis' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/30'
+          }`}
+        >
+          <Zap className={`size-3 ${activeTab === 'analysis' ? 'text-white' : 'text-slate-400'}`} />
+          {t('config.tabs.analysis')}
         </button>
         <button
           onClick={() => setActiveTab('editor')}
