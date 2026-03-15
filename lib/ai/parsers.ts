@@ -17,12 +17,30 @@ export function parseResume(raw: string): ResumeData {
 export function parseATSAnalysis(raw: string): ATSAnalysis {
   try {
     const parsed = JSON.parse(raw);
-    if (parsed.scores?.structure && !parsed.scores.estrutura) {
-      parsed.scores.estrutura = parsed.scores.structure;
+    
+    // Normalize scores - accept both PT (estrutura/conteudo) and EN (structure/content)
+    if (parsed.scores) {
+      if (parsed.scores.structure && !parsed.scores.estrutura) {
+        parsed.scores.estrutura = parsed.scores.structure;
+      }
+      if (parsed.scores.content && !parsed.scores.conteudo) {
+        parsed.scores.conteudo = parsed.scores.content;
+      }
+      if (parsed.scores.estrutura && !parsed.scores.structure) {
+        parsed.scores.structure = parsed.scores.estrutura;
+      }
+      if (parsed.scores.conteudo && !parsed.scores.content) {
+        parsed.scores.content = parsed.scores.conteudo;
+      }
     }
-    if (parsed.scores?.content && !parsed.scores.conteudo) {
-      parsed.scores.conteudo = parsed.scores.content;
+    
+    // Normalize content metrics - accept both PT (conteudoMetrics) and EN (contentMetrics)
+    if (parsed.contentMetrics && !parsed.conteudoMetrics) {
+      parsed.conteudoMetrics = parsed.contentMetrics;
+    } else if (parsed.conteudoMetrics && !parsed.contentMetrics) {
+      parsed.contentMetrics = parsed.conteudoMetrics;
     }
+    
     return ATSAnalysisSchema.parse(parsed);
   } catch (e) {
     throw new OutputParserException(

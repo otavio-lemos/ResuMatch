@@ -44,7 +44,7 @@ If running `npm run dev` directly (not in Docker):
 
 2. **Install a model:**
    ```bash
-   ollama pull qwen2.5:7b
+   ollama pull qwen3:8b
    # or (smaller alternative)
    ollama pull llama3.2:3b
    ```
@@ -57,7 +57,7 @@ If running `npm run dev` directly (not in Docker):
 4. **In the app Config page:**
    - Provider: **Ollama**
    - Base URL: `http://localhost:11434/v1` (auto-detected)
-   - Model: `qwen2.5:7b` (or your installed model)
+   - Model: `qwen3:8b` (or your installed model)
 
 ### Running in Docker
 

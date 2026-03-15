@@ -77,7 +77,7 @@ function AIConfigForm({
       },
       ollama: {
         baseUrl: getOllamaBaseUrl(),
-        model: 'qwen2.5:7b',
+        model: 'qwen3:8b',
       },
       openai: {
         baseUrl: 'https://api.openai.com/v1',

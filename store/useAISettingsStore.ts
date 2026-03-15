@@ -54,12 +54,12 @@ export interface AIConfigState {
 
 const defaultAISettings: AISettings = {
   provider: 'gemini', apiKey: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-  model: 'gemini-2.5-flash', temperature: 0.7, topP: 0.9, topK: 40, maxTokens: 16384, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
+  model: 'gemini-2.5-flash', temperature: 0.7, topP: 0.9, topK: 40, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
 };
 
 const defaultImportAISettings: AISettings = {
   provider: 'gemini', apiKey: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-  model: 'gemini-2.5-flash', temperature: 0.1, topP: 0.9, topK: 40, maxTokens: 16384, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
+  model: 'gemini-2.5-flash', temperature: 0.1, topP: 0.8, topK: 20, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
 };
 
 const defaultEditorAISettings: AISettings = {

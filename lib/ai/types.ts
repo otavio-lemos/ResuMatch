@@ -57,8 +57,8 @@ export const ResumeDataSchema = z.object({
 export const ATSAnalysisSchema = z.object({
   scores: z.object({
     design: z.number().min(0).max(100),
-    estrutura: z.number().min(0).max(100),
-    conteudo: z.number().min(0).max(100)
+    structure: z.number().min(0).max(100),
+    content: z.number().min(0).max(100)
   }),
   designChecks: z.array(z.object({
     label: z.string(),
@@ -70,23 +70,31 @@ export const ATSAnalysisSchema = z.object({
     passed: z.boolean(),
     feedback: z.string()
   })),
-  conteudoMetrics: z.object({
-    wordCount: z.object({ value: z.number(), target: z.string(), status: z.string() }),
-    starBullets: z.object({ value: z.number(), target: z.string(), status: z.string() }),
-    keywordCount: z.object({ value: z.number(), target: z.string(), status: z.string() })
-  }),
+  contentMetrics: z.object({
+    wordCount: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    paragraphsPerSection: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    charsPerParagraph: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    experienceDescriptions: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    starBullets: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    keywordCount: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional(),
+    pageCount: z.object({ value: z.number(), target: z.string(), status: z.string() }).optional()
+  }).optional(),
   jdMatch: z.object({
     score: z.number().min(0).max(100),
     matchedKeywords: z.array(z.string()),
     missingKeywords: z.array(z.string())
   }).optional(),
   detailedSuggestions: z.array(z.object({
-    section: z.string(),
-    type: z.string(),
-    label: z.string(),
+    type: z.string().optional(),
+    field: z.string().optional(),
+    section: z.string().optional(),
+    original: z.string().optional(),
+    issue: z.string().optional(),
+    label: z.string().optional(),
     suggestion: z.string(),
-    priority: z.enum(['high', 'medium', 'low'])
-  }))
+    priority: z.enum(['high', 'medium', 'low']).optional(),
+    impact: z.enum(['high', 'medium', 'low']).optional()
+  })).optional()
 });
 
 export type ResumeData = z.infer<typeof ResumeDataSchema>;
