@@ -82,11 +82,10 @@ export async function POST(req: NextRequest) {
         const aiSettings = formData.get('aiSettings') ? JSON.parse(formData.get('aiSettings') as string) : null;
         
         const provider = aiSettings?.provider;
-        const isOllama = provider === 'ollama';
-        const isOpenAI = provider === 'openai';
+        const isOllama = provider === 'ollama' || provider === 'openai';
         const apiKey = aiSettings?.apiKey || process.env.GEMINI_API_KEY;
 
-        if (!isOllama && !isOpenAI && !apiKey) {
+        if (!isOllama && !apiKey) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'API Key Missing - Configure no menu Configurações' })}\n\n`));
           controller.close();
           return;
@@ -253,100 +252,8 @@ export async function POST(req: NextRequest) {
           rawResponse = fullText;
           finalData = robustJsonParse(fullText);
 
-        } else if (isOllama) {
-          // Ollama native API with streaming using manual fetch to /api/generate
-          
-          // Determine the base URL (remove /v1 suffix if present)
-          let ollamaBaseUrl = aiConfig.client.baseURL.replace('/v1', '');
-          // Add protocol if missing
-          if (!ollamaBaseUrl.startsWith('http')) {
-            ollamaBaseUrl = 'http://' + ollamaBaseUrl;
-          }
-          const ollamaUrl = `${ollamaBaseUrl}/api/generate`;
-          
-          let timeoutId: NodeJS.Timeout | undefined;
-          
-          try {
-            const fullPrompt = `${skillUsed}\n\n${userPrompt}`;
-            
-            // 60s timeout to detect if Ollama is running
-            const abortController = new AbortController();
-            timeoutId = setTimeout(() => abortController.abort(), 60000); // 60s timeout for Ollama to start
-
-            const response = await fetch(ollamaUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal: abortController.signal,
-              body: JSON.stringify({
-                model: aiConfig.model,
-                prompt: fullPrompt,
-                stream: true,
-                options: {
-                  temperature: aiConfig.temperature,
-                  top_p: aiConfig.topP,
-                  num_predict: aiConfig.maxTokens,
-                }
-              })
-            });
-            
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('[PARSE-OLLAMA] HTTP Error:', response.status, errorText);
-              throw new Error(`Ollama error: ${response.status} ${errorText}`);
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error("No reader available for Ollama stream");
-
-            const decoder = new TextDecoder();
-            let fullContent = '';
-            let chunkCount = 0;
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              
-              const chunk = decoder.decode(value, { stream: true });
-              const lines = chunk.split('\n').filter(line => line.trim());
-              
-              for (const line of lines) {
-                try {
-                  const json = JSON.parse(line);
-                  if (json.response) {
-                    chunkCount++;
-                    fullContent += json.response;
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: json.response })}\n\n`));
-                  }
-                  if (json.done) {
-                    console.log('[PARSE-OLLAMA] Stream complete, total chunks:', chunkCount);
-                  }
-                } catch (e) {
-                  // Skip invalid JSON lines
-                }
-              }
-            }
-            
-            console.log('[PARSE-OLLAMA] Total chunks received:', chunkCount);
-            rawResponse = fullContent;
-            finalData = robustJsonParse(fullContent);
-          } catch (ollamaErr: any) {
-            if (timeoutId) clearTimeout(timeoutId);
-            console.error('[PARSE-OLLAMA] Error:', ollamaErr);
-            
-            const errorMessage = ollamaErr.message || '';
-            const isAbort = ollamaErr.name === 'AbortError' || errorMessage.includes('abort');
-            const isConnectionError = errorMessage.includes('ECONNREFUSED') || errorMessage.includes('fetch failed') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch');
-            
-            if (isAbort || isConnectionError) {
-              throw new Error('Ollama não está conectado. Verifique se o Ollama está rodando (execute "ollama serve" no terminal).');
-            }
-            
-            throw ollamaErr;
-          }
         } else {
-          // OpenAI with streaming
+          // Ollama/OpenAI with streaming
           const stream = await aiConfig.client.chat.completions.create({
             model: aiConfig.model,
             messages: [

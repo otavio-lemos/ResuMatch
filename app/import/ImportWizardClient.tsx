@@ -226,20 +226,12 @@ export default function ImportWizardClient() {
                 provider: importAI.provider,
                 apiKey: importAI.apiKey || '',
                 model: importAI.model,
-                baseUrl: importAI.baseUrl,
-                temperature: importAI.temperature,
-                topP: importAI.topP,
-                topK: importAI.topK,
-                maxTokens: importAI.maxTokens
+                baseUrl: importAI.baseUrl
             } : (primaryAI?.provider) ? {
                 provider: primaryAI.provider,
                 apiKey: primaryAI.apiKey || '',
                 model: primaryAI.model,
-                baseUrl: primaryAI.baseUrl,
-                temperature: primaryAI.temperature,
-                topP: primaryAI.topP,
-                topK: primaryAI.topK,
-                maxTokens: primaryAI.maxTokens
+                baseUrl: primaryAI.baseUrl
             } : null;
             
             if (aiSettings) {

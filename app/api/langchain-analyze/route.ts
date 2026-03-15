@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 import { analyzeATSChain } from '@/lib/ai/chains';
 import { AISettings } from '@/store/useAISettingsStore';
 
@@ -31,7 +32,20 @@ export async function POST(req: NextRequest) {
           timeout: 120000
         };
         
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', message: 'Analyzing with LangChain...' })}\n\n`));
+        // Get skill - same as original
+        const skill = getAtsAnalyzerSkill(language);
+        const languageInstruction = language === 'pt'
+          ? 'Responda APENAS em português.'
+          : 'Respond ONLY in English.';
+        
+        const fullSkill = `${skill}\n\n${languageInstruction}`;
+        const prompt = jobDescription
+          ? `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME DATA:\n${JSON.stringify(resumeData)}`
+          : `RESUME DATA:\n${JSON.stringify(resumeData)}`;
+        
+        // Send info - same format as original
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Analisando com LangChain...' })}\n\n`));
         
         const generator = analyzeATSChain({
           resumeData,
@@ -40,11 +54,22 @@ export async function POST(req: NextRequest) {
           aiSettings: settings
         });
         
+        let fullContent = '';
+        
         for await (const result of generator) {
           if (result.type === 'chunk') {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
+            fullContent += result.content;
           } else if (result.type === 'done') {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', data: result.data })}\n\n`));
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+              type: 'done', 
+              data: result.data,
+              debug: {
+                skill: fullSkill,
+                userPrompt: prompt,
+                rawResponse: fullContent
+              }
+            })}\n\n`));
           } else if (result.type === 'error') {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: result.error })}\n\n`));
           }

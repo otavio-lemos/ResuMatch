@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mammoth from 'mammoth';
+import { getAtsParserSkill } from '@/lib/get-skill';
 import { parseResumeChain } from '@/lib/ai/chains';
 import { AISettings } from '@/store/useAISettingsStore';
 
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         let textContent = '';
         
+        // PDF/DOCX extraction - THIS IS THE PRIMARY STEP
         if (file.type === 'application/pdf') {
           const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
           const pdfData = await pdfParse(buffer);
@@ -102,10 +104,31 @@ export async function POST(req: NextRequest) {
           textContent = buffer.toString('utf-8');
         }
         
+        if (!textContent || textContent.trim().length === 0) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Não foi possível extrair texto do arquivo' })}\n\n`));
+          controller.close();
+          return;
+        }
+        
+        // Extract section headers from the raw text
         const sectionHeaders = extractSectionHeadersFromText(textContent);
         
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', message: 'Processing with LangChain...' })}\n\n`));
+        // Get skill and create prompt - same as original route
+        const skill = getAtsParserSkill(language);
+        const languageInstruction = language === 'pt' 
+          ? 'Responda APENAS em português brasileiro.'
+          : 'Respond ONLY in English.';
         
+        const fullSkill = `${skill}\n\n${languageInstruction}`;
+        const prompt = `CONTENT TO ANALYZE:\n${textContent}`;
+        
+        // Send skill and prompt info - SAME FORMAT AS ORIGINAL
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
+        
+        // Send progress message - SAME FORMAT AS ORIGINAL
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Processando currículo com LangChain...' })}\n\n`));
+        
+        // Call LangChain to parse the resume
         const generator = parseResumeChain({
           resumeContent: textContent,
           language: language as 'pt' | 'en',
@@ -116,17 +139,30 @@ export async function POST(req: NextRequest) {
         
         for await (const result of generator) {
           if (result.type === 'chunk') {
+            // Send streaming chunk - SAME FORMAT AS ORIGINAL
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
             fullContent += result.content;
           } else if (result.type === 'done') {
             const data = result.data;
+            
+            // Add section headers
             if (Object.keys(sectionHeaders).length > 0) {
               data._sectionHeaders = {
                 ...(data._sectionHeaders || {}),
                 ...sectionHeaders
               };
             }
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', data })}\n\n`));
+            
+            // Send done - SAME FORMAT AS ORIGINAL (with debug info)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+              type: 'done', 
+              data,
+              debug: {
+                skill: fullSkill,
+                userPrompt: prompt,
+                rawResponse: fullContent
+              }
+            })}\n\n`));
           } else if (result.type === 'error') {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: result.error })}\n\n`));
           }
