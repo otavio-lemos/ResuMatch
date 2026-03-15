@@ -424,7 +424,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         };
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        const timeoutId = setTimeout(() => controller.abort(), 600000);
         
         try {
             const response = await fetch('/api/langchain-analyze', {

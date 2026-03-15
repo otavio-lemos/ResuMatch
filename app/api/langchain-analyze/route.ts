@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Analisando com LangChain...' })}\n\n`));
         
+        console.log('[langchain-analyze] Calling analyzeATSChain...');
+        
         const generator = analyzeATSChain({
           resumeData,
           jobDescription,
@@ -55,12 +57,15 @@ export async function POST(req: NextRequest) {
         });
         
         let fullContent = '';
+        let hasChunks = false;
         
         for await (const result of generator) {
+          hasChunks = true;
           if (result.type === 'chunk') {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
             fullContent += result.content;
           } else if (result.type === 'done') {
+            console.log('[langchain-analyze] Sending DONE, data keys:', Object.keys(result.data));
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
               type: 'done', 
               data: result.data,
@@ -71,10 +76,16 @@ export async function POST(req: NextRequest) {
               }
             })}\n\n`));
           } else if (result.type === 'error') {
+            console.error('[langchain-analyze] Error from chain:', result.error);
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: result.error })}\n\n`));
           }
         }
         
+        if (!hasChunks) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No data returned from AI' })}\n\n`));
+        }
+        
+        console.log('[langchain-analyze] Closing controller');
         controller.close();
         
       } catch (error: any) {
