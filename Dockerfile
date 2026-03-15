@@ -56,6 +56,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # NÃO podem ser excluídas pelo .dockerignore (os *.md são os prompts de IA)
 COPY --from=builder --chown=nextjs:nodejs /app/.agent ./.agent
 
+# LangChain AI lib - necessário para parsing estruturado
+COPY --from=builder --chown=nextjs:nodejs /app/lib/ai ./lib/ai
+
 # Saída standalone do Next.js (contém server.js + node_modules mínimo)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
