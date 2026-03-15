@@ -47,20 +47,44 @@ export async function* streamAI(
   console.log('[streamAI] Got stream, type:', typeof stream);
   
   let chunkCount = 0;
+  let lastContentLength = 0;
+  let emptyChunkStreak = 0;
+  
   for await (const chunk of stream) {
     chunkCount++;
     const content = chunk.content;
-    console.log('[streamAI] Chunk', chunkCount, ':', JSON.stringify(chunk).slice(0, 200));
+    
+    // Debug: log first few chunks
+    if (chunkCount <= 5) {
+      console.log('[streamAI] Chunk', chunkCount, ':', JSON.stringify(chunk).slice(0, 150));
+    }
     
     if (typeof content === 'string' && content.length > 0) {
+      emptyChunkStreak = 0;
+      lastContentLength += content.length;
       yield content;
     } else if (Array.isArray(content)) {
       for (const part of content) {
         if (part.type === 'text' && part.text) {
+          emptyChunkStreak = 0;
+          lastContentLength += (part.text as string).length;
           yield part.text as string;
         }
       }
+    } else {
+      emptyChunkStreak++;
+      // If we get too many empty chunks in a row, assume stream is done
+      if (emptyChunkStreak > 100 && lastContentLength > 100) {
+        console.log('[streamAI] Empty chunk streak:', emptyChunkStreak, 'forcing end');
+        break;
+      }
+    }
+    
+    // Safety limit for very long streams
+    if (chunkCount > 100000) {
+      console.log('[streamAI] Safety: forcing end after', chunkCount, 'chunks');
+      break;
     }
   }
-  console.log('[streamAI] Total chunks:', chunkCount);
+  console.log('[streamAI] Total chunks:', chunkCount, 'content length:', lastContentLength);
 }

@@ -214,7 +214,7 @@ export default function ImportWizardClient() {
         
         abortControllerRef.current = new AbortController();
         const controller = abortControllerRef.current;
-        const timeoutMs = 300000;
+        const timeoutMs = 600000; // 10 minutes
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         try {
