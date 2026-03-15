@@ -14,7 +14,7 @@ export type AIAuthSettings = Partial<AISettings>;
 
 export type AIConfig = 
     | { type: 'gemini'; apiKey: string; endpoint: string; temperature: number; maxTokens: number }
-    | { type: 'openai'; client: OpenAI; model: string; temperature: number; maxTokens: number };
+    | { type: 'openai'; client: OpenAI; model: string; temperature: number; topP: number; maxTokens: number; stream?: boolean };
 
 export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConfig> => {
     const provider = authSettings?.provider || 'gemini';
@@ -30,8 +30,8 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             type: 'gemini' as const,
             apiKey: apiKey,
             endpoint: `${authSettings?.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${model}:generateContent`,
-            temperature: authSettings?.temperature ?? 0.1,
-            maxTokens: authSettings?.maxTokens ?? 16384
+            temperature: authSettings?.temperature ?? (() => { throw new Error('temperature é obrigatório. Configure na tela de Configuração de IA.'); })(),
+            maxTokens: authSettings?.maxTokens ?? (() => { throw new Error('maxTokens é obrigatório. Configure na tela de Configuração de IA.'); })()
         };
     } 
     
@@ -57,8 +57,10 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             type: 'openai' as const,
             client: new OpenAI({ baseURL, apiKey }),
             model: authSettings?.model || (provider === 'ollama' ? 'qwen3:8b' : 'gpt-3.5-turbo'),
-            temperature: authSettings?.temperature ?? 0.1,
-            maxTokens: authSettings?.maxTokens ?? 4096
+            temperature: authSettings?.temperature ?? (() => { throw new Error('temperature é obrigatório. Configure na tela de Configuração de IA.'); })(),
+            topP: authSettings?.topP ?? (() => { throw new Error('topP é obrigatório. Configure na tela de Configuração de IA.'); })(),
+            maxTokens: authSettings?.maxTokens ?? (() => { throw new Error('maxTokens é obrigatório. Configure na tela de Configuração de IA.'); })(),
+            stream: provider === 'ollama'
         };
     }
 };
@@ -105,17 +107,36 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 debug: { skill: systemInstruction, userPrompt: prompt, rawResponse: response }
             };
         } else {
-            const responseObj = await aiConfig.client.chat.completions.create({
+            // Check if streaming is requested (for Ollama/OpenAI)
+            const useStream = (aiConfig as any).stream === true;
+            
+            const streamOptions: any = {
                 model: aiConfig.model,
                 messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
-                temperature: aiConfig.temperature || 0.1,
+                temperature: aiConfig.temperature,
+                top_p: aiConfig.topP,
+                max_tokens: aiConfig.maxTokens,
                 response_format: responseFormat ? { type: responseFormat } : undefined,
-            });
-            const firstChoice = responseObj.choices?.[0];
-            if (!firstChoice) {
-                throw new Error('A IA não retornou nenhuma escolha.');
+            };
+            
+            let response = '';
+            
+            if (useStream) {
+                streamOptions.stream = true;
+                const stream: any = await aiConfig.client.chat.completions.create(streamOptions);
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content || '';
+                    response += content;
+                }
+            } else {
+                const responseObj = await aiConfig.client.chat.completions.create(streamOptions);
+                const firstChoice = responseObj.choices?.[0];
+                if (!firstChoice) {
+                    throw new Error('A IA não retornou nenhuma escolha.');
+                }
+                response = firstChoice.message?.content || '';
             }
-            const response = firstChoice.message?.content || '';
+            
             return { 
                 prompt, 
                 response,

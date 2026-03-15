@@ -12,7 +12,11 @@ const analyzeSchema = z.object({
     provider: z.enum(['gemini', 'openai', 'ollama']).optional(),
     apiKey: z.string().optional(),
     model: z.string().optional(),
-    baseUrl: z.string().optional()
+    baseUrl: z.string().optional(),
+    temperature: z.number().optional(),
+    topP: z.number().optional(),
+    topK: z.number().optional(),
+    maxTokens: z.number().optional()
   }).optional(),
   language: z.enum(['pt', 'en']).default('pt')
 });
@@ -45,6 +49,8 @@ export async function POST(req: NextRequest) {
           return;
         }
 
+        const provider = authSettings?.provider;
+        
         let aiConfig;
         try {
           aiConfig = await getAIClient(authSettings);
@@ -120,8 +126,89 @@ export async function POST(req: NextRequest) {
           rawResponse = fullText;
           finalData = robustJsonParse(fullText);
 
+        } else if (provider === 'ollama') {
+          // Ollama native API with streaming using manual fetch to /api/generate
+          
+          // Determine the base URL (remove /v1 suffix if present)
+          let ollamaBaseUrl = aiConfig.client.baseURL.replace('/v1', '');
+          // Add protocol if missing
+          if (!ollamaBaseUrl.startsWith('http')) {
+            ollamaBaseUrl = 'http://' + ollamaBaseUrl;
+          }
+          const ollamaUrl = `${ollamaBaseUrl}/api/generate`;
+          
+          // Combine system skill and user prompt
+          const fullPrompt = `${skillUsed}\n\n${userPrompt}`;
+          
+          // 15s timeout to detect if Ollama is running
+          const abortController = new AbortController();
+          const timeoutId = setTimeout(() => abortController.abort(), 60000); // 60s timeout for Ollama to start
+          
+          try {
+            const response = await fetch(ollamaUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: abortController.signal,
+              body: JSON.stringify({
+                model: aiConfig.model,
+                prompt: fullPrompt,
+                stream: true,
+                options: {
+                  temperature: aiConfig.temperature,
+                  top_p: aiConfig.topP,
+                  num_predict: aiConfig.maxTokens,
+                }
+              })
+            });
+            
+            clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[ANALYZE-OLLAMA] HTTP Error:', response.status, errorText);
+            throw new Error(`Ollama error: ${response.status} ${errorText}`);
+          }
+
+          const reader = response.body?.getReader();
+          if (!reader) throw new Error("No reader available for Ollama stream");
+
+          const decoder = new TextDecoder();
+          let fullContent = '';
+          let chunkCount = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n').filter(line => line.trim());
+            
+            for (const line of lines) {
+              try {
+                const json = JSON.parse(line);
+                if (json.response) {
+                  chunkCount++;
+                  fullContent += json.response;
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: json.response })}\n\n`));
+                }
+                if (json.done) {
+                  console.log('[ANALYZE-OLLAMA] Stream complete, total chunks:', chunkCount);
+                }
+              } catch (e) {
+                // Skip invalid JSON lines
+              }
+            }
+          }
+          
+          console.log('[ANALYZE-OLLAMA] Total chunks received:', chunkCount);
+          rawResponse = fullContent;
+          finalData = robustJsonParse(fullContent);
+          } catch (err) {
+            clearTimeout(timeoutId);
+            throw err;
+          }
         } else {
-          // Ollama/OpenAI with streaming
+          // OpenAI with streaming
           const stream = await aiConfig.client.chat.completions.create({
             model: aiConfig.model,
             messages: [
@@ -162,6 +249,21 @@ export async function POST(req: NextRequest) {
 
       } catch (error: any) {
         console.error("Error in analyze:", error);
+        
+        // Check for connection errors (Ollama not running) or timeout
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('ECONNREFUSED') || 
+            errorMessage.includes('fetch failed') ||
+            errorMessage.includes('network') ||
+            errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('NetworkError') ||
+            errorMessage.includes('net::ERR_CONNECTION_REFUSED') ||
+            errorMessage.includes('abort')) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Ollama não está conectado. Verifique se o Ollama está rodando (execute "ollama serve" no terminal).' })}\n\n`));
+          controller.close();
+          return;
+        }
+        
         if (error instanceof ZodError) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Validation error', details: error.issues })}\n\n`));
         } else {

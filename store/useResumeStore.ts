@@ -427,7 +427,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         const timeoutId = setTimeout(() => controller.abort(), 120000);
         
         try {
-            const response = await fetch('/api/analyze', {
+            const response = await fetch('/api/langchain-analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

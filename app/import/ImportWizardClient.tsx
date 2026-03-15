@@ -226,12 +226,20 @@ export default function ImportWizardClient() {
                 provider: importAI.provider,
                 apiKey: importAI.apiKey || '',
                 model: importAI.model,
-                baseUrl: importAI.baseUrl
+                baseUrl: importAI.baseUrl,
+                temperature: importAI.temperature,
+                topP: importAI.topP,
+                topK: importAI.topK,
+                maxTokens: importAI.maxTokens
             } : (primaryAI?.provider) ? {
                 provider: primaryAI.provider,
                 apiKey: primaryAI.apiKey || '',
                 model: primaryAI.model,
-                baseUrl: primaryAI.baseUrl
+                baseUrl: primaryAI.baseUrl,
+                temperature: primaryAI.temperature,
+                topP: primaryAI.topP,
+                topK: primaryAI.topK,
+                maxTokens: primaryAI.maxTokens
             } : null;
             
             if (aiSettings) {
@@ -242,9 +250,9 @@ export default function ImportWizardClient() {
                 formData.append('importPrompt', importPrompt);
             }
             
-            console.log('[IMPORT] Starting fetch to /api/parse-resume (SSE)');
+            console.log('[IMPORT] Starting fetch to /api/langchain-parse-resume (SSE)');
             
-            const response = await fetch('/api/parse-resume', {
+            const response = await fetch('/api/langchain-parse-resume', {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
@@ -467,7 +475,7 @@ export default function ImportWizardClient() {
                     baseUrl: primaryAI.baseUrl
                 } : null;
                 
-                const response = await fetch('/api/analyze', {
+                const response = await fetch('/api/langchain-analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

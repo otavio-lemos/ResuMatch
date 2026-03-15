@@ -375,7 +375,11 @@ export default function ATSAnalysisView() {
             provider: primaryAI.provider,
             apiKey: primaryAI.apiKey,
             model: primaryAI.model,
-            baseUrl: primaryAI.baseUrl
+            baseUrl: primaryAI.baseUrl,
+            temperature: primaryAI.temperature,
+            topP: primaryAI.topP,
+            topK: primaryAI.topK,
+            maxTokens: primaryAI.maxTokens
         } : null;
         await analyzeResume(atsPrompt, jobDescription, aiSettings as any, language);
         router.refresh();
