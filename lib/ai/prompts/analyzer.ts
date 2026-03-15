@@ -4,18 +4,24 @@ import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 export function createAnalyzerPrompt(language: 'pt' | 'en' = 'pt') {
   const skill = getAtsAnalyzerSkill(language);
   
-  const template = PromptTemplate.fromTemplate(`
+  // Use different variable names to avoid conflict with JSON braces
+  const template = new PromptTemplate({
+    template: `
 ${skill}
 
 Current year for calculations: 2026
 Language: ${language === 'pt' ? 'Portuguese (Brazilian)' : 'English'}
 
-{{jobDescription}}
-RESUME DATA (JSON):
-{resumeData}
+JOB DESCRIPTION:
+{{jobDesc}}
 
-{formatInstructions}
-  `);
+RESUME DATA (JSON):
+{{resumeJson}}
+
+{{formatInstr}}
+  `,
+    inputVariables: ['jobDesc', 'resumeJson', 'formatInstr'],
+  });
   
   return template;
 }

@@ -20,9 +20,9 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
     const formatInstructions = getJsonFormatInstructions(ATSAnalysisSchema);
     
     const formatted = await prompt.format({
-      resumeData: JSON.stringify(resumeData, null, 2),
-      jobDescription: jobDescription || '',
-      formatInstructions
+      resumeJson: JSON.stringify(resumeData, null, 2),
+      jobDesc: jobDescription || '',
+      formatInstr: formatInstructions
     });
     
     let fullContent = '';
