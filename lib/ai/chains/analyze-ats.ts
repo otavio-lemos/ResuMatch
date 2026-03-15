@@ -13,9 +13,12 @@ export interface AnalyzeATSInput {
 
 export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{ type: 'chunk' | 'done' | 'error'; content?: string; data?: any; error?: string }> {
   const { resumeData, jobDescription, language, aiSettings } = input;
+  const safeAiSettings = aiSettings || {};
   
   try {
-    const model = getChatModel(aiSettings);
+    console.log('[analyzeATSChain] Getting chat model...');
+    const model = getChatModel(safeAiSettings);
+    console.log('[analyzeATSChain] Model obtained, creating prompt...');
     const prompt = await createAnalyzerPrompt(language);
     const formatInstructions = getJsonFormatInstructions(ATSAnalysisSchema);
     
@@ -24,6 +27,8 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
       jobDesc: jobDescription || '',
       formatInstr: formatInstructions
     });
+    
+    console.log('[analyzeATSChain] Starting stream, prompt length:', formatted.length);
     
     let fullContent = '';
     
@@ -34,11 +39,14 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
       yield { type: 'chunk', content: chunk };
     }
     
+    console.log('[analyzeATSChain] Stream complete, content length:', fullContent.length);
+    
     const parsed = parseATSAnalysis(fullContent);
     yield { type: 'done', data: parsed };
     
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[analyzeATSChain] Error:', message);
     yield { type: 'error', error: message };
   }
 }
