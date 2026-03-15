@@ -1,27 +1,27 @@
-import { PromptTemplate } from '@langchain/core/prompts';
 import { getAtsAnalyzerSkill } from '@/lib/get-skill';
 
 export function createAnalyzerPrompt(language: 'pt' | 'en' = 'pt') {
   const skill = getAtsAnalyzerSkill(language);
   
-  // Use different variable names to avoid conflict with JSON braces
-  const template = new PromptTemplate({
-    template: `
+  // Return a function that creates the prompt directly, avoiding template issues
+  return {
+    format: async function(args: { resumeJson: string; jobDesc: string; formatInstr: string }) {
+      const jobDesc = args.jobDesc || 'N/A';
+      const formatInstr = args.formatInstr;
+      
+      return `\
 ${skill}
 
 Current year for calculations: 2026
 Language: ${language === 'pt' ? 'Portuguese (Brazilian)' : 'English'}
 
 JOB DESCRIPTION:
-{{jobDesc}}
+${jobDesc}
 
 RESUME DATA (JSON):
-{{resumeJson}}
+${args.resumeJson}
 
-{{formatInstr}}
-  `,
-    inputVariables: ['jobDesc', 'resumeJson', 'formatInstr'],
-  });
-  
-  return template;
+${formatInstr}`;
+    }
+  };
 }
