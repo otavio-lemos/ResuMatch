@@ -1503,12 +1503,13 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 @media print {
                     @page {
                         size: A4;
-                        margin: 0;
+                        margin: 15mm;
                     }
                     .page-break-indicator { display: none !important; }
                     body { margin: 0; }
                     .resume-container { 
-                        padding: 15mm !important;
+                        padding: 0 !important;
+                        min-height: auto !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;
