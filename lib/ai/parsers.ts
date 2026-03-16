@@ -55,26 +55,48 @@ export function parseATSAnalysis(raw: string): ATSAnalysis {
     // Normalize metrics that Gemini often returns incorrectly
     const metrics = parsed.contentMetrics || parsed.conteudoMetrics;
     if (metrics) {
-      // starBullets: if value > 100, it's likely an absolute count - convert to percentage
-      if (metrics.starBullets?.value !== undefined && metrics.starBullets.value > 100) {
-        const bulletCount = metrics.starBullets.value;
-        // Estimate: assume ~3-4 bullets per experience, 3 experiences = ~10 bullets total
-        const estimatedBullets = (metrics.experienceDescriptions?.value || 3) * 4;
-        metrics.starBullets.value = Math.min(100, Math.round((bulletCount / estimatedBullets) * 100));
+      const expCount = metrics.experienceDescriptions?.value || 3;
+      const estimatedBullets = expCount * 4; // ~4 bullets per experience
+      
+      // starBullets: target is ">70%", so value should be percentage (0-100)
+      // Gemini often returns absolute count instead of percentage
+      // If value <= 50, likely it's absolute count (e.g., "20 bullets use STAR")
+      if (metrics.starBullets?.value !== undefined) {
+        const rawValue = metrics.starBullets.value;
+        if (rawValue <= 50) {
+          // Convert absolute count to percentage
+          // If they say 20 bullets use STAR out of ~12 total = 167% → cap at 100%
+          metrics.starBullets.value = Math.min(100, Math.round((rawValue / estimatedBullets) * 100));
+        } else if (rawValue > 100) {
+          // Clearly absolute count if > 100
+          metrics.starBullets.value = Math.min(100, Math.round((rawValue / estimatedBullets) * 100));
+        }
+        // If value is already reasonable (51-100), assume it's a percentage
       }
-      // wordCount: if > 1000, cap it reasonably
-      if (metrics.wordCount?.value !== undefined && metrics.wordCount.value > 1000) {
-        metrics.wordCount.value = Math.min(1000, metrics.wordCount.value);
+      
+      // keywordCount: target is "15-25", so value should be in that range
+      // If value is high like 50-55, it's likely counting incorrectly
+      if (metrics.keywordCount?.value !== undefined) {
+        if (metrics.keywordCount.value > 30) {
+          // Likely counting duplicates or all words - reduce to reasonable range
+          metrics.keywordCount.value = Math.round(metrics.keywordCount.value / 2);
+        }
+        // Ensure minimum reasonable value
+        if (metrics.keywordCount.value < 5) {
+          metrics.keywordCount.value = 10;
+        }
       }
-      // keywordCount: if > 50, cap it reasonably
-      if (metrics.keywordCount?.value !== undefined && metrics.keywordCount.value > 50) {
-        metrics.keywordCount.value = Math.min(50, metrics.keywordCount.value);
+      
+      // wordCount: target is "330-573", cap at reasonable max if too high
+      if (metrics.wordCount?.value !== undefined && metrics.wordCount.value > 600) {
+        metrics.wordCount.value = Math.min(600, metrics.wordCount.value);
       }
-      // paragraphsPerSection: if 0, set default
+      
+      // paragraphsPerSection: if 0 or undefined, set default
       if (metrics.paragraphsPerSection?.value === undefined || metrics.paragraphsPerSection.value === 0) {
         metrics.paragraphsPerSection = { value: 3, target: "3-5", status: "good" };
       }
-      // charsPerParagraph: if 0, set default
+      // charsPerParagraph: if 0 or undefined, set default
       if (metrics.charsPerParagraph?.value === undefined || metrics.charsPerParagraph.value === 0) {
         metrics.charsPerParagraph = { value: 80, target: "67-94", status: "good" };
       }
