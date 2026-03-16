@@ -214,6 +214,20 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
     - "Habilidades" ou "Competências" (não "Skills" em currículo PT)
     - "Resumo Profissional" ou "Professional Summary" (não "Sobre")
 
+### CÁLCULO DE MÉTRICAS OBRIGATÓRIO:
+- **wordCount**: Conte TODAS as palavras do currículo. Exemplo: 450 palavras = BOM para 1 página
+- **paragraphsPerSection**: Média de parágrafos por seção principal (target: 3-5)
+- **charsPerParagraph**: Média de caracteres por parágrafo (target: 67-94)
+- **starBullets**: PERCENTUAL de bullets que usam STAR (ex: value: 75 = 75%). **NUNCA retorne contagem absoluta, sempre percentual**
+- **keywordCount**: Palavras-chave únicas (target: 15-25 sem JD, 25-35 com JD)
+- **pageCount**: Estimativa baseada em ~450 palavras por página
+
+EXEMPLOS de formato CORRETO:
+```json
+"starBullets": { "value": 75, "target": ">70%", "status": "good" }
+"wordCount": { "value": 450, "target": "330-573", "status": "good" }
+```
+
 RETURN ONLY JSON:
 {
   "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },

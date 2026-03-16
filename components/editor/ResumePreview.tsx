@@ -13,10 +13,11 @@ function getCurrentLabel(lang: string = 'pt'): string {
 }
 
 // ─── ATS UTILITIES ──────────────────────────────────────────────────────────────
-export function stripEmojis(text: string | null | undefined): string {
+export function stripEmojis(text: any): string {
     if (!text) return '';
+    const str = String(text);
     // 1. Regex to remove emojis and extended pictographics
-    let cleaned = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+    let cleaned = str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
     
     // 2. Normalize Smart Quotes to Straight Quotes
     cleaned = cleaned.replace(/[“”]/g, '"');
@@ -764,8 +765,8 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                 <p style={{ fontSize: '0.7em', color: '#94A3B8' }}>
                     {[
                         personalInfo.email,
-                        personalInfo.linkedin && `in/${personalInfo.linkedin.replace('https://linkedin.com/in/', '')}`,
-                        personalInfo.github && `gh/${personalInfo.github.replace('https://github.com/', '')}`,
+                        personalInfo.linkedin && typeof personalInfo.linkedin === 'string' && `in/${personalInfo.linkedin.replace('https://linkedin.com/in/', '')}`,
+                        personalInfo.github && typeof personalInfo.github === 'string' && `gh/${personalInfo.github.replace('https://github.com/', '')}`,
                         personalInfo.phone,
                         personalInfo.portfolio
                     ].filter(Boolean).join(' // ')}
@@ -1066,7 +1067,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                                         <span style={{ fontSize: '0.9em' }}>{exp.location}</span>
                                     </div>
                                     <div style={{ fontSize: '0.9em', whiteSpace: 'pre-line', paddingLeft: '12px' }}>
-                                        {exp.description.split('\n').map((line, i) => {
+                                        {(typeof exp.description === 'string' ? exp.description : String(exp.description || '')).split('\n').map((line, i) => {
                                             const trimmed = line.trim();
                                             if (!trimmed) return null;
                                             return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
@@ -1214,7 +1215,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                         </span>
                                     </div>
                                     <div style={{ fontSize: '0.9em', color: '#4b5563', whiteSpace: 'pre-line', marginTop: '6px' }}>
-                                        {exp.description.split('\n').map((line, i) => {
+                                        {(typeof exp.description === 'string' ? exp.description : String(exp.description || '')).split('\n').map((line, i) => {
                                             const trimmed = line.trim();
                                             if (!trimmed) return null;
                                             return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
@@ -1370,8 +1371,8 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                                         {stripEmojis(exp.company)}{exp.location ? `, ${stripEmojis(exp.location)}` : ''}
                                     </div>
                                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '1em' }}>
-                                        {stripEmojis(exp.description).split('\n').map((line, i) => {
-                                            const trimmed = line.trim().replace(/^[-•]\s*/, '');
+                                        {stripEmojis(typeof exp.description === 'string' ? exp.description : String(exp.description || '')).split('\n').map((line, i) => {
+                                            const trimmed = typeof line === 'string' ? line.trim().replace(/^[-•]\s*/, '') : '';
                                             if (!trimmed) return null;
                                             return (
                                                 <li key={i} style={{ marginBottom: '2px' }}>{trimmed}</li>
@@ -1501,13 +1502,13 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 __html: `
                 @media print {
                     @page {
-                        size: ${size.width} ${size.minHeight};
-                        margin: 0; /* Remove margens do sistema para esconder headers/footers do browser (URL, data) que quebram o ATS */
+                        size: A4;
+                        margin: 0;
                     }
                     .page-break-indicator { display: none !important; }
                     body { margin: 0; }
                     .resume-container { 
-                        padding: 15mm !important; /* Move a margem para dentro do container para manter o respiro visual */
+                        padding: 15mm !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;

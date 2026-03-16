@@ -218,6 +218,20 @@ MANDATORY ATS STANDARDS (Reference: Workday, Greenhouse, iCIMS, Taleo, Lever, Sm
     - "Skills" or "Technical Skills" (not "Competências")
     - "Summary" or "Professional Summary" (not "Sobre")
 
+### MANDATORY METRIC CALCULATIONS:
+- **wordCount**: Count ALL words in resume. Example: 450 words = GOOD for 1 page
+- **paragraphsPerSection**: Average paragraphs per main section (target: 3-5)
+- **charsPerParagraph**: Average characters per paragraph (target: 67-94)
+- **starBullets**: PERCENTAGE of bullets using STAR (ex: value: 75 = 75%). **NEVER return absolute count, always percentage**
+- **keywordCount**: Unique keywords found (target: 15-25 without JD, 25-35 with JD)
+- **pageCount**: Estimated based on ~450 words per page
+
+CORRECT format examples:
+```json
+"starBullets": { "value": 75, "target": ">70%", "status": "good" }
+"wordCount": { "value": 450, "target": "330-573", "status": "good" }
+```
+
 RETURN ONLY JSON:
 {
   "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },
