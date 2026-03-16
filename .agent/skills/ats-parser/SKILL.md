@@ -20,7 +20,7 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
 ```json
 {
   "personalInfo": { "fullName": "João Silva", "title": "Engenheiro de Software", "email": "joao@email.com", "phone": "(11) 99999-9999", "location": "São Paulo, SP", "linkedin": "linkedin.com/in/joao", "github": "github.com/joao", "portfolio": "" },
-  "summary": "Profissional com 10 anos de experiência em desenvolvimento de software.",
+  "summary": "Profissional com 10 anos de experiência.\n\nEspecialista em desenvolvimento full-stack.\n\nConhecimento em Cloud AWS.",
   "experiences": [
     { "id": "exp-1", "company": "Empresa Tech", "position": "Desenvolvedor Senior", "location": "São Paulo", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": ["Liderança de equipe", "Desenvolvimento de APIs", "Code review"] }
   ],
@@ -75,8 +75,10 @@ Exemplo para currículo inglês:
 
 2. **COPIE O TEXTO ORIGINAL** - Não resuma, não abrevie.
 3. **description** em experiences: inclua TODOS os bullets e parágrafos. OBRIGATÓRIO: Retorne um array de strings (uma string para cada bullet ou parágrafo). EXEMPLO: `"description": ["Liderança de equipe", "Desenvolvimento de APIs", "Code review"]` (não "Liderança de equipe - Desenvolvimento...").
-4. **Sanitização ATS (Crítico):** Ignore emojis, símbolos decorativos (📞, ✉️, 🎯) ou aspas tipográficas. Mantenha os valores puramente textuais.
-5. **Certeza de Headers**: Só deixe vazio "" se o documento original realmente não possuir um cabeçalho explícito para aquela seção.
+ 4. **Sanitização ATS (Crítico):** Ignore emojis, símbolos decorativos (📞, ✉️, 🎯) ou aspas tipográficas. Mantenha os valores puramente textuais.
+ 5. **Certeza de Headers**: Só deixe vazio "" se o documento original realmente não possuir um cabeçalho explícito para aquela seção.
+ 6. **Line Breaks (CRÍTICO):** O summary DEVE ter parágrafos separados por \n\n (uma quebra de linha dupla). EXEMPLO: "Primeiro parágrafo\n\nSegundo parágrafo\n\nTerceiro parágrafo". NUNCA use \n\n\n (múltiplas quebras) ou apenas \n (uma única quebra).
+ 7. **INPUT com Quebras de Linha:** O texto de entrada PODE ter quebras de linha. Interprete linhas separadas como parágrafos distintos. Preserve essa estrutura no summary output.
 
 
 ### CAMPOS OBRIGATÓRIOS

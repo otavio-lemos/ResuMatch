@@ -102,8 +102,20 @@ export async function POST(req: NextRequest) {
           const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
           const pdfData = await pdfParse(buffer);
           textContent = pdfData.text;
+          // Normalize PDF text
+          textContent = textContent.replace(/-\n/g, '');
+          textContent = textContent.replace(/\n\n+/g, '\n\n');
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          textContent = (await mammoth.extractRawText({ buffer })).value;
+          // Convert to HTML first to preserve paragraph structure
+          const htmlResult = await mammoth.convertToHtml({ buffer });
+          let htmlText = htmlResult.value;
+          htmlText = htmlText.replace(/<p[^>]*>/gi, '\n');
+          htmlText = htmlText.replace(/<\/p>/gi, '');
+          htmlText = htmlText.replace(/<br\s*\/?>/gi, '\n');
+          htmlText = htmlText.replace(/<[^>]+>/g, '');
+          htmlText = htmlText.replace(/&nbsp;/g, ' ');
+          htmlText = htmlText.replace(/&amp;/g, '&');
+          textContent = htmlText;
         } else {
           textContent = buffer.toString('utf-8');
         }

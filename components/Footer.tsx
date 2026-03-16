@@ -8,7 +8,7 @@ export default function Footer() {
   const { t } = useTranslation();
 
   return (
-    <footer className="sticky bottom-0 z-50 w-full border-t border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#101922]/90 py-2 shrink-0">
+    <footer className="sticky bottom-0 z-[9999] w-full border-t border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#101922]/90 py-2 shrink-0">
       <div className="w-full mx-auto flex flex-col md:flex-row items-center justify-between gap-4 px-[10%]">
         
         {/* Lado Esquerdo: GitHub + Repo URL */}

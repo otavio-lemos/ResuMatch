@@ -13,22 +13,36 @@ export interface AnalyzeATSInput {
 
 export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{ type: 'chunk' | 'done' | 'error'; content?: string; data?: any; error?: string }> {
   const { resumeData, jobDescription, language, aiSettings } = input;
-  const safeAiSettings = aiSettings || {};
+  
+  const safeJobDescription = typeof jobDescription === 'string' ? jobDescription : '';
+  
+  const safeAiSettings = {
+    ...aiSettings,
+    maxTokens: Math.max(aiSettings?.maxTokens || 16384, 16384)
+  };
+
+  console.log('[analyzeATSChain] ========== CONFIGURAÇÕES DO MODELO ==========');
+  console.log('[analyzeATSChain] Provider:', safeAiSettings.provider);
+  console.log('[analyzeATSChain] Model:', safeAiSettings.model);
+  console.log('[analyzeATSChain] API Key:', safeAiSettings.apiKey ? '***' + safeAiSettings.apiKey.slice(-4) : 'not set');
+  console.log('[analyzeATSChain] Base URL:', safeAiSettings.baseUrl);
+  console.log('[analyzeATSChain] Temperature:', safeAiSettings.temperature);
+  console.log('[analyzeATSChain] Top P:', safeAiSettings.topP);
+  console.log('[analyzeATSChain] Top K:', safeAiSettings.topK);
+  console.log('[analyzeATSChain] Max Tokens:', safeAiSettings.maxTokens);
+  console.log('[analyzeATSChain] Language:', language);
+  console.log('[analyzeATSChain] =============================================');
   
   try {
-    console.log('[analyzeATSChain] Getting chat model...');
     const model = getChatModel(safeAiSettings);
-    console.log('[analyzeATSChain] Model obtained, creating prompt...');
     const prompt = await createAnalyzerPrompt(language);
     const formatInstructions = getJsonFormatInstructions(ATSAnalysisSchema);
     
     const formatted = await prompt.format({
       resumeJson: JSON.stringify(resumeData, null, 2),
-      jobDesc: jobDescription || '',
+      jobDesc: safeJobDescription,
       formatInstr: formatInstructions
     });
-    
-    console.log('[analyzeATSChain] Starting stream, prompt length:', formatted.length);
     
     let fullContent = '';
     
@@ -38,8 +52,6 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
       fullContent += chunk;
       yield { type: 'chunk', content: chunk };
     }
-    
-    console.log('[analyzeATSChain] Stream complete, content length:', fullContent.length);
     
     const parsed = parseATSAnalysis(fullContent);
     yield { type: 'done', data: parsed };

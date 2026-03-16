@@ -35,6 +35,7 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
   const [zoomLevel, setZoomLevel] = useState(1);
   const loadLocalResume = useResumeStore(state => state.loadLocalResume);
   const syncStatus = useResumeStore(state => state.syncStatus);
+  const data = useResumeStore(state => state.data);
   const router = useRouter();
 
   useEffect(() => {
@@ -44,10 +45,11 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
   }, [resolvedParams.id, loadLocalResume]);
 
   useEffect(() => {
-    if (syncStatus === 'error') {
+    // Only redirect if there's an error AND no data (truly doesn't exist)
+    if (syncStatus === 'error' && (!data || !data.personalInfo)) {
       router.push('/modelos');
     }
-  }, [syncStatus, router]);
+  }, [syncStatus, data, router]);
 
   useEffect(() => {
     const handlePrintRequest = () => {

@@ -144,7 +144,8 @@ export function EditorPanel() {
             atsPrompt
         };
         try {
-             const result = await generateATSAnalysis(data, data.jobDescription, authSettings, language);
+             const jobDesc = typeof data.jobDescription === 'string' ? data.jobDescription : '';
+             const result = await generateATSAnalysis(data, jobDesc, authSettings, language);
              
              // Adicionar transparência total - skill, prompt e resposta
              const debugInfo = (result as any).debug;
@@ -250,6 +251,26 @@ export function EditorPanel() {
 
     return (
         <section className="flex-1 flex flex-col min-w-[320px] max-w-3xl overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            {/* Sync Status Banner */}
+            {syncStatus === 'saving' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800 p-2 flex items-center justify-center gap-2">
+                    <Loader2 className="size-3 animate-spin text-blue-600" />
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">{t('actions.saving')}</span>
+                </div>
+            )}
+            {syncStatus === 'saved' && (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800 p-2 flex items-center justify-center gap-2">
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">{t('actions.saved')}</span>
+                </div>
+            )}
+            {syncStatus === 'error' && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-800 p-2 flex items-center justify-center gap-2">
+                    <ShieldAlert className="size-3 text-red-500" />
+                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">{t('actions.saveError') || 'Erro ao salvar'}</span>
+                </div>
+            )}
+
             {aiError && (
                 <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-800 p-3 flex items-center justify-between" role="alert" aria-live="polite">
                     <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-tight">⚠️ {aiError}</p>
@@ -774,14 +795,15 @@ export function EditorPanel() {
                                             value={exp.description}
                                             onChange={(e) => updateExperience(exp.id, { description: e.target.value })}
                                         />
-                                        <div className="absolute bottom-2 right-2 flex gap-1">
+                                        <div className="absolute bottom-2 right-2 flex gap-2">
                                             <button
                                                 onClick={() => handleAIAssist('grammar', exp.id, exp.description)}
                                                 disabled={isGeneratingRefine === exp.id || isGeneratingGrammar === exp.id || !exp.description}
-                                                className="p-1 text-slate-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                                className="px-2 py-1 text-[9px] font-bold text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
                                                 title={t('form.correctGrammar')}
                                             >
-                                                {isGeneratingGrammar === exp.id ? <Loader2 className="size-3 animate-spin" /> : <SpellCheck className="size-3.5" />}
+                                                {isGeneratingGrammar === exp.id ? <Loader2 className="size-3 animate-spin" /> : <SpellCheck className="size-3" />}
+                                                {t('form.grammar') || 'Gramática'}
                                             </button>
                                         </div>
                                     </div>

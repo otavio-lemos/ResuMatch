@@ -206,7 +206,7 @@ export default function Navbar() {
   }, [isEditorPage, resumeId, router, hasResumes]);
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#101922]/90 py-2">
+    <header className="sticky top-0 z-[9999] w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-[#101922]/90 py-2">
       <input
         id="navbar-import-file"
         type="file"
@@ -280,38 +280,44 @@ export default function Navbar() {
         {/* 7 BOTÕES FIXOS (Incluindo TEMA) */}
         <div className="flex items-center gap-0">
           
-          <Link
-            href={atsHref}
+          <button
+            onClick={() => window.location.href = atsHref}
             className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             <Sparkles className="size-3 mr-2" />
             {t('nav.analysis').toUpperCase()}
-          </Link>
+          </button>
 
-          <Link href="/config" className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+          <button
+            onClick={() => window.location.href = '/config'}
+            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
             <Settings className="size-3 mr-2" />
             {t('nav.config')}
-          </Link>
-          <Link href="/modelos" className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+          </button>
+          <button
+            onClick={() => window.location.href = '/modelos'}
+            className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
             <PlusSquare className="size-3 mr-2" />
             {t('nav.new')}
-          </Link>
+          </button>
           
-          <Link
-            href={editHref}
+          <button
+            onClick={() => window.location.href = editHref}
             className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             <Edit3 className="size-3 mr-2" />
             {t('nav.edit')}
-          </Link>
+          </button>
 
-          <Link
-            href={importHref}
+          <button
+            onClick={() => window.location.href = importHref}
             className="flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             <Upload className="size-3 mr-2" />
             {t('nav.import').toUpperCase()}
-          </Link>
+          </button>
           <button
             type="button"
             onClick={handleDownload}

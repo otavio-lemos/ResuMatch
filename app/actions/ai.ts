@@ -13,8 +13,8 @@ import { Language } from '@/lib/translations';
 export type AIAuthSettings = Partial<AISettings>;
 
 export type AIConfig = 
-    | { type: 'gemini'; apiKey: string; endpoint: string; temperature: number; maxTokens: number }
-    | { type: 'openai'; client: OpenAI; model: string; temperature: number; topP: number; maxTokens: number; stream?: boolean };
+    | { type: 'gemini'; apiKey: string; endpoint: string; temperature?: number; maxTokens?: number; topP?: number; topK?: number }
+    | { type: 'openai'; client: OpenAI; model: string; temperature?: number; topP?: number; maxTokens?: number; stream?: boolean };
 
 export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConfig> => {
     const provider = authSettings?.provider || 'gemini';
@@ -30,8 +30,10 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             type: 'gemini' as const,
             apiKey: apiKey,
             endpoint: `${authSettings?.baseUrl || 'https://generativelanguage.googleapis.com/v1beta/'}models/${model}:generateContent`,
-            temperature: authSettings?.temperature ?? (() => { throw new Error('temperature é obrigatório. Configure na tela de Configuração de IA.'); })(),
-            maxTokens: authSettings?.maxTokens ?? (() => { throw new Error('maxTokens é obrigatório. Configure na tela de Configuração de IA.'); })()
+            temperature: authSettings?.temperature,
+            maxTokens: authSettings?.maxTokens,
+            topP: authSettings?.topP,
+            topK: authSettings?.topK
         };
     } 
     
@@ -57,9 +59,9 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             type: 'openai' as const,
             client: new OpenAI({ baseURL, apiKey }),
             model: authSettings?.model || (provider === 'ollama' ? 'qwen3:8b' : 'gpt-3.5-turbo'),
-            temperature: authSettings?.temperature ?? (() => { throw new Error('temperature é obrigatório. Configure na tela de Configuração de IA.'); })(),
-            topP: authSettings?.topP ?? (() => { throw new Error('topP é obrigatório. Configure na tela de Configuração de IA.'); })(),
-            maxTokens: authSettings?.maxTokens ?? (() => { throw new Error('maxTokens é obrigatório. Configure na tela de Configuração de IA.'); })(),
+            temperature: authSettings?.temperature,
+            topP: authSettings?.topP,
+            maxTokens: authSettings?.maxTokens,
             stream: provider === 'ollama'
         };
     }
@@ -71,6 +73,16 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
     
     try {
         if (aiConfig.type === 'gemini') {
+            const generationConfig: any = {
+                temperature: aiConfig.temperature ?? 0.7,
+                maxOutputTokens: aiConfig.maxTokens ?? 16384,
+                responseMimeType: responseFormat === 'json_object' ? 'application/json' : 'text/plain',
+            };
+            
+            // Adiciona topP e topK se estiverem definidos
+            if (aiConfig.topP !== undefined) generationConfig.topP = aiConfig.topP;
+            if (aiConfig.topK !== undefined) generationConfig.topK = aiConfig.topK;
+            
             const res = await fetch(aiConfig.endpoint, {
                 method: 'POST',
                 headers: { 
@@ -80,11 +92,7 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
                     systemInstruction: { parts: [{ text: systemInstruction }] },
-                    generationConfig: {
-                        temperature: aiConfig.temperature || 0.1,
-                        maxOutputTokens: aiConfig.maxTokens || 16384,
-                        responseMimeType: responseFormat === 'json_object' ? 'application/json' : 'text/plain',
-                    },
+                    generationConfig,
                     safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }]
                 })
             });
@@ -113,11 +121,13 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
             const streamOptions: any = {
                 model: aiConfig.model,
                 messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
-                temperature: aiConfig.temperature,
-                top_p: aiConfig.topP,
-                max_tokens: aiConfig.maxTokens,
-                response_format: responseFormat ? { type: responseFormat } : undefined,
             };
+            
+            // Adiciona parâmetros apenas se estiverem definidos
+            if (aiConfig.temperature !== undefined) streamOptions.temperature = aiConfig.temperature;
+            if (aiConfig.topP !== undefined) streamOptions.top_p = aiConfig.topP;
+            if (aiConfig.maxTokens !== undefined) streamOptions.max_tokens = aiConfig.maxTokens;
+            if (responseFormat) streamOptions.response_format = { type: responseFormat };
             
             let response = '';
             
@@ -154,20 +164,22 @@ const getLanguageInstruction = (language: string) => language === 'en'
     : 'CRITICAL INSTRUCTION: Responda APENAS em português. Todas as etiquetas, feedbacks e sugestões DEVEM estar em português. FALHA EM OBEDECER IRÁ RESULTAR EM SAÍDA INCORRETA.';
 
 export async function rewriteText(text: string, authSettings?: AIAuthSettings & { rewritePrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
-    if (!text?.trim()) return { prompt: '', response: '' };
+    const safeText = typeof text === 'string' ? text : String(text || '');
+    if (!safeText.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
-    const safeText = text.replace(/[{}]/g, '');
+    const cleanText = safeText.replace(/[{}]/g, '');
     const userPrompt = authSettings?.rewritePrompt ? `USER INSTRUCTION: ${authSettings.rewritePrompt}\n\n` : '';
-    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${safeText}"`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 2: REWRITE (STAR) for this content: "${cleanText}"`;
     // USA A SKILL DE REWRITE (SSSTTTAAARRRREEWWWRRRIIITTTEEE)
     return callAI(finalPrompt, aiConfig, undefined, getAtsRewriteSkill(language), language);
 }
 
 export async function correctGrammar(text: string, authSettings?: AIAuthSettings & { grammarPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: string }> {
-    if (!text?.trim()) return { prompt: '', response: '' };
+    const safeText = typeof text === 'string' ? text : String(text || '');
+    if (!safeText.trim()) return { prompt: '', response: '' };
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.grammarPrompt ? `USER INSTRUCTION: ${authSettings.grammarPrompt}\n\n` : '';
-    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${text}"`;
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 3: CORRECT GRAMMAR for this content: "${safeText}"`;
     // USA A SKILL DE GRAMMAR (GGGRRRAAAMMMMMMAAARRRR)
     return callAI(finalPrompt, aiConfig, undefined, getAtsGrammarSkill(language), language);
 }
@@ -183,7 +195,8 @@ export async function generateSummaryAI(resumeData: ResumeData, authSettings?: A
 export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings & { atsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: any }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.atsPrompt ? `USER INSTRUCTION: ${authSettings.atsPrompt}\n\n` : '';
-    const jobInfo = jobDescription ? `JOB DESCRIPTION: ${jobDescription}\n\n` : '';
+    const jdString = typeof jobDescription === 'string' ? jobDescription : '';
+    const jobInfo = jdString ? `JOB DESCRIPTION: ${jdString}\n\n` : '';
     const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}${jobInfo}EXECUTE ACTION 2 (AUDIT) for this data: ${JSON.stringify(resumeData)}`;
     // OBRIGATORIAMENTE USA A SKILL FASE 2 (AUDITORIA)
     const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsAnalyzerSkill(language), language);

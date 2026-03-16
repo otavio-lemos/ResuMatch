@@ -608,9 +608,12 @@ export default function ImportWizardClient() {
                 const res = await saveImportedResume(finalData, undefined, language);
                 console.log('[IMPORT] saveImportedResume result:', res);
                 if (res?.error) throw new Error(res.message);
-                console.log('[IMPORT] Redirecting to:', `/dashboard/${res.id}`);
+                console.log('[IMPORT] Redirecting to:', `/editor/${res.id}`);
                 reset();
-                router.push(`/dashboard/${res.id}`);
+                router.refresh();
+                setTimeout(() => {
+                    window.location.href = `/editor/${res.id}`;
+                }, 100);
             } catch (saveErr: any) {
                 console.error('[IMPORT] Save error:', saveErr);
                 setError(saveErr.message || t('import.errorSaving'));
@@ -933,7 +936,7 @@ export default function ImportWizardClient() {
                                     <button
                                         onClick={handleRevalidate}
                                         disabled={hasValidationResult && allValidated}
-                                        className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all transition-colors flex items-center gap-3 shadow-lg shadow-orange-500/10 ${(!hasValidationResult || !allValidated)
+                                        className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-orange-500/10 ${(!hasValidationResult || !allValidated)
                                             ? 'bg-orange-500 hover:bg-orange-600 text-white'
                                             : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}
                                     >
@@ -943,22 +946,12 @@ export default function ImportWizardClient() {
 
                                     <button
                                         onClick={() => handleContinue(true)}
-                                        disabled={!hasValidationResult || allValidated}
-                                        className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-blue-500/10 ${hasValidationResult && !allValidated
+                                        disabled={!hasValidationResult}
+                                        className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-blue-500/10 ${hasValidationResult
                                             ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                             : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}
                                     >
                                         {t('import.editManually')}
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleContinue(false)}
-                                        disabled={!hasValidationResult || !allValidated}
-                                        className={`px-8 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg shadow-emerald-500/10 ${hasValidationResult && allValidated
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                            : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}
-                                    >
-                                        {t('import.analyzeAts')}
                                         <ArrowRight className="size-4" />
                                     </button>
                                 </div>

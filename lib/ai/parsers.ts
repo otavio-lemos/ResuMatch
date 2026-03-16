@@ -2,9 +2,19 @@ import { OutputParserException } from '@langchain/core/output_parsers';
 import { z } from 'zod';
 import { ResumeDataSchema, ATSAnalysisSchema, ResumeData, ATSAnalysis } from './types';
 
+function stripMarkdownFences(text: string): string {
+  let cleaned = text.trim();
+  const fenceRegex = /^```(\w+)?\s*\n?/;
+  while (fenceRegex.test(cleaned)) {
+    cleaned = cleaned.replace(fenceRegex, '').replace(/```\s*$/, '').trim();
+  }
+  return cleaned;
+}
+
 export function parseResume(raw: string): ResumeData {
   try {
-    const parsed = JSON.parse(raw);
+    const cleaned = stripMarkdownFences(raw);
+    const parsed = JSON.parse(cleaned);
     return ResumeDataSchema.parse(parsed);
   } catch (e) {
     throw new OutputParserException(
@@ -16,7 +26,8 @@ export function parseResume(raw: string): ResumeData {
 
 export function parseATSAnalysis(raw: string): ATSAnalysis {
   try {
-    const parsed = JSON.parse(raw);
+    const cleaned = stripMarkdownFences(raw);
+    const parsed = JSON.parse(cleaned);
     
     // Normalize scores - accept both PT (estrutura/conteudo) and EN (structure/content)
     if (parsed.scores) {
@@ -52,5 +63,5 @@ export function parseATSAnalysis(raw: string): ATSAnalysis {
 
 export function getJsonFormatInstructions(schema: z.ZodType<any>): string {
   return `You must respond with valid JSON that conforms to the schema.
-Do not include any text before or after the JSON. Output only valid JSON.`;
+Do NOT wrap the JSON in markdown code fences (\`\`\`). Output only valid JSON, no additional text.`;
 }

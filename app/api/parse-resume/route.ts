@@ -112,13 +112,28 @@ export async function POST(req: NextRequest) {
           try {
             const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
             const pdfData = await pdfParse(buffer);
+            // Normalize PDF text - some PDFs have line endings that need fixing
             pdfTextContent = pdfData.text;
+            // Fix common PDF extraction issues: merge hyphenated words at line breaks
+            pdfTextContent = pdfTextContent.replace(/-\n/g, '');
+            // Ensure double line breaks represent paragraph breaks
+            pdfTextContent = pdfTextContent.replace(/\n\n+/g, '\n\n');
             console.log('[PARSE-RESUME] PDF extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
           } catch (e) {
             console.error("PDF parse error:", e);
           }
         } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          pdfTextContent = (await mammoth.extractRawText({ buffer })).value;
+          // Convert to HTML first to preserve paragraph structure, then convert HTML to text with line breaks
+          const htmlResult = await mammoth.convertToHtml({ buffer });
+          // Replace HTML paragraph tags with newlines
+          let htmlText = htmlResult.value;
+          htmlText = htmlText.replace(/<p[^>]*>/gi, '\n');
+          htmlText = htmlText.replace(/<\/p>/gi, '');
+          htmlText = htmlText.replace(/<br\s*\/?>/gi, '\n');
+          htmlText = htmlText.replace(/<[^>]+>/g, '');
+          htmlText = htmlText.replace(/&nbsp;/g, ' ');
+          htmlText = htmlText.replace(/&amp;/g, '&');
+          pdfTextContent = htmlText;
           console.log('[PARSE-RESUME] DOCX extracted text (first 2000 chars):', pdfTextContent.substring(0, 2000));
         } else {
           pdfTextContent = buffer.toString('utf-8');

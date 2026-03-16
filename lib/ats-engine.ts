@@ -62,8 +62,9 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
     missingKeywords: string[];
     jdKeywords: string[];
 } {
-    if (!jobDescription?.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [], jdKeywords: [] };
-    const jdKeywords = extractKeywords(jobDescription);
+    const jdString = typeof jobDescription === 'string' ? jobDescription : '';
+    if (!jdString.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [], jdKeywords: [] };
+    const jdKeywords = extractKeywords(jdString);
     const resumeText = [
         resume?.summary || '',
         ...(resume?.experiences || []).map(e => e?.description || ''),

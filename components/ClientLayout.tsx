@@ -6,12 +6,12 @@ import WelcomeModal from '@/components/WelcomeModal';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       <Navbar />
       <WelcomeModal />
-      <div className="flex-grow flex flex-col">
+      <main className="flex-grow overflow-y-auto">
         {children}
-      </div>
+      </main>
       <Footer />
     </div>
   );

@@ -32,26 +32,24 @@ export async function POST(req: NextRequest) {
           timeout: 120000
         };
         
-        // Get skill - same as original
         const skill = getAtsAnalyzerSkill(language);
         const languageInstruction = language === 'pt'
           ? 'Responda APENAS em português.'
           : 'Respond ONLY in English.';
         
         const fullSkill = `${skill}\n\n${languageInstruction}`;
-        const prompt = jobDescription
-          ? `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME DATA:\n${JSON.stringify(resumeData)}`
+        const jdString = typeof jobDescription === 'string' ? jobDescription : '';
+        const prompt = jdString
+          ? `JOB DESCRIPTION:\n${jdString}\n\nRESUME DATA:\n${JSON.stringify(resumeData)}`
           : `RESUME DATA:\n${JSON.stringify(resumeData)}`;
-        
-        // Send info - same format as original
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Analisando com LangChain...' })}\n\n`));
         
         console.log('[langchain-analyze] Calling analyzeATSChain...');
         
+        const safeJobDescription = typeof jobDescription === 'string' ? jobDescription : undefined;
+        
         const generator = analyzeATSChain({
           resumeData,
-          jobDescription,
+          jobDescription: safeJobDescription,
           language,
           aiSettings: settings
         });

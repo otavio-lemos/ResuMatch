@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldAlert, Sparkles, LayoutTemplate, BriefcaseBusiness, FileText, CheckCircle2, Loader2, X, Target, Wand2, ArrowRight, Brain, AlertCircle } from 'lucide-react';
+import { ShieldAlert, Sparkles, LayoutTemplate, BriefcaseBusiness, FileText, CheckCircle2, Loader2, X, Target, Wand2, ArrowRight, Brain, AlertCircle, Terminal, ChevronDown } from 'lucide-react';
 import { useResumeStore, ResumeData, AICheck, DetailedSuggestion } from '@/store/useResumeStore';
 import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -273,12 +273,13 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
 
 export default function ATSAnalysisView() {
     const { t, language } = useTranslation();
-    const { atsPrompt, primaryAI } = useAISettingsStore();
+    const { atsPrompt, primaryAI, importAI } = useAISettingsStore();
     const { data, resumeId, analyzeResume, isAnalyzing: storeIsAnalyzing, streamProgress, error: storeError, setJobDescription, saveLocalResume } = useResumeStore();
     const [showBenchmarking, setShowBenchmarking] = useState(false);
     const [activeAnalysisMode, setActiveAnalysisMode] = useState<'general' | 'job'>('general');
     const [suggestions, setSuggestions] = useState<DetailedSuggestion[]>([]);
     const [isApplying, setIsApplying] = useState(false);
+    const [showTerminal, setShowTerminal] = useState(false);
     const router = useRouter();
 
     const ANALYSING_BUBBLES = useMemo(() => ((t('import.analysingBubbles') as unknown) || []) as Bubble[], [t]);
@@ -354,8 +355,8 @@ export default function ATSAnalysisView() {
     const analysis = activeAnalysisMode === 'general' ? data?.aiAnalysis : data?.jdAnalysis;
 
     const getAnalysisScore = (a: any, hasJobDescription: boolean): number => {
-        // Se tem job description e jdMatch, usa o score de match
-        if (hasJobDescription && a?.jdMatch?.score !== undefined) {
+        // Se tem job description e jdMatch com score válido, usa o score de match
+        if (hasJobDescription && a?.jdMatch?.score !== undefined && a.jdMatch.score > 0) {
             return a.jdMatch.score;
         }
         
@@ -371,15 +372,15 @@ export default function ATSAnalysisView() {
     const displayScore = analysis ? getAnalysisScore(analysis, !!data?.jobDescription) : 0;
 
     const handleAnalyze = async (jobDescription?: string) => {
-        const aiSettings = primaryAI ? {
-            provider: primaryAI.provider,
-            apiKey: primaryAI.apiKey,
-            model: primaryAI.model,
-            baseUrl: primaryAI.baseUrl,
-            temperature: primaryAI.temperature,
-            topP: primaryAI.topP,
-            topK: primaryAI.topK,
-            maxTokens: primaryAI.maxTokens
+        const aiSettings = importAI ? {
+            provider: importAI.provider,
+            apiKey: importAI.apiKey,
+            model: importAI.model,
+            baseUrl: importAI.baseUrl,
+            temperature: importAI.temperature,
+            topP: importAI.topP,
+            topK: importAI.topK,
+            maxTokens: importAI.maxTokens
         } : null;
         await analyzeResume(atsPrompt, jobDescription, aiSettings as any, language);
         router.refresh();
@@ -398,7 +399,7 @@ export default function ATSAnalysisView() {
 
     return (
         <div className="space-y-6">
-            {storeError && !hasAtsData && (
+            {storeError && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 border-l-4 border-l-red-500">
                     <div className="flex items-center gap-3">
                         <ShieldAlert className="size-5 text-red-600 dark:text-red-400" />
@@ -429,24 +430,6 @@ export default function ATSAnalysisView() {
                 <div className="flex flex-col items-center gap-2">
                     <CircularProgress percent={displayScore} colorClass={displayScore >= 92 ? "text-emerald-500" : displayScore >= 60 ? "text-amber-500" : "text-red-500"} size="lg" />
                     
-                    {/* Streaming Progress Display */}
-                    {storeIsAnalyzing && (streamProgress || []).length > 0 && (
-                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg max-h-48 overflow-y-auto">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Loader2 className="size-3 animate-spin text-blue-600" />
-                                <span className="text-[10px] font-black text-slate-500 uppercase">{t('analysis.analyzingInProgress')}</span>
-                            </div>
-                            <ul className="space-y-1">
-                                {streamProgress.map((msg, i) => (
-                                    <li key={i} className="text-[10px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
-                                        <span className="text-blue-500 mt-0.5">›</span>
-                                        {msg}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                    
                     <button
                         onClick={() => { setActiveAnalysisMode('general'); handleAnalyze(undefined); }}
                         disabled={storeIsAnalyzing}
@@ -457,6 +440,33 @@ export default function ATSAnalysisView() {
                     </button>
                 </div>
             </section>
+
+            {/* Terminal Dropdown - fora da seção principal */}
+            {(streamProgress || []).length > 0 && (
+                <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+                    <button 
+                        onClick={() => setShowTerminal(!showTerminal)}
+                        className="w-full px-4 py-2 flex items-center justify-between bg-slate-800 hover:bg-slate-700 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Terminal className="size-4 text-slate-400" />
+                            <span className="text-xs font-black text-slate-300 uppercase">Terminal AI</span>
+                            {storeIsAnalyzing && <Loader2 className="size-3 animate-spin text-blue-400" />}
+                        </div>
+                        <ChevronDown className={`size-4 text-slate-400 transition-transform ${showTerminal ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showTerminal && (
+                        <div className="p-4 max-h-64 overflow-y-auto font-mono text-[10px]">
+                            {(streamProgress || []).map((msg, i) => (
+                                <div key={i} className="text-slate-300 flex items-start gap-2 mb-1">
+                                    <span className="text-blue-400">›</span>
+                                    {msg}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {showBenchmarking && (
                 <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 border-2 border-dashed border-blue-200 dark:border-blue-800 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -558,7 +568,7 @@ export default function ATSAnalysisView() {
                             return metrics ? Object.entries(metrics).map(([key, metric]: [string, any]) => (
                                 <div key={key} className="space-y-1">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase">
-                                        <span className="text-slate-500">{t(`analysis.metrics.${key}` as any) || key.replace(/([A-Z])/g, ' $1')}</span>
+                                        <span className="text-slate-500">{t(`analysis.metrics.${key}` as any) || (typeof key === 'string' ? key.replace(/([A-Z])/g, ' $1') : String(key))}</span>
                                         <span className={metric.status === 'good' ? 'text-emerald-500' : metric.status === 'warning' ? 'text-amber-500' : 'text-red-500'}>
                                             {metric.value} ({t('analysis.metrics.target')}: {metric.target})
                                         </span>
@@ -569,11 +579,11 @@ export default function ATSAnalysisView() {
                                             style={{ 
                                                 width: (() => {
                                                     const target = metric.target;
-                                                    if (target.includes('-')) {
+                                                    if (typeof target === 'string' && target.includes('-')) {
                                                         const parts = target.split('-');
                                                         const maxVal = parseInt(parts[1]) || 100;
                                                         return `${Math.min(100, (metric.value / maxVal) * 100)}%`;
-                                                    } else if (target.includes('>')) {
+                                                    } else if (typeof target === 'string' && target.includes('>')) {
                                                         const threshold = parseInt(target.replace(/\D/g, '')) || 70;
                                                         return `${Math.min(100, (metric.value / threshold) * 100)}%`;
                                                     }
@@ -624,7 +634,13 @@ export default function ATSAnalysisView() {
                         </div>
 
                         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                            {(suggestions || []).length === 0 ? (
+                            {!analysis ? (
+                                <div className="text-center py-12">
+                                    <Brain className="size-12 text-slate-300 mx-auto mb-3" />
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t('analysis.analysisPending') || 'Análise pendente'}</p>
+                                    <p className="text-xs text-slate-500 mt-1">{t('analysis.analysisPendingDesc') || 'Clique no botão acima para analisar seu currículo'}</p>
+                                </div>
+                            ) : (suggestions || []).length === 0 ? (
                                 <div className="text-center py-12">
                                     <CheckCircle2 className="size-12 text-emerald-500 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{t('analysis.noIssues')}</p>
