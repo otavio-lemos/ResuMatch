@@ -250,8 +250,10 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                             <ul style={{ fontSize: '0.9em', color: '#374151', paddingLeft: '18px', listStyleType: 'disc' }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
-                                        {section.id === 'certifications' && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        {section.id === 'certifications' && item && typeof item === 'object' ? (
+                                            <span><strong>{stripEmojis(item.name || item.title || 'Certificação')}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span><strong>{stripEmojis(item.name || item.title || '')}</strong>{item.description && <span> — {stripEmojis(item.description)}</span>}</span>
                                         ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
@@ -421,8 +423,10 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <ul style={{ fontSize: '0.85em', color: '#374151', paddingLeft: '16px', listStyleType: 'square' }}>
                                     {(section.items as any[] || []).map((item, idx) => (
                                         <li key={idx} style={{ marginBottom: '3px' }}>
-                                            {isCertSection && item && typeof item === 'object' && item.name ? (
-                                                <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                            {isCertSection && item && typeof item === 'object' ? (
+                                                <span><strong>{item.name || item.title || 'Certificação'}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                            ) : typeof item === 'object' && item !== null ? (
+                                                <span><strong>{item.name || item.title || ''}</strong>{item.description && <span> — {item.description}</span>}</span>
                                             ) : String(item)}
                                         </li>
                                     ))}
@@ -568,8 +572,10 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                             <ul style={{ fontSize: '0.9em', color: '#334155', paddingLeft: '20px', listStyleType: 'square', margin: 0 }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '6px' }}>
-                                        {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{stripEmojis(item.name)}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        {isCertSection && item && typeof item === 'object' ? (
+                                            <span><strong>{stripEmojis(item.name || item.title || 'Certificação')}</strong>{item.issuer && <span> — {stripEmojis(item.issuer)}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span><strong>{stripEmojis(item.name || item.title || '')}</strong>{item.description && <span> — {stripEmojis(item.description)}</span>}</span>
                                         ) : stripEmojis(String(item))}
                                     </li>
                                 ))}
@@ -712,8 +718,10 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                             <ul style={{ fontSize: '0.88em', color: '#374151', paddingLeft: '14px', listStyleType: 'circle' }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
-                                        {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        {isCertSection && item && typeof item === 'object' ? (
+                                            <span><strong>{item.name || item.title || 'Certificação'}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span><strong>{item.name || item.title || ''}</strong>{item.description && <span> — {item.description}</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
@@ -842,8 +850,10 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                             <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.75em' }}>
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '2px' }}>
-                                        {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        {isCertSection && item && typeof item === 'object' ? (
+                                            <span><strong>{item.name || item.title || 'Certificação'}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span><strong>{item.name || item.title || ''}</strong>{item.description && <span> — {item.description}</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
@@ -1143,8 +1153,10 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                             <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px' }}>
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '4px' }}>
-                                        {isCertSection && item && typeof item === 'object' && item.name ? (
-                                            <span><strong>{item.name}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        {isCertSection && item && typeof item === 'object' ? (
+                                            <span><strong>{item.name || item.title || 'Certificação'}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span><strong>{item.name || item.title || ''}</strong>{item.description && <span> — {item.description}</span>}</span>
                                         ) : String(item)}
                                     </li>
                                 ))}
