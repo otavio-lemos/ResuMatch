@@ -9,16 +9,21 @@
   scrollbar-width: none;
 }
 
+/* Hide page break indicators by default */
+.page-break-indicator {
+  display: none;
+}
+
 @media print {
   @page {
-    size: A4;
-    margin: 15mm;
+    size: auto;
+    margin: 0;
     marks: none;
   }
 
   @supports (-webkit-print-color-adjust: exact) {
     @page {
-      margin: 15mm;
+      margin: 0;
     }
   }
 
@@ -32,11 +37,23 @@
   html, body {
     margin: 0 !important;
     padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* Hide everything except the resume content during print */
-  header, footer, nav, aside, button, .no-print {
+  header, footer, nav, aside, button, .no-print, .page-break-indicator {
     display: none !important;
+  }
+
+  /* Only show the resume container during print */
+  .resume-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: inherit !important;
+    box-shadow: none !important;
   }
 
   /* Force background colors and images */

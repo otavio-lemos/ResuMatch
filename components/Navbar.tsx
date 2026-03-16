@@ -200,8 +200,8 @@ export default function Navbar() {
       // para utilizar o react-to-print e preservar todo o CSS original
       window.dispatchEvent(new CustomEvent('print-resume'));
     } else {
-      // Fora do editor, se tiver ID, tenta imprimir a página atual ou vai para o editor
-      window.print();
+      // Não está no editor - vai para o editor primeiro com parâmetro para imprimir após carregar
+      router.push(`/editor/${resumeId}?print=true`);
     }
   }, [isEditorPage, resumeId, router, hasResumes]);
   

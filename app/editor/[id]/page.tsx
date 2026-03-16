@@ -25,10 +25,12 @@ import { useRef, useState, useEffect, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useReactToPrint } from 'react-to-print';
+import { useSearchParams } from 'next/navigation';
 
 export default function Editor({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation();
   const resolvedParams = use(params);
+  const searchParams = useSearchParams();
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
   const [showNotification, setShowNotification] = useState<string | null>(null);
@@ -38,11 +40,27 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
   const data = useResumeStore(state => state.data);
   const router = useRouter();
 
+  // Check if should auto-print
+  const shouldPrint = searchParams.get('print') === 'true';
+
   useEffect(() => {
     if (resolvedParams.id && resolvedParams.id !== 'new') {
       loadLocalResume(resolvedParams.id);
     }
   }, [resolvedParams.id, loadLocalResume]);
+
+  // Auto-print when page loads with print=true
+  useEffect(() => {
+    if (shouldPrint && data && reactToPrintFn) {
+      // Small delay to ensure content is rendered
+      const timer = setTimeout(() => {
+        reactToPrintFn();
+        // Remove print param from URL after printing
+        router.replace(`/editor/${resolvedParams.id}`);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldPrint, data, reactToPrintFn, router, resolvedParams.id]);
 
   useEffect(() => {
     // Only redirect if there's an error AND no data (truly doesn't exist)

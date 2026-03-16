@@ -1502,8 +1502,8 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 __html: `
                 @media print {
                     @page {
-                        size: A4;
-                        margin: 15mm;
+                        size: auto;
+                        margin: 0;
                     }
                     .page-break-indicator { display: none !important; }
                     body { margin: 0; }
@@ -1511,6 +1511,8 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                         /* Preserve the template's padding for screen/print consistency */
                         padding: inherit !important;
                         min-height: auto !important;
+                        width: 100% !important;
+                        box-shadow: none !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;
