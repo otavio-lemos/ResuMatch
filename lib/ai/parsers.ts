@@ -52,6 +52,34 @@ export function parseATSAnalysis(raw: string): ATSAnalysis {
       parsed.contentMetrics = parsed.conteudoMetrics;
     }
     
+    // Normalize metrics that Gemini often returns incorrectly
+    const metrics = parsed.contentMetrics || parsed.conteudoMetrics;
+    if (metrics) {
+      // starBullets: if value > 100, it's likely an absolute count - convert to percentage
+      if (metrics.starBullets?.value !== undefined && metrics.starBullets.value > 100) {
+        const bulletCount = metrics.starBullets.value;
+        // Estimate: assume ~3-4 bullets per experience, 3 experiences = ~10 bullets total
+        const estimatedBullets = (metrics.experienceDescriptions?.value || 3) * 4;
+        metrics.starBullets.value = Math.min(100, Math.round((bulletCount / estimatedBullets) * 100));
+      }
+      // wordCount: if > 1000, cap it reasonably
+      if (metrics.wordCount?.value !== undefined && metrics.wordCount.value > 1000) {
+        metrics.wordCount.value = Math.min(1000, metrics.wordCount.value);
+      }
+      // keywordCount: if > 50, cap it reasonably
+      if (metrics.keywordCount?.value !== undefined && metrics.keywordCount.value > 50) {
+        metrics.keywordCount.value = Math.min(50, metrics.keywordCount.value);
+      }
+      // paragraphsPerSection: if 0, set default
+      if (metrics.paragraphsPerSection?.value === undefined || metrics.paragraphsPerSection.value === 0) {
+        metrics.paragraphsPerSection = { value: 3, target: "3-5", status: "good" };
+      }
+      // charsPerParagraph: if 0, set default
+      if (metrics.charsPerParagraph?.value === undefined || metrics.charsPerParagraph.value === 0) {
+        metrics.charsPerParagraph = { value: 80, target: "67-94", status: "good" };
+      }
+    }
+    
     return ATSAnalysisSchema.parse(parsed);
   } catch (e) {
     throw new OutputParserException(
