@@ -1292,11 +1292,16 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                             <ul style={{ fontSize: '0.9em', margin: 0, paddingLeft: '18px', color: '#374151' }}>
                                 {section.items.map((item: any, i: number) => (
                                     <li key={i} style={{ marginBottom: '4px' }}>
-                                        {isCertSection && item.name ? (
+                                        {isCertSection && item && typeof item === 'object' ? (
                                             <span>
-                                                <strong>{item.name}</strong>
+                                                <strong>{item.name || item.title || 'Certificação'}</strong>
                                                 {item.issuer && <span> — {item.issuer}</span>}
                                                 {item.date && <span> ({normalizeAtsDate(item.date)})</span>}
+                                            </span>
+                                        ) : typeof item === 'object' && item !== null ? (
+                                            <span>
+                                                <strong>{item.name || item.title || ''}</strong>
+                                                {item.description && <span> — {item.description}</span>}
                                             </span>
                                         ) : (
                                             String(item)
