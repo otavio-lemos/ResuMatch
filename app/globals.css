@@ -13,12 +13,32 @@
   @page {
     size: A4;
     margin: 15mm;
+    /* Ocultar cabeçalho e rodapé do navegador */
+    marks: none;
+  }
+
+  @supports (-webkit-print-color-adjust: exact) {
+    @page {
+      /* Firefox */
+      margin: 15mm;
+    }
   }
 
   body {
     background: white !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  /* Hide browser print headers and footers */
+  @page:first {
+    margin-top: 15mm;
+  }
+  
+  /* Remove default browser margins that show headers/footers */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Hide everything except the resume content during print */
