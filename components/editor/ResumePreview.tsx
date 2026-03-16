@@ -1503,7 +1503,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 @media print {
                     @page {
                         size: A4;
-                        margin: 0;
+                        margin: 15mm;
                     }
                     .page-break-indicator { display: none !important; }
                     html, body { margin: 0; padding: 0; background: white; }
@@ -1511,9 +1511,10 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                         padding: inherit !important;
                         width: 100% !important;
                         max-width: 100% !important;
-                        margin: 0 auto !important;
+                        margin: 0 !important;
                         box-shadow: none !important;
                         page-break-inside: avoid;
+                        overflow: visible !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;

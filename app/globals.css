@@ -17,7 +17,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 15mm;
   }
 
   html, body {
@@ -34,15 +34,16 @@
     display: none !important;
   }
 
-  /* Center the resume container */
+  /* Preserve container styling exactly as shown on screen */
   .resume-container {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     padding: inherit !important;
     box-shadow: none !important;
     page-break-inside: avoid;
+    overflow: visible !important;
   }
 
   /* Ensure proper page breaks */
