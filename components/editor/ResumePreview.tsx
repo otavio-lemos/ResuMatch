@@ -1502,17 +1502,18 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 __html: `
                 @media print {
                     @page {
-                        size: auto;
+                        size: A4;
                         margin: 0;
                     }
                     .page-break-indicator { display: none !important; }
-                    body { margin: 0; }
+                    html, body { margin: 0; padding: 0; background: white; }
                     .resume-container { 
-                        /* Preserve the template's padding for screen/print consistency */
                         padding: inherit !important;
-                        min-height: auto !important;
                         width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 auto !important;
                         box-shadow: none !important;
+                        page-break-inside: avoid;
                     }
                 }
                 .page-break-indicator {                    position: absolute;
