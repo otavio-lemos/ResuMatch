@@ -14,6 +14,14 @@
   display: none;
 }
 
+/* Screen: match print exactly - A4 with 15mm margins = 180mm content */
+.resume-container {
+  width: 180mm !important;
+  max-width: 180mm !important;
+  margin: 0 auto !important;
+  page-break-inside: avoid;
+}
+
 @media print {
   @page {
     size: A4;
@@ -34,19 +42,17 @@
     display: none !important;
   }
 
-  /* Preserve container styling exactly as shown on screen */
+  /* Match screen exactly */
   .resume-container {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
+    width: 180mm !important;
+    max-width: 180mm !important;
+    margin: 0 auto !important;
     padding: inherit !important;
     box-shadow: none !important;
     page-break-inside: avoid;
     overflow: visible !important;
   }
 
-  /* Ensure proper page breaks */
   .resume-page {
     page-break-after: always;
     page-break-inside: avoid;

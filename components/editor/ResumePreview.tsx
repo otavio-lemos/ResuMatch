@@ -1513,10 +1513,10 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                     .page-break-indicator { display: none !important; }
                     html, body { margin: 0; padding: 0; background: white; }
                     .resume-container { 
+                        width: 180mm !important;
+                        max-width: 180mm !important;
+                        margin: 0 auto !important;
                         padding: inherit !important;
-                        width: 100% !important;
-                        max-width: 100% !important;
-                        margin: 0 !important;
                         box-shadow: none !important;
                         page-break-inside: avoid;
                         overflow: visible !important;
