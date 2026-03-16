@@ -754,7 +754,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
     const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
-    const containerStyle = { ...style, backgroundColor: '#0F172A', color: '#94A3B8', padding: '15mm', boxSizing: 'border-box' as const, fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace" };
+    const containerStyle = { ...style, backgroundColor: '#0F172A', color: '#94A3B8', padding: '40px', boxSizing: 'border-box' as const, fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace" };
     const headingStyle = { fontSize: '0.9em', fontWeight: 900, color: '#F8FAFC', marginBottom: '8px', marginTop: '16px' };
     const blueText = { color: '#3B82F6' };
 
@@ -892,7 +892,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
     const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
-    const containerStyle = { ...style, padding: '15mm', backgroundColor: 'white', boxSizing: 'border-box' as const };
+    const containerStyle = { ...style, padding: '30px', backgroundColor: 'white', boxSizing: 'border-box' as const };
     const headerBox = { backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' };
     const headingStyle = { fontSize: '0.8em', fontWeight: 900, color: '#1E293B', textTransform: 'uppercase' as const, marginBottom: '6px', marginTop: '12px', borderBottom: '1px solid #E2E8F0', paddingBottom: '2px' };
 
@@ -1021,7 +1021,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '1in', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
             <header style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <h1 style={{ fontSize: '1.8em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {personalInfo.fullName || 'SEU NOME'}
@@ -1324,7 +1324,7 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
     const fontToUse = "Arial, Helvetica, sans-serif";
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '15mm', boxSizing: 'border-box', fontFamily: fontToUse }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '1in', boxSizing: 'border-box', fontFamily: fontToUse }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
@@ -1508,8 +1508,9 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                     .page-break-indicator { display: none !important; }
                     body { margin: 0; }
                     .resume-container { 
-                        /* Preserve container padding for consistency with screen */
+                        /* Preserve the template's padding for screen/print consistency */
                         padding: inherit !important;
+                        min-height: auto !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;

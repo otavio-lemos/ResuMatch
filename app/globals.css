@@ -34,11 +34,6 @@
     padding: 0 !important;
   }
 
-  /* Preserve container padding for screen/print consistency */
-  .resume-container {
-    padding: inherit !important;
-  }
-
   /* Hide everything except the resume content during print */
   header, footer, nav, aside, button, .no-print {
     display: none !important;
