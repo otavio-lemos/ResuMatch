@@ -9,8 +9,7 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "clean": "next clean",
-    "migrate": "node scripts/migrate.js"
+    "clean": "next clean"
   },
   "dependencies": {
     "@google/genai": "^1.43.0",
