@@ -220,7 +220,8 @@ export const translations = {
       enterContent: "Digite o conteúdo aqui...",
       listItem: "Item da lista...",
       viewCriteria: "Ver critérios de análise",
-      pageBreakEnd: "Fim da Página"
+      pageBreakEnd: "Fim da Página",
+      printDisclaimer: "A pré-visualização tenta ser 1:1, mas a impressão final pode variar dependendo do navegador e impressora."
     },
     dashboard: {
       loadingResume: "Carregando dados do currículo...",
@@ -730,7 +731,8 @@ export const translations = {
       enterContent: "Enter content here...",
       listItem: "List item...",
       viewCriteria: "View analysis criteria",
-      pageBreakEnd: "End of Page"
+      pageBreakEnd: "End of Page",
+      printDisclaimer: "Preview aims for 1:1 parity, but final print output may vary depending on browser and printer settings."
     },
     dashboard: {
       loadingResume: "Loading resume data...",

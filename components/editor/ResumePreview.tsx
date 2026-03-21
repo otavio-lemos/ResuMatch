@@ -127,6 +127,17 @@ function ResumePhoto({ url, size = '80px' }: { url?: string, size?: string }) {
     );
 }
 
+// ─── HELPER: Disclaimer Component ─────────────────────────────────────────────
+function PrintDisclaimer({ t }: { t: (key: string) => string }) {
+    return (
+        <div className="no-print mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs text-center max-w-[210mm] mx-auto">
+            <p className="font-semibold mb-1">
+                {t('editor.printDisclaimer')}
+            </p>
+        </div>
+    );
+}
+
 // ─── TEMPLATE 1: Classic Executive ─────────────────────────────────────────────
 function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
     if (!data) return null;
@@ -300,8 +311,8 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
 
     return (
         <div className="resume-container" style={{ ...style, background: 'white', display: 'flex', boxSizing: 'border-box' }}>
-            {/* Left Sidebar */}
-            <div style={{ width: '190px', background: '#1e293b', color: 'white', padding: '36px 20px', flexShrink: 0 }}>
+            {/* Left Sidebar - Adjusted for 210mm total width (190px -> approx 50mm, flex-1 -> approx 160mm) */}
+            <div style={{ width: '55mm', background: '#1e293b', color: 'white', padding: '36px 20px', flexShrink: 0 }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="120px" />
 
                 <div style={{ marginBottom: '24px' }}>
@@ -1553,15 +1564,15 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                 __html: `
                 @media print {
                     @page {
-                        size: A4;
-                        margin: 15mm;
+                        size: auto;
+                        margin: 0;
                     }
                     .page-break-indicator { display: none !important; }
                     html, body { margin: 0; padding: 0; background: white; }
                     .resume-container { 
-                        width: 180mm !important;
-                        max-width: 180mm !important;
-                        margin: 0 auto !important;
+                        width: ${size.width} !important;
+                        max-width: ${size.width} !important;
+                        margin: 0 !important;
                         padding: inherit !important;
                         box-shadow: none !important;
                         page-break-inside: avoid;
@@ -1610,6 +1621,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
             )}
 
             {renderTemplate()}
+            <PrintDisclaimer t={t} />
         </div>
     );
 }
