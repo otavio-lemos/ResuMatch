@@ -26,12 +26,6 @@ export async function POST(req: NextRequest) {
     const pdfBuffer = await page.pdf({
       format: pageSize as any,
       printBackground: true,
-      margin: {
-        top: '0px',
-        right: '0px',
-        bottom: '0px',
-        left: '0px',
-      },
     });
 
     await browser.close();

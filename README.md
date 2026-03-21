@@ -50,7 +50,7 @@ docker-compose up -d --build
 Access the app at: [**http://localhost:3000**](http://localhost:3000)
 
 > [!TIP]
-> To run with a local LLM, install [Ollama](https://ollama.com/) and download your preferred model (e.g., `ollama run qwen2.5:7b`).
+> To run with a local LLM, install [Ollama](https://ollama.com/) and download your preferred model (e.g., `ollama run qwen3:8b`).
 
 ### Manual Setup
 

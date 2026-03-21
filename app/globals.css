@@ -37,8 +37,8 @@
     background: white !important;
   }
 
-  /* Hide everything except the resume content */
-  header, footer, nav, aside, button, .no-print, .page-break-indicator {
+  /* Hide everything except the resume content (use header.sticky to target only Navbar, not resume <header>) */
+  header.sticky, footer, nav, aside, button, .no-print, .page-break-indicator {
     display: none !important;
   }
 

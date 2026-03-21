@@ -11,12 +11,12 @@ import { SKILL_DICTIONARY } from './skill-dictionary';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_FORMAT_RE = /^(0[1-9]|1[0-2])\/\d{4}$|^\d{4}-\d{2}$|^[A-Z][a-z]+\s\d{4}$/i;
-const METRIC_RE = /(\d+\s*(%|mil|k\b|m\b|milhões?|bilhões?|reais|usd|\$|€|funcionários?|projetos?|clientes?|usuários?|horas?|dias?|meses?|semanas?|sprint|vezes|vendas|conversão|pontos|recorrência))/i;
+const METRIC_RE = /(\d+\s*(%|mil|k\b|m\b|milhões?|bilhões?|reais|usd|\$|€|funcionários?|projetos?|clientes?|usuários?|horas?|dias?|meses?|semanas?|sprint|vezes|vendas|conversão|pontos|recorrência|impacto|growth|crescimento|revenue|receita))/i;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function countWords(text: string): number {
-    return (text || '').split(/\s+/).filter(w => w.length > 2).length;
+    return (text || '').split(/\s+/).filter(w => w.length > 1).length;
 }
 
 function hasStandardBullets(text: string): boolean {
@@ -26,8 +26,8 @@ function hasStandardBullets(text: string): boolean {
 }
 
 function detectSTAR(text: string): boolean {
-    const hasAction = /(liderou|gerenciou|desenvolveu|criou|aumentou|reduziu|facilitou|liderança|otimizou|led|managed|created|built|increased|reduced|optimized|achieved|conquistou|entregou|delivered)/i.test(text);
-    const hasResult = METRIC_RE.test(text) || /(resultou|gerando|impacto|entregando|economizou|resulting|achieving|delivery|impact|saved|revenue|receita|lucro)/i.test(text);
+    const hasAction = /(liderou|gerenciou|desenvolveu|criou|aumentou|reduziu|facilitou|liderança|otimizou|led|managed|created|built|increased|reduced|optimized|achieved|conquistou|entregou|delivered|spearheaded|engineered|implemented|coordinated)/i.test(text);
+    const hasResult = METRIC_RE.test(text) || /(resultou|gerando|impacto|entregando|economizou|resulting|achieving|delivery|impact|saved|revenue|receita|lucro|roi|performance)/i.test(text);
     return hasAction && hasResult;
 }
 
@@ -37,10 +37,18 @@ const STOP_WORDS = new Set([
 ]);
 
 function extractKeywords(text: string): string[] {
-    return text
-        .toLowerCase()
-        .split(/[\s,\.\n\r\t\-•*+()\[\]{}&/]+/)
-        .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+    const lowerText = (text || '').toLowerCase();
+    const words = lowerText.split(/[\s,\.\n\r\t\-•*+()\[\]{}&/]+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
+    
+    // Add multi-word skills from dictionary if they appear in text
+    const multiWordSkills = Object.keys(SKILL_DICTIONARY).filter(k => k.includes(' '));
+    for (const skill of multiWordSkills) {
+        if (lowerText.includes(skill.toLowerCase())) {
+            words.push(skill);
+        }
+    }
+    
+    return Array.from(new Set(words));
 }
 
 function levenshteinDistance(a: string, b: string): number {
@@ -64,7 +72,10 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
 } {
     const jdString = typeof jobDescription === 'string' ? jobDescription : '';
     if (!jdString.trim()) return { matchScore: 0, matchedKeywords: [], missingKeywords: [], jdKeywords: [] };
-    const jdKeywords = extractKeywords(jdString);
+    const jdKeywordsRaw = extractKeywords(jdString);
+    // Prefer longer keywords (phrases) over parts of them
+    const jdKeywords = jdKeywordsRaw.filter(k1 => !jdKeywordsRaw.some(k2 => k2 !== k1 && k2.includes(k1)));
+
     const resumeText = [
         resume?.summary || '',
         ...(resume?.experiences || []).map(e => e?.description || ''),
@@ -77,7 +88,7 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
     const missingKeywords: string[] = [];
     
     for (const keyword of jdKeywords) {
-        if (resumeKeywords.some(rk => rk.includes(keyword) || keyword.includes(rk) || (rk.length > 0 && keyword.length > 0 && levenshteinDistance(rk, keyword) <= 2))) {
+        if (resumeKeywords.some(rk => rk === keyword || rk.includes(keyword) || keyword.includes(rk) || (rk.length > 3 && keyword.length > 3 && levenshteinDistance(rk, keyword) <= 1))) {
             matchedKeywords.push(keyword);
         } else {
             missingKeywords.push(keyword);
@@ -86,18 +97,83 @@ export function calculateJDMatch(resume: ResumeData, jobDescription: string): {
     return { matchScore: jdKeywords.length > 0 ? Math.min(100, Math.round((matchedKeywords.length / jdKeywords.length) * 100)) : 0, matchedKeywords, missingKeywords, jdKeywords };
 }
 
-// ─── Main Score Function - SINGLE SOURCE ────────────────────────────────────────
+// ─── Main Score Function ───────────────────────────────────────────────────
 
 export function getScore(data: ResumeData): number {
     const analysis = data.aiAnalysis;
     
-    if (analysis?.score !== undefined) {
+    // Priority 1: AI Result
+    if (analysis?.score !== undefined && analysis.score > 0) {
         return analysis.score;
     }
     
     if (analysis?.scores?.design !== undefined) {
-        return Math.round((analysis.scores.design + analysis.scores.estrutura + analysis.scores.conteudo) / 3);
+        const str = analysis.scores.estrutura || analysis.scores.structure || 0;
+        const cont = analysis.scores.conteudo || analysis.scores.content || 0;
+        return Math.round((analysis.scores.design + str + cont) / 3);
     }
     
-    return 0;
+    // Priority 2: Local Baseline Fallback
+    return calculateLocalBaseline(data);
+}
+
+function calculateLocalBaseline(data: ResumeData): number {
+    let score = 0;
+    
+    // 1. Basic Info (up to 20 pts)
+    if (data.personalInfo.fullName) score += 5;
+    if (data.personalInfo.email && EMAIL_RE.test(data.personalInfo.email)) score += 5;
+    if (data.personalInfo.phone) score += 5;
+    if (data.personalInfo.linkedin || data.personalInfo.portfolio) score += 5;
+    
+    // 2. Volume & Structure (up to 30 pts)
+    const wordCount = countWords([
+        data.summary,
+        ...(data.experiences || []).map(e => e.description),
+        ...(data.education || []).map(e => e.description)
+    ].join(' '));
+    
+    if (wordCount >= 200 && wordCount <= 600) score += 20;
+    else if (wordCount > 50) score += 10;
+    
+    if ((data.experiences || []).length > 0) score += 5;
+    if ((data.education || []).length > 0) score += 5;
+    
+    // 3. Quality Metrics (up to 50 pts)
+    const allDescriptions = [
+        data.summary,
+        ...(data.experiences || []).map(e => e.description)
+    ].join('\n');
+    
+    // STAR Detection
+    const bulletLines = allDescriptions.split('\n').filter(l => l.trim().length > 10);
+    const starCount = bulletLines.filter(detectSTAR).length;
+    if (starCount >= 3) score += 20;
+    else if (starCount >= 1) score += 10;
+    
+    // Skill usage
+    const skillsCount = (data.skills || []).reduce((acc, g) => acc + (g.skills || []).length, 0);
+    if (skillsCount >= 8) score += 15;
+    else if (skillsCount >= 3) score += 5;
+    
+    // Certifications (check expiration)
+    if (data.certifications && data.certifications.length > 0) {
+        const now = new Date();
+        const validCerts = data.certifications.filter(c => {
+            if (!c.expirationDate) return true;
+            try {
+                const exp = new Date(c.expirationDate);
+                return exp > now;
+            } catch {
+                return true;
+            }
+        });
+        if (validCerts.length > 0) score += 10;
+        if (validCerts.length < data.certifications.length) score -= 5; // Penalty for expired certs
+    }
+
+    // Standard formats
+    if (hasStandardBullets(allDescriptions)) score += 5;
+    
+    return Math.max(0, Math.min(100, score));
 }

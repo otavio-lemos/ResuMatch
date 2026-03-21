@@ -214,39 +214,40 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
     - "Habilidades" ou "Competências" (não "Skills" em currículo PT)
     - "Resumo Profissional" ou "Professional Summary" (não "Sobre")
 
-### CÁLCULO DE MÉTRICAS OBRIGATÓRIO:
-- **wordCount**: Conte TODAS as palavras do currículo. Exemplo: 450 palavras = BOM para 1 página
-- **paragraphsPerSection**: Média de parágrafos por seção principal (target: 3-5)
-- **charsPerParagraph**: Média de caracteres por parágrafo (target: 67-94)
-- **starBullets**: PERCENTUAL de bullets que usam STAR (ex: value: 75 = 75%). **NUNCA retorne contagem absoluta, sempre percentual**
-- **keywordCount**: Palavras-chave únicas (target: 15-25 sem JD, 25-35 com JD)
-- **pageCount**: Estimativa baseada em ~450 palavras por página
+## Regras de Pontuação (Auditória)
 
-EXEMPLOS de formato CORRETO:
-```json
-"starBullets": { "value": 75, "target": ">70%", "status": "good" }
-"wordCount": { "value": 450, "target": "330-573", "status": "good" }
-```
+## VISÃO GERAL (O QUE É O ATS AUDITOR)
 
-RETURN ONLY JSON:
+O **ATS Auditor** é o cérebro que analisa o currículo em busca de compatibilidade técnica e estrutural com sistemas de rastreamento de candidatos de 2026.
+
+### Metas de Análise (Score 0-100)
+
+1. **Design**: Layout de coluna única, fontes padrão, sem tabelas/imagens.
+2. **Estrutura**: Cabeçalhos padrão, datas MM/YYYY, contato no corpo.
+data correto (preferencialmente MM/YYYY ou Nome do Mês YYYY), contato no corpo do documento (não em header/footer). **PENALIZE severamente formatos como YYYY-MM (ex: 2024-03).**
+3. **Conteúdo (40%)**: Descrições usando o método STAR/XYZ, densidade de palavras-chave, presença de resumo profissional, e uso de **Sigla + Nome Completo** para termos técnicos (ex: "Project Management Professional (PMP)").
+
+---
+## OUTPUT
+OBRIGATÓRIO: Use \n para parágrafos. OBRIGATÓRIO (Apenas JSON válido)
+Retorne ESTRITAMENTE o seguinte formato JSON:
 {
-  "scores": { "design": 0-100, "structure": 0-100, "content": 0-100 },
-  "designChecks": [
-    { "label": "string", "passed": boolean, "feedback": "string" }
-  ],
-  "structureChecks": [
-    { "label": "string", "passed": boolean, "feedback": "string" }
-  ],
-  "contentMetrics": {
-    "wordCount": { "value": 0, "target": "330-573", "status": "good|warning|danger" },
-    "paragraphsPerSection": { "value": 0, "target": "3-5", "status": "good|warning|danger" },
-    "charsPerParagraph": { "value": 0, "target": "67-94", "status": "good|warning|danger" },
-    "experienceDescriptions": { "value": 0, "target": "4-7", "status": "good|warning|danger" },
-    "starBullets": { "value": 0, "target": ">70%", "status": "good|warning|danger" },
-    "keywordCount": { "value": 0, "target": "15-25", "status": "good|warning|danger" },
-    "pageCount": { "value": 0, "target": "1-2", "status": "good|warning|danger" }
+  "score": 85,
+  "scores": {
+    "design": 90,
+    "structure": 80,
+    "content": 85
   },
-  "jdMatch": { "score": 0-100, "matchedKeywords": [], "missingKeywords": [] },
+    "experienceDescriptions": { "value": 85, "status": "pass", "target": "> 70" },
+    "starBullets": { "value": 60, "status": "warning", "target": "> 70" },
+    "keywordCount": { "value": 15, "status": "pass", "target": "10-25" },
+    "pageCount": { "value": 1, "status": "pass", "target": "1-2" }
+  },
+  "detailedSuggestions": [
+    { "type": "critical", "section": "Summary", "suggestion": "Adicione o nome completo da certificação PMP para melhor indexação." }
+  ]
+}
+```
   "improvedBullets": [
     { "section": "experience", "index": 0, "original": "string", "improved": "string", "reason": "string" }
   ],

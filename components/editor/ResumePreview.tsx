@@ -314,7 +314,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>Contato</h3>
+                    <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>{data.language === 'en' ? 'Contact' : 'Contato'}</h3>
                     {[
                         { label: personalInfo.email },
                         { label: personalInfo.phone },
@@ -329,7 +329,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
 
                 {skills.length > 0 && (
                     <div>
-                        <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>Competências</h3>
+                        <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>{data.language === 'en' ? 'Skills' : 'Competências'}</h3>
                         {skills.map(g => (
                             <div key={g.id} style={{ marginBottom: '10px' }}>
                                 <p style={{ fontSize: '0.7em', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px' }}>{g.category}</p>
@@ -658,7 +658,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={exp.id} style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.9em' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? 'Atual' : exp.endDate}</span>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? currentLabel : exp.endDate}</span>
                                     </div>
                                     <p style={{ fontSize: '0.82em', color: '#6b7280', marginBottom: '3px' }}>{exp.location}</p>
                                     <p style={{ fontSize: '0.85em', color: '#374151', whiteSpace: 'pre-line' }}>{exp.description}</p>
@@ -801,7 +801,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                         {exp.position} @ {exp.company}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
-                                        &gt; {exp.location ? `${exp.location} // ` : ''}{normalizeAtsDate(exp.startDate)} - {exp.current ? 'Present' : exp.endDate}
+                                        &gt; {exp.location ? `${exp.location} // ` : ''}{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}
                                     </p>
                                     <p style={{ fontSize: '0.75em', whiteSpace: 'pre-line' }}>{exp.description}</p>
                                 </div>
@@ -945,7 +945,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={exp.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(exp.startDate)} - {exp.current ? 'Present' : exp.endDate}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}</span>
                                     </div>
                                     <p style={{ fontSize: '0.75em', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px' }}>{exp.description}</p>
                                 </div>
@@ -1464,6 +1464,40 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+                    );
+                }
+
+                if (section.type === 'DATED_LIST' && section.items && section.items.length > 0) {
+                    return (
+                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                            <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '12px' }}>
+                                {stripEmojis(section.title)}
+                            </h2>
+                            {(section.items as any[]).map(item => (
+                                <div key={item.id} style={{ marginBottom: '12px' }}>
+                                    <div>
+                                        <span style={{ fontWeight: 'bold' }}>{stripEmojis(item.title)}</span>
+                                        <span style={{ float: 'right' }}>
+                                            {normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}
+                                        </span>
+                                    </div>
+                                    {item.subtitle && (
+                                        <div style={{ fontStyle: 'italic', marginBottom: '4px' }}>
+                                            {stripEmojis(item.subtitle)}{item.location ? `, ${stripEmojis(item.location)}` : ''}
+                                        </div>
+                                    )}
+                                    {item.description && (
+                                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '1em' }}>
+                                            {stripEmojis(typeof item.description === 'string' ? item.description : String(item.description || '')).split('\n').map((line: string, i: number) => {
+                                                const trimmed = typeof line === 'string' ? line.trim().replace(/^[-•]\s*/, '') : '';
+                                                if (!trimmed) return null;
+                                                return <li key={i} style={{ marginBottom: '2px' }}>{trimmed}</li>;
+                                            })}
+                                        </ul>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     );
                 }

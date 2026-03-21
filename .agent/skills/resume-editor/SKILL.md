@@ -50,14 +50,23 @@ Faça uma varredura fria e analítica do currículo. Retorne um relatório estru
 4. **Red Flags de Formatação:** Alerte se houver seções vazias, descrições fora do padrão (muito curtas/longas), datas inconsistentes ou falta de informações de contato.
 
 ## OUTPUT
-OBRIGATÓRIO: Use \n para parágrafos. EXEMPLO: "Parágrafo 1\n\nParágrafo 2\n\nParágrafo 3" (não "Parágrafo 1 Parágrafo 2 Parágrafo 3"). OBRIGATÓRIO (Apenas JSON válido)
-Retorne ESTRITAMENTE o seguinte formato JSON, sem markdown ou texto fora das chaves:
+OBRIGATÓRIO: Use \n para parágrafos. OBRIGATÓRIO (Apenas JSON válido)
+Retorne ESTRITAMENTE o seguinte formato JSON:
 {
-  "ats_score": [Número de 0 a 100 indicando a força geral do currículo OU o match com a vaga],
-  "missing_keywords": ["keyword1", "keyword2"], // Baseado na vaga OU no padrão da indústria para o cargo
-  "found_keywords": ["keyword3", "keyword4"],
-  "critical_warnings": ["Aviso sobre datas", "Aviso sobre falta de métricas no cargo X"],
-  "actionable_advice": ["Sugestão 1 para melhorar o score", "Sugestão 2"]
+  "score": 85,
+  "scores": {
+    "design": 90,
+    "structure": 80,
+    "content": 85
+  },
+  "jdMatch": {
+    "score": 75,
+    "matchedKeywords": ["keyword1"],
+    "missingKeywords": ["keyword2"]
+  },
+  "detailedSuggestions": [
+    { "type": "warning", "section": "Experience", "suggestion": "Adicione métricas STAR." }
+  ]
 }
 ```
 ########## FIM AAAUUUDDDIIITTTAAATTTSSS
