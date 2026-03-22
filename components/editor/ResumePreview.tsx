@@ -1559,7 +1559,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
     };
 
     return (
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden resume-preview-wrapper">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
@@ -1567,8 +1567,29 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                         size: auto;
                         margin: 0;
                     }
+                    #resume-print-container {
+                        transform: none !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-shadow: none !important;
+                        display: block !important;
+                    }
                     .page-break-indicator { display: none !important; }
-                    html, body { margin: 0; padding: 0; background: white; }
+                    html, body { 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        background: white !important; 
+                        width: ${size.width} !important;
+                        height: auto !important;
+                    }
+                    .resume-preview-wrapper {
+                        overflow: visible !important;
+                        height: auto !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
                     .resume-container { 
                         width: ${size.width} !important;
                         max-width: ${size.width} !important;
@@ -1577,6 +1598,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                         box-shadow: none !important;
                         page-break-inside: avoid;
                         overflow: visible !important;
+                        display: block !important;
                     }
                 }
                 .page-break-indicator {                    position: absolute;
