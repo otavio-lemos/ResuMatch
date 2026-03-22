@@ -146,7 +146,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
 
     return (
         <div className="resume-container" style={{ ...style, background: 'white', color: '#1e293b', padding: '15mm', boxSizing: 'border-box' }}>
-            <header style={{ borderBottom: '2px solid #1e293b', paddingBottom: '20px', marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+            <header style={{ borderBottom: '2px solid #1e293b', paddingBottom: '15mm', marginBottom: '15mm', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="90px" />
                 <div style={{ flex: 1 }}>
                     <h2 style={{ fontSize: '2em', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a', marginBottom: '4px' }}>
@@ -311,8 +311,8 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
 
     return (
         <div className="resume-container" style={{ ...style, background: 'white', display: 'flex', boxSizing: 'border-box' }}>
-            {/* Left Sidebar - Adjusted for 210mm total width (190px -> approx 50mm, flex-1 -> approx 160mm) */}
-            <div style={{ width: '55mm', background: '#1e293b', color: 'white', padding: '36px 20px', flexShrink: 0 }}>
+            {/* Left Sidebar - Adjusted for 210mm total width */}
+            <div style={{ width: '55mm', background: '#1e293b', color: 'white', padding: '15mm 15mm', flexShrink: 0 }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="120px" />
 
                 <div style={{ marginBottom: '24px' }}>
@@ -356,7 +356,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
             </div>
 
             {/* Right Main Content */}
-            <div style={{ flex: 1, padding: '36px 28px', overflow: 'hidden' }}>
+            <div style={{ flex: 1, padding: '15mm', overflow: 'hidden' }}>
                 {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                     const sectionStyle = { marginBottom: '20px' };
                     const headingStyle = { fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: '#1e40af', borderBottom: '2px solid #1e40af', paddingBottom: '4px', marginBottom: '12px' };
@@ -479,7 +479,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
 
     return (
         <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
-            <header style={{ display: 'flex', alignItems: 'center', gap: '24px', borderBottom: '2px solid #3b82f6', paddingBottom: '20px', marginBottom: '24px' }}>
+            <header style={{ display: 'flex', alignItems: 'center', gap: '24px', borderBottom: '2px solid #3b82f6', paddingBottom: '15mm', marginBottom: '15mm' }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="100px" />
                 <div style={{ flex: 1 }}>
                     <h2 style={{ fontSize: '2.4em', fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em', marginBottom: '4px', lineHeight: 1.1 }}>
@@ -779,7 +779,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
 
     return (
         <div className="resume-container" style={containerStyle}>
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '15mm' }}>
                 <h1 style={{ fontSize: '1.4em', fontWeight: 900, ...blueText, marginBottom: '4px' }}>{personalInfo.fullName || 'SEU NOME'}</h1>
                 <p style={{ fontSize: '0.7em', color: '#94A3B8' }}>
                     {[
@@ -795,7 +795,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
             {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 if (section.id === 'summary' && summary) {
                     return (
-                        <div key={section.id} style={{ marginBottom: '16px' }}>
+                        <div key={section.id} style={{ marginBottom: '15mm' }}>
                             <h2 style={headingStyle}>~/{section.id}</h2>
                             <p style={{ fontSize: '0.75em', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{summary}</p>
                         </div>
@@ -913,8 +913,8 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
     const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
-    const containerStyle = { ...style, padding: '30px', backgroundColor: 'white', boxSizing: 'border-box' as const };
-    const headerBox = { backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' };
+    const containerStyle = { ...style, padding: '15mm', backgroundColor: 'white', boxSizing: 'border-box' as const };
+    const headerBox = { backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15mm' };
     const headingStyle = { fontSize: '0.8em', fontWeight: 900, color: '#1E293B', textTransform: 'uppercase' as const, marginBottom: '6px', marginTop: '12px', borderBottom: '1px solid #E2E8F0', paddingBottom: '2px' };
 
     return (
@@ -1042,7 +1042,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '1in', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
             <header style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <h1 style={{ fontSize: '1.8em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {personalInfo.fullName || 'SEU NOME'}
@@ -1352,7 +1352,7 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
     const fontToUse = "Arial, Helvetica, sans-serif";
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '1in', boxSizing: 'border-box', fontFamily: fontToUse }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '15mm', boxSizing: 'border-box', fontFamily: fontToUse }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
