@@ -18,6 +18,9 @@
 git clone https://github.com/otavio-lemos/ResuMatch.git
 cd ResuMatch
 docker-compose up -d --build
+
+# Acompanhar logs:
+docker-compose logs -f
 ```
 
 Acesse: [**http://localhost:3000**](http://localhost:3000)
