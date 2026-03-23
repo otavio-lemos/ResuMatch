@@ -1537,7 +1537,7 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
     const language = data?.language || 'pt';
     const { t } = useTranslation();
     
-    const printFontFamily = FONT_MAP[data?.appearance?.fontFamily] || FONT_MAP['Inter'];
+    const printFontFamily = FONT_MAP[data?.appearance?.fontFamily] || FONT_MAP['Arial'];
     const printFontSize = data?.appearance?.fontSize ? `${data.appearance.fontSize}pt` : '11pt';
     const printLineHeight = data?.appearance?.lineSpacing || '1.5';
 
