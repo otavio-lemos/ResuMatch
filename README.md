@@ -34,6 +34,7 @@ flowchart TB
     E --> D
     D --> F[Preview]
     F --> G[Export PDF]
+    F -.-> D
     D --> H[AI Parser]
     H --> E
     D --> I[ATS Analysis]
