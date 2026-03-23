@@ -83,6 +83,14 @@ Respond with valid JSON only. No markdown fences.
     
     console.log('[parseResumeChain] Starting invoke, prompt length:', prompt.length);
     
+    console.log('[parseResumeChain] ========== SKILL ==========');
+    console.log(skill);
+    console.log('[parseResumeChain] ========== END SKILL ==========');
+    
+    console.log('[parseResumeChain] ========== FULL PROMPT ==========');
+    console.log(prompt);
+    console.log('[parseResumeChain] ========== END PROMPT ==========');
+    
     const invokeResponse = await model.invoke([
       { role: 'user', content: prompt }
     ]);
@@ -90,6 +98,10 @@ Respond with valid JSON only. No markdown fences.
     let fullContent = typeof invokeResponse.content === 'string' 
       ? invokeResponse.content 
       : JSON.stringify(invokeResponse.content);
+    
+    console.log('[parseResumeChain] ========== RAW AI RESPONSE ==========');
+    console.log(fullContent);
+    console.log('[parseResumeChain] ========== END AI RESPONSE ==========');
     
     yield { type: 'chunk', content: fullContent };
     

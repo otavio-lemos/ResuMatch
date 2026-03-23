@@ -79,6 +79,14 @@ Respond with valid JSON only. No markdown fences.
     
     console.log('[analyzeATSChain] Starting invoke...');
     
+    console.log('[analyzeATSChain] ========== SKILL ==========');
+    console.log(analyzerSkill);
+    console.log('[analyzeATSChain] ========== END SKILL ==========');
+    
+    console.log('[analyzeATSChain] ========== FULL PROMPT ==========');
+    console.log(prompt);
+    console.log('[analyzeATSChain] ========== END PROMPT ==========');
+    
     const invokeResponse = await model.invoke([
       { role: 'user', content: prompt }
     ]);
@@ -86,6 +94,10 @@ Respond with valid JSON only. No markdown fences.
     let fullContent = typeof invokeResponse.content === 'string' 
       ? invokeResponse.content 
       : JSON.stringify(invokeResponse.content);
+    
+    console.log('[analyzeATSChain] ========== RAW AI RESPONSE ==========');
+    console.log(fullContent);
+    console.log('[analyzeATSChain] ========== END AI RESPONSE ==========');
     
     yield { type: 'chunk', content: fullContent };
     

@@ -135,6 +135,14 @@ export async function POST(req: NextRequest) {
         
         console.log('[langchain-parse-resume] Text extracted, length:', textContent.length);
         
+        console.log('[langchain-parse-resume] ========== SKILL SENT TO AI ==========');
+        console.log(fullSkill);
+        console.log('[langchain-parse-resume] ========== END SKILL ==========');
+        
+        console.log('[langchain-parse-resume] ========== USER PROMPT SENT TO AI ==========');
+        console.log(prompt);
+        console.log('[langchain-parse-resume] ========== END USER PROMPT ==========');
+        
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Processando currículo com LangChain...' })}\n\n`));
         
@@ -169,6 +177,11 @@ export async function POST(req: NextRequest) {
             }
             
             console.log('[langchain-parse-resume] Sending DONE message to frontend, data keys:', Object.keys(data));
+            
+            console.log('[langchain-parse-resume] ========== FULL AI RESPONSE ==========');
+            console.log(fullContent);
+            console.log('[langchain-parse-resume] ========== END AI RESPONSE ==========');
+            
             try {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'done', 

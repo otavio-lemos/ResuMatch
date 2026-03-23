@@ -45,6 +45,14 @@ export async function POST(req: NextRequest) {
         
         console.log('[langchain-analyze] Calling analyzeATSChain...');
         
+        console.log('[langchain-analyze] ========== SKILL SENT TO AI ==========');
+        console.log(fullSkill);
+        console.log('[langchain-analyze] ========== END SKILL ==========');
+        
+        console.log('[langchain-analyze] ========== USER PROMPT SENT TO AI ==========');
+        console.log(prompt);
+        console.log('[langchain-analyze] ========== END USER PROMPT ==========');
+        
         // Send info message with skill and prompt (like import)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
         
@@ -70,6 +78,10 @@ export async function POST(req: NextRequest) {
             fullContent += result.content;
           } else if (result.type === 'done') {
             console.log('[langchain-analyze] Sending DONE, data keys:', Object.keys(result.data));
+            
+            console.log('[langchain-analyze] ========== FULL AI RESPONSE ==========');
+            console.log(fullContent);
+            console.log('[langchain-analyze] ========== END AI RESPONSE ==========');
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
               type: 'done', 
               data: result.data,
