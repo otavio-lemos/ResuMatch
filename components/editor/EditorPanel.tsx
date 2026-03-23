@@ -1193,13 +1193,13 @@ export function EditorPanel() {
                                 if (isCertItem && certItem) {
                                     displayValue = `${certItem.name || ''}${certItem.issuer ? ` — ${certItem.issuer}` : ''}${certItem.date ? ` (${certItem.date})` : ''}`;
                                 } else if (isSimpleObject) {
-                                    displayValue = (item as any).title || (item as any).name || (item as any).description || JSON.stringify(item);
+                                    displayValue = (item as any).title || (item as any).name || (item as any).description || '';
                                 } else {
-                                    displayValue = String(item);
+                                    displayValue = typeof item === 'string' ? item : '';
                                 }
                                 return (
                                 <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative">
-                                    <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => {
                                                 if (idx === 0) return;
