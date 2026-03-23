@@ -38,6 +38,7 @@ flowchart TB
     H --> E
     D --> I[ATS Analysis]
     I --> J[Score]
+    J --> F
     I -.-> K[Job Description]
     K --> J
 ```
