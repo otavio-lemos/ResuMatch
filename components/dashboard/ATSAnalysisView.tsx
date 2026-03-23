@@ -282,6 +282,7 @@ export default function ATSAnalysisView() {
     const [showTerminal, setShowTerminal] = useState(false);
     const router = useRouter();
     const [atsBubbles, setAtsBubbles] = useState<Bubble[]>([]);
+    const [streamResponse, setStreamResponse] = useState('');
 
     const ANALYSING_BUBBLES = useMemo(() => ((t('import.analysingBubbles') as unknown) || []) as Bubble[], [t]);
 
@@ -345,6 +346,7 @@ export default function ATSAnalysisView() {
 
     useEffect(() => {
         if (storeIsAnalyzing && atsBubbles.length === 0) {
+            setStreamResponse(''); // Reset streaming response
             setAtsBubbles([{ from: 'user', text: t('import.wantsAudit') || 'Quero que você analise meu currículo e faça uma avaliação completa de ATS (Applicant Tracking System).', delay: 0 }]);
         }
     }, [storeIsAnalyzing, t]);
@@ -353,6 +355,7 @@ export default function ATSAnalysisView() {
         if (storeIsAnalyzing && debugInfo?.currentSkill) {
             setAtsBubbles(prev => {
                 if (prev.some(b => b.text?.includes('🎯 SKILL:'))) return prev;
+                setStreamResponse(''); // Reset on new analysis
                 return [
                     ...prev,
                     { from: 'ai', text: '🎯 SKILL:', delay: 50 },
@@ -370,18 +373,17 @@ export default function ATSAnalysisView() {
         }
     }, [storeIsAnalyzing, debugInfo?.currentProgress]);
 
+    // Streaming: accumulate chunks and show in real-time
     useEffect(() => {
-        if (!storeIsAnalyzing && debugInfo?.lastResponse && atsBubbles.length > 1) {
-            const debug = debugInfo.lastResponse as any;
-            if (debug?.debug?.rawResponse) {
-                setAtsBubbles(prev => [
-                    ...prev,
-                    { from: 'ai', text: '📥 RAW LLM RESPONSE:', delay: 300 },
-                    { from: 'ai', text: debug.debug.rawResponse || '', delay: 350 }
-                ]);
-            }
+        if (storeIsAnalyzing && (streamProgress || []).length > 0) {
+            const accumulated = (streamProgress || []).join('');
+            setStreamResponse(accumulated);
+            setAtsBubbles(prev => {
+                const filtered = prev.filter(b => !b.text?.startsWith('📥 RESPONSE:'));
+                return [...filtered, { from: 'ai', text: `📥 RESPONSE:\n${accumulated}`, delay: 50 }];
+            });
         }
-    }, [storeIsAnalyzing, debugInfo?.lastResponse]);
+    }, [storeIsAnalyzing, streamProgress]);
 
     const toggleSuggestion = (index: number) => {
         setSuggestions(prev => prev.map((s, i) => 
