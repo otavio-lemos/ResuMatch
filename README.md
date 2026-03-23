@@ -7,6 +7,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 
+> [!IMPORTANT]
+> **Privacy First** - This app is 100% private. No telemetry, analytics, or tracking is sent anywhere. The only data transmitted is when you explicitly use an AI provider (Gemini, OpenAI, or Ollama) - and that data goes ONLY to the AI service you configure.
+
 ## Quick Start
 
 ```bash
