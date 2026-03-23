@@ -298,7 +298,8 @@ export default function ImportWizardClient() {
                             if (data.type === 'info') {
                                 skillInfo = data.skill;
                                 promptInfo = data.prompt;
-                                addParsingBubble({ sender: 'user', text: `PROMPT:\n${promptInfo}`, type: 'text' });
+                                addParsingBubble({ sender: 'ai', text: `🎯 SKILL:\n${skillInfo}`, type: 'text' });
+                                addParsingBubble({ sender: 'user', text: `📤 PROMPT:\n${promptInfo}`, type: 'text' });
                             } else if (data.type === 'progress') {
                                 addParsingBubble({ sender: 'ai', text: data.message, type: 'progress' });
                             } else if (data.type === 'chunk') {

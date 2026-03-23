@@ -352,13 +352,13 @@ export default function ATSAnalysisView() {
     useEffect(() => {
         if (storeIsAnalyzing && debugInfo?.currentSkill) {
             setAtsBubbles(prev => {
-                if (prev.some(b => b.text?.includes('SKILL (System Instruction)'))) return prev;
+                if (prev.some(b => b.text?.includes('🎯 SKILL:'))) return prev;
                 return [
                     ...prev,
-                    { from: 'ai', text: '🎯 SKILL (System Instruction):', delay: 50 },
-                    { from: 'ai', text: (debugInfo.currentSkill || '').substring(0, 500) + ((debugInfo.currentSkill?.length || 0) > 500 ? '...[TRUNCATED]' : ''), delay: 100 },
+                    { from: 'ai', text: '🎯 SKILL:', delay: 50 },
+                    { from: 'ai', text: debugInfo.currentSkill || '', delay: 100 },
                     { from: 'ai', text: '📤 USER PROMPT:', delay: 150 },
-                    { from: 'ai', text: (debugInfo.currentPrompt || '').substring(0, 500) + ((debugInfo.currentPrompt?.length || 0) > 500 ? '...[TRUNCATED]' : ''), delay: 200 }
+                    { from: 'ai', text: debugInfo.currentPrompt || '', delay: 200 }
                 ];
             });
         }
@@ -377,7 +377,7 @@ export default function ATSAnalysisView() {
                 setAtsBubbles(prev => [
                     ...prev,
                     { from: 'ai', text: '📥 RAW LLM RESPONSE:', delay: 300 },
-                    { from: 'ai', text: (debug.debug.rawResponse || '').substring(0, 1000) + ((debug.debug.rawResponse?.length || 0) > 1000 ? '...[TRUNCATED]' : ''), delay: 350 }
+                    { from: 'ai', text: debug.debug.rawResponse || '', delay: 350 }
                 ]);
             }
         }
