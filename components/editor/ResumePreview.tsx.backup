@@ -666,7 +666,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
                             {experiences.map(exp => (
-                                <div key={exp.id} style={{ marginBottom: '14px' }}>
+                                <div key={exp.id} style={{ marginBottom: '14px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.9em' }}>{exp.position} — {exp.company}</strong>
                                         <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? currentLabel : exp.endDate}</span>
@@ -746,7 +746,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
                             {(section.items as any[] || []).map(item => (
-                                <div key={item.id} style={{ marginBottom: '12px' }}>
+                                <div key={item.id} style={{ marginBottom: '12px', paddingLeft: '12px', borderLeft: '2px solid #f3f4f6' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.88em' }}>{item.title}</strong>
                                         <span style={{ fontSize: '0.7em', color: '#9ca3af' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` – ${normalizeAtsDate(item.endDate)}`}</span>
@@ -809,7 +809,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '12px' }}>
                                     <strong style={{ fontSize: '0.85em', fontWeight: 700, ...blueText }}>
-                                        {exp.position} - {exp.company}
+                                        {exp.position} @ {exp.company}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
                                         &gt; {exp.location ? `${exp.location} // ` : ''}{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}
@@ -828,7 +828,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
                                     <strong style={{ fontSize: '0.85em', fontWeight: 700, ...blueText }}>
-                                        {edu.degree} - {edu.institution}
+                                        {edu.degree} @ {edu.institution}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px' }}>
                                         &gt; {edu.location ? `${edu.location} // ` : ''}{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}
@@ -972,7 +972,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '6px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{edu.degree} - {edu.institution}</strong>
+                                        <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{edu.degree} @ {edu.institution}</strong>
                                         <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}</span>
                                     </div>
                                 </div>
@@ -1400,9 +1400,9 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                             </h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '12px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <div>
                                         <span style={{ fontWeight: 'bold' }}>{stripEmojis(exp.position)}</span>
-                                        <span>
+                                        <span style={{ float: 'right' }}>
                                             {normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}
                                         </span>
                                     </div>
@@ -1432,9 +1432,9 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                             </h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <div>
                                         <span style={{ fontWeight: 'bold' }}>{stripEmojis(edu.degree)}</span>
-                                        <span>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` - ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span style={{ float: 'right' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` - ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <div>
                                         {stripEmojis(edu.institution)}{edu.location ? `, ${stripEmojis(edu.location)}` : ''}
@@ -1498,9 +1498,9 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                             </h2>
                             {(section.items as any[]).map(item => (
                                 <div key={item.id} style={{ marginBottom: '12px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <div>
                                         <span style={{ fontWeight: 'bold' }}>{stripEmojis(item.title)}</span>
-                                        <span>
+                                        <span style={{ float: 'right' }}>
                                             {normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}
                                         </span>
                                     </div>
@@ -1592,7 +1592,6 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                     }
                     .resume-container {
                         width: 100% !important;
-                        min-height: auto !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         box-shadow: none !important;

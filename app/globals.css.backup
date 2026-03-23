@@ -25,7 +25,7 @@
 
 @media print {
   @page {
-    margin: 10mm;
+    margin: 0;
   }
 
   html, body {
