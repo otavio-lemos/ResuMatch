@@ -262,6 +262,7 @@ type ResumeStore = {
     updateSectionListItem: (sectionId: string, itemId: string, data: any) => void;
     removeSectionListItem: (sectionId: string, itemId: string) => void;
     reorderSections: (newOrder: SectionConfig[]) => void;
+    reorderSectionItems: (sectionId: string, newOrder: any[]) => void;
 
     setFullData: (data: ResumeData) => void;
     setJobDescription: (jd: string) => void;
@@ -650,6 +651,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         return s;
     }) } })),
     reorderSections: (newOrder) => set((state) => ({ data: { ...state.data, sectionsConfig: newOrder } })),
+    reorderSectionItems: (sectionId, newOrder) => set((state) => ({ data: { ...state.data, sectionsConfig: state.data.sectionsConfig.map((s) => s.id === sectionId ? { ...s, items: newOrder } : s) } })),
     setFullData: (data) => set((state) => {
         const newData = { ...data };
         if (newData.projects && Array.isArray(newData.projects) && newData.projects.length > 0) {

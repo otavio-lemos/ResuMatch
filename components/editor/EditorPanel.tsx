@@ -42,6 +42,7 @@ export function EditorPanel() {
         updateSectionListItem,
         addSectionListItem,
         removeSectionListItem,
+        reorderSectionItems,
         updateSectionContent,
         renameSection,
         saveLocalResume,
@@ -1171,11 +1172,45 @@ export function EditorPanel() {
                             {section.type === 'SIMPLE_LIST' && (section.items as any[] || []).map((item, idx) => {
                                 const isCertItem = typeof item === 'object' && item !== null && 'name' in item;
                                 const certItem = isCertItem ? item as { name?: string; issuer?: string; date?: string } : null;
-                                const displayValue = isCertItem && certItem
-                                    ? `${certItem.name || ''}${certItem.issuer ? ` — ${certItem.issuer}` : ''}${certItem.date ? ` (${certItem.date})` : ''}`
-                                    : String(item);
+                                const isSimpleObject = typeof item === 'object' && item !== null && !isCertItem;
+                                let displayValue = '';
+                                if (isCertItem && certItem) {
+                                    displayValue = `${certItem.name || ''}${certItem.issuer ? ` — ${certItem.issuer}` : ''}${certItem.date ? ` (${certItem.date})` : ''}`;
+                                } else if (isSimpleObject) {
+                                    displayValue = (item as any).title || (item as any).name || (item as any).description || JSON.stringify(item);
+                                } else {
+                                    displayValue = String(item);
+                                }
                                 return (
-                                <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative pr-10">
+                                <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative">
+                                    <div className="flex flex-col gap-1">
+                                        <button
+                                            onClick={() => {
+                                                if (idx === 0) return;
+                                                const items = [...(section.items as any[] || [])];
+                                                const newItems = [...items];
+                                                [newItems[idx], newItems[idx - 1]] = [newItems[idx - 1], newItems[idx]];
+                                                reorderSectionItems(section.id, newItems);
+                                            }}
+                                            className="text-slate-300 hover:text-slate-500 p-0.5"
+                                            disabled={idx === 0}
+                                        >
+                                            <ChevronUp className="size-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const items = [...(section.items as any[] || [])];
+                                                if (idx === items.length - 1) return;
+                                                const newItems = [...items];
+                                                [newItems[idx], newItems[idx + 1]] = [newItems[idx + 1], newItems[idx]];
+                                                reorderSectionItems(section.id, newItems);
+                                            }}
+                                            className="text-slate-300 hover:text-slate-500 p-0.5"
+                                            disabled={idx === (section.items as any[] || []).length - 1}
+                                        >
+                                            <ChevronDown className="size-3" />
+                                        </button>
+                                    </div>
                                     <input
                                         className="flex-1 px-2 py-1 rounded bg-transparent border-none text-xs outline-none focus:ring-1 focus:ring-blue-500"
                                         value={displayValue}
@@ -1188,7 +1223,7 @@ export function EditorPanel() {
                                         }}
                                         placeholder={t('labels.listItem') || "Item da lista..."}
                                     />
-                                    <button onClick={() => removeSectionListItem(section.id, idx.toString())} className="absolute right-2 text-slate-300 hover:text-red-500 p-1">
+                                    <button onClick={() => removeSectionListItem(section.id, idx.toString())} className="text-slate-300 hover:text-red-500 p-1">
                                         <Trash2 className="size-3.5" />
                                     </button>
                                 </div>

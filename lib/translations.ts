@@ -7,7 +7,8 @@ export const translations = {
       import: "Importar",
       download: "Baixar",
       config: "Config LLM",
-      analysis: "Análise ATS"
+      analysis: "Análise ATS",
+      sections: "Seções"
     },
     sections: {
       personalInfo: "Informações Pessoais",
@@ -518,7 +519,8 @@ export const translations = {
       import: "Import",
       download: "Download",
       config: "LLM Config",
-      analysis: "ATS Analysis"
+      analysis: "ATS Analysis",
+      sections: "Sections"
     },
     sections: {
       personalInfo: "Personal Information",
