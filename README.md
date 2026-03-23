@@ -54,6 +54,11 @@ flowchart TB
 | **AI** | Google Gemini, OpenAI, Ollama |
 | **Parsing** | Mammoth, PDF-Parse |
 | **i18n** | next-intl |
+| **Icons** | Lucide React |
+| **Animations** | Motion |
+| **PDF Export** | React-to-Print |
+| **Validation** | Zod |
+| **Charts** | Recharts |
 
 ## Configuration
 
