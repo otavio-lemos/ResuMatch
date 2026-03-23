@@ -1185,18 +1185,75 @@ export function EditorPanel() {
                                 </div>
                             )}
 
-                            {section.type === 'SIMPLE_LIST' && (section.items as any[] || []).map((item, idx) => {
-                                const isCertItem = typeof item === 'object' && item !== null && 'name' in item;
-                                const certItem = isCertItem ? item as { name?: string; issuer?: string; date?: string } : null;
-                                const isSimpleObject = typeof item === 'object' && item !== null && !isCertItem;
-                                let displayValue = '';
-                                if (isCertItem && certItem) {
-                                    displayValue = `${certItem.name || ''}${certItem.issuer ? ` — ${certItem.issuer}` : ''}${certItem.date ? ` (${certItem.date})` : ''}`;
-                                } else if (isSimpleObject) {
-                                    displayValue = (item as any).title || (item as any).name || (item as any).description || '';
-                                } else {
-                                    displayValue = typeof item === 'string' ? item : '';
-                                }
+                            {section.type === 'SIMPLE_LIST' && section.id === 'certifications' && (section.items as any[] || []).map((item, idx) => {
+                                const certItem = typeof item === 'object' && item !== null ? item as { name?: string; issuer?: string; date?: string } : { name: '', issuer: '', date: '' };
+                                return (
+                                <div key={idx} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-3 relative shadow-sm">
+                                    <button onClick={() => removeSectionListItem(section.id, idx.toString())} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 p-1">
+                                        <Trash2 className="size-3.5" />
+                                    </button>
+                                    <div className="flex items-center gap-1 mb-2">
+                                        <button
+                                            onClick={() => {
+                                                if (idx === 0) return;
+                                                const items = [...(section.items as any[] || [])];
+                                                const newItems = [...items];
+                                                [newItems[idx], newItems[idx - 1]] = [newItems[idx - 1], newItems[idx]];
+                                                reorderSectionItems(section.id, newItems);
+                                            }}
+                                            className="text-slate-300 hover:text-slate-500 p-0.5"
+                                            disabled={idx === 0}
+                                        >
+                                            <ChevronUp className="size-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const items = [...(section.items as any[] || [])];
+                                                if (idx === items.length - 1) return;
+                                                const newItems = [...items];
+                                                [newItems[idx], newItems[idx + 1]] = [newItems[idx + 1], newItems[idx]];
+                                                reorderSectionItems(section.id, newItems);
+                                            }}
+                                            className="text-slate-300 hover:text-slate-500 p-0.5"
+                                            disabled={idx === (section.items as any[] || []).length - 1}
+                                        >
+                                            <ChevronDown className="size-3" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.name') || 'Certification Name'}</label>
+                                            <input
+                                                className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-bold"
+                                                value={certItem.name || ''}
+                                                onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, name: e.target.value })}
+                                                placeholder="Oracle Cloud Infrastructure 2025..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.issuer') || 'Issuer'} / {t('form.date') || 'Date'}</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    className="flex-1 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
+                                                    value={certItem.issuer || ''}
+                                                    onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, issuer: e.target.value })}
+                                                    placeholder="Oracle"
+                                                />
+                                                <input
+                                                    className="w-24 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
+                                                    value={certItem.date || ''}
+                                                    onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, date: e.target.value })}
+                                                    placeholder="02/2025"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                );
+                            })}
+
+                            {section.type === 'SIMPLE_LIST' && section.id !== 'certifications' && (section.items as any[] || []).map((item, idx) => {
+                                const displayValue = typeof item === 'string' ? item : (item as any).title || (item as any).name || '';
                                 return (
                                 <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative">
                                     <div className="flex items-center gap-1">
@@ -1230,13 +1287,7 @@ export function EditorPanel() {
                                     <input
                                         className="flex-1 px-2 py-1 rounded bg-transparent border-none text-xs outline-none focus:ring-1 focus:ring-blue-500"
                                         value={displayValue}
-                                        onChange={(e) => {
-                                            if (isCertItem && certItem) {
-                                                updateSectionListItem(section.id, idx.toString(), { ...certItem, name: e.target.value });
-                                            } else {
-                                                updateSectionListItem(section.id, idx.toString(), e.target.value);
-                                            }
-                                        }}
+                                        onChange={(e) => updateSectionListItem(section.id, idx.toString(), e.target.value)}
                                         placeholder={t('labels.listItem') || "Item da lista..."}
                                     />
                                     <button onClick={() => removeSectionListItem(section.id, idx.toString())} className="text-slate-300 hover:text-red-500 p-1">
