@@ -151,7 +151,7 @@ function SkillsRenderer({ skills, language = 'pt' }: { skills: SkillCategory[]; 
     const softLabel = language === 'en' ? 'Soft Skills' : 'Soft Skills';
     
     return (
-        <div style={{ fontSize: '0.88em', color: '#374151' }}>
+        <div>
             {hardSkills.length > 0 && (
                 <div style={{ marginBottom: hardSkills.length > 0 && softSkills.length > 0 ? '6px' : 0 }}>
                     <strong style={{ color: '#0f172a' }}>{hardLabel}: </strong>
