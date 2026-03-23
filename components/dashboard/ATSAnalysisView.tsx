@@ -7,6 +7,30 @@ import { useResumeStore, ResumeData, AICheck, DetailedSuggestion } from '@/store
 import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
+function safeCertName(item: any): string {
+    if (!item) return 'Certificação';
+    const name = item.name;
+    const title = item.title;
+    if (typeof name === 'string' && name.trim()) return name.trim();
+    if (typeof title === 'string' && title.trim()) return title.trim();
+    return 'Certificação';
+}
+
+function safeString(val: any): string {
+    return typeof val === 'string' ? val : '';
+}
+
+function normalizeAtsDate(date: string): string {
+    if (!date) return '';
+    try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return date;
+        return d.toLocaleDateString('pt-BR') || date;
+    } catch {
+        return date;
+    }
+}
+
 function CircularProgress({ percent, colorClass, size = "md" }: { percent: number, colorClass: string, size?: "md" | "lg" }) {
     const radius = size === "lg" ? 54 : 36;
     const circumference = 2 * Math.PI * radius;
@@ -237,8 +261,8 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
                         <span className="text-[9px] font-black text-pink-600 uppercase block mb-2">{t('sections.certifications') || 'Certificações'}</span>
                         {(certs as any[]).map((cert: any, i: number) => (
                             <div key={cert.id || i} className="mb-2 pb-2 border-b border-slate-200 dark:border-slate-700 last:border-0">
-                                <p className="font-bold text-slate-900 dark:text-white">{cert.name}</p>
-                                <p className="text-slate-600 dark:text-slate-400">{cert.issuer} | {cert.date}</p>
+                                <p className="font-bold text-slate-900 dark:text-white">{safeCertName(cert)}</p>
+                                <p className="text-slate-600 dark:text-slate-400">{safeString(cert.issuer)} {cert.date ? `| ${normalizeAtsDate(cert.date)}` : ''}</p>
                             </div>
                         ))}
                     </div>

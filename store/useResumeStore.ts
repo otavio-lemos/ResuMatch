@@ -671,7 +671,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
             const isCertSection = sectionId === 'certifications';
             const newItems = [...items]; 
             if (isCertSection && typeof newItems[idx] === 'object') {
-                newItems[idx] = { ...newItems[idx], name: data };
+                newItems[idx] = { ...newItems[idx], ...data };
             } else {
                 newItems[idx] = data;
             }

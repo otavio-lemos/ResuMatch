@@ -16,6 +16,12 @@ import { TEMPLATES } from '@/lib/templates';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLanguageStore } from '@/store/useLanguageStore';
 
+function safeCertField(val: any): string {
+    if (typeof val === 'string') return val;
+    if (val && typeof val === 'object') return JSON.stringify(val);
+    return '';
+}
+
 export function EditorPanel() {
     const router = useRouter();
     const {
@@ -1225,7 +1231,7 @@ export function EditorPanel() {
                                             <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.name') || 'Certification Name'}</label>
                                             <input
                                                 className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-bold"
-                                                value={certItem.name || ''}
+                                                value={safeCertField(certItem.name)}
                                                 onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, name: e.target.value })}
                                                 placeholder="Oracle Cloud Infrastructure 2025..."
                                             />
@@ -1235,13 +1241,13 @@ export function EditorPanel() {
                                             <div className="flex gap-2">
                                                 <input
                                                     className="flex-1 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
-                                                    value={certItem.issuer || ''}
+                                                    value={safeCertField(certItem.issuer)}
                                                     onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, issuer: e.target.value })}
                                                     placeholder="Oracle"
                                                 />
                                                 <input
                                                     className="w-24 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
-                                                    value={certItem.date || ''}
+                                                    value={safeCertField(certItem.date)}
                                                     onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, date: e.target.value })}
                                                     placeholder="02/2025"
                                                 />
@@ -1253,7 +1259,7 @@ export function EditorPanel() {
                             })}
 
                             {section.type === 'SIMPLE_LIST' && section.id !== 'certifications' && (section.items as any[] || []).map((item, idx) => {
-                                const displayValue = typeof item === 'string' ? item : (item as any).title || (item as any).name || '';
+                                const displayValue = typeof item === 'string' ? item : (typeof (item as any).title === 'string' ? (item as any).title : (typeof (item as any).name === 'string' ? (item as any).name : ''));
                                 return (
                                 <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative">
                                     <div className="flex items-center gap-1">
