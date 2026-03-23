@@ -25,7 +25,10 @@ Quando a tarefa for extrair dados de um arquivo desestruturado (PDF, DOCX, TXT) 
     { "id": "exp-1", "company": "Empresa Tech", "position": "Desenvolvedor Senior", "location": "São Paulo", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": ["Liderança de equipe", "Desenvolvimento de APIs", "Code review"] }
   ],
   "education": [{ "id": "edu-1", "institution": "USP", "degree": "Bacharelado em Ciência da Computação", "location": "São Paulo", "startDate": "01/2010", "endDate": "12/2014", "current": false, "description": "" }],
-  "skills": [{ "id": "skill-1", "category": "Programação", "skills": ["JavaScript", "Python", "Java"] }],
+  "skills": [
+    { "id": "skill-1", "category": "Hard Skills", "type": "hard", "skills": ["JavaScript", "Python", "Java", "AWS", "Docker"] },
+    { "id": "skill-2", "category": "Soft Skills", "type": "soft", "skills": ["Liderança", "Comunicação", "Resolução de problemas"] }
+  ],
   "certifications": [{ "id": "cert-1", "name": "AWS Solutions Architect", "issuer": "Amazon", "date": "01/2023", "expirationDate": "" }],
   "projects": [],
   "languages": [{ "id": "lang-1", "language": "Português", "proficiency": "Nativo" }],
@@ -89,6 +92,21 @@ Exemplo para currículo inglês:
 - education
 - skills
 
+### CLASSIFICAÇÃO DE SKILLS (CRÍTICO)
+
+Separe TODAS as skills em duas categoriasfixas:
+
+**Hard Skills (type: "hard"):**
+- Técnicas e específicas: linguagens de programação, frameworks, ferramentas, cloud, banco de dados, ferramentas de desenvolvimento, certificações técnicas
+
+**Soft Skills (type: "soft"):**
+- Comportamentais e interpessoais: liderança, comunicação, trabalho em equipe, resolução de problemas, pensamento crítico, gestão de tempo, empatia, negociação
+
+EXEMPLO de classificação correta:
+- "Python, JavaScript, AWS, Docker, Kubernetes, PostgreSQL" → Hard Skills
+- "Liderança de equipe, Comunicação eficaz, Resolução de problemas, Gestão de tempo" → Soft Skills
+- "Inglês (fluente), Espanhol (intermediário)" → Hard Skills (idiomas são técnicos)
+
 ### OUTPUT (retorne APENAS o JSON, sem texto)
 
 ```json
@@ -97,7 +115,10 @@ Exemplo para currículo inglês:
   "summary": "",
   "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "current": false, "description": "" } ],
   "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/AAAA", "endDate": "MM/AAAA", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": [] } ],
+  "skills": [
+    { "id": "skill-1", "category": "Hard Skills", "type": "hard", "skills": [] },
+    { "id": "skill-2", "category": "Soft Skills", "type": "soft", "skills": [] }
+  ],
   "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/AAAA", "expirationDate": "" } ],
   "projects": [],
   "languages": [],

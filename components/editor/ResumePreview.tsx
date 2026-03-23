@@ -3,8 +3,9 @@
 // export const metadata = {}; // SEO bypass
 import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
-import { ResumeData, AppearanceSettings, PersonalInfo } from '@/store/useResumeStore';
+import { ResumeData, AppearanceSettings, PersonalInfo, SkillCategory } from '@/store/useResumeStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { classifySkills, separateByType } from '@/lib/ai/skill-classifier';
 
 const LABELS = { pt: 'Atual', en: 'Current' };
 
@@ -138,6 +139,39 @@ function PrintDisclaimer({ t }: { t: (key: string) => string }) {
     );
 }
 
+// ─── HELPER: Skills Renderer (Hard/Soft) ─────────────────────────────────────────
+function SkillsRenderer({ skills, language = 'pt' }: { skills: SkillCategory[]; language?: string }) {
+    const classified = classifySkills(skills);
+    const { hard, soft } = separateByType(classified);
+    
+    const hardSkills = hard.flatMap(s => s.skills).filter(Boolean);
+    const softSkills = soft.flatMap(s => s.skills).filter(Boolean);
+    
+    const hardLabel = language === 'en' ? 'Hard Skills' : 'Hard Skills';
+    const softLabel = language === 'en' ? 'Soft Skills' : 'Soft Skills';
+    
+    return (
+        <div style={{ fontSize: '0.88em', color: '#374151' }}>
+            {hardSkills.length > 0 && (
+                <div style={{ marginBottom: hardSkills.length > 0 && softSkills.length > 0 ? '6px' : 0 }}>
+                    <strong style={{ color: '#0f172a' }}>{hardLabel}: </strong>
+                    {hardSkills.map((skill, i) => (
+                        <span key={i}>{stripEmojis(skill)}{i < hardSkills.length - 1 ? ', ' : ''}</span>
+                    ))}
+                </div>
+            )}
+            {softSkills.length > 0 && (
+                <div>
+                    <strong style={{ color: '#0f172a' }}>{softLabel}: </strong>
+                    {softSkills.map((skill, i) => (
+                        <span key={i}>{stripEmojis(skill)}{i < softSkills.length - 1 ? ', ' : ''}</span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── TEMPLATE 1: Classic Executive ─────────────────────────────────────────────
 function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabel?: string }) {
     if (!data) return null;
@@ -231,11 +265,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                             <h2 style={{ fontSize: '0.7em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 20px', fontSize: '0.88em', color: '#374151' }}>
-                                {skills.map(g => (
-                                    <div key={g.id}><strong style={{ color: '#0f172a' }}>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}</div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </section>
                     );
                 }
@@ -341,16 +371,36 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                 {skills.length > 0 && (
                     <div>
                         <h3 style={{ fontSize: '0.6em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', marginBottom: '8px' }}>{data.language === 'en' ? 'Skills' : 'Competências'}</h3>
-                        {skills.map(g => (
-                            <div key={g.id} style={{ marginBottom: '10px' }}>
-                                <p style={{ fontSize: '0.7em', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px' }}>{g.category}</p>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                                    {g.skills.map(s => (
-                                        <span key={s} style={{ fontSize: '0.65em', background: '#334155', color: '#94a3b8', padding: '1px 6px', borderRadius: '3px' }}>{s}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                        {(() => {
+                            const classified = classifySkills(skills);
+                            const { hard, soft } = separateByType(classified);
+                            const hardSkills = hard.flatMap(s => s.skills).filter(Boolean);
+                            const softSkills = soft.flatMap(s => s.skills).filter(Boolean);
+                            return (
+                                <>
+                                    {hardSkills.length > 0 && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <p style={{ fontSize: '0.65em', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px' }}>Hard Skills</p>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                                {hardSkills.map((s, i) => (
+                                                    <span key={i} style={{ fontSize: '0.65em', background: '#334155', color: '#94a3b8', padding: '1px 6px', borderRadius: '3px' }}>{s}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {softSkills.length > 0 && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <p style={{ fontSize: '0.65em', fontWeight: 600, color: '#e2e8f0', marginBottom: '4px' }}>Soft Skills</p>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                                {softSkills.map((s, i) => (
+                                                    <span key={i} style={{ fontSize: '0.65em', background: '#334155', color: '#94a3b8', padding: '1px 6px', borderRadius: '3px' }}>{s}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
             </div>
@@ -407,12 +457,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
-                                {skills.map(g => (
-                                    <div key={g.id} style={{ marginBottom: '10px' }}>
-                                        <p style={{ fontSize: '0.75em', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>{g.category}</p>
-                                        <p style={{ fontSize: '0.82em', color: '#374151' }}>{g.skills.join(', ')}</p>
-                                    </div>
-                                ))}
+                                <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                             </section>
                         );
                     }
@@ -555,13 +600,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 24px' }}>
-                                {skills.map(g => (
-                                    <div key={g.id} style={{ fontSize: '0.9em', color: '#334155' }}>
-                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}
-                                    </div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </section>
                     );
                 }
@@ -700,14 +739,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                {skills.map(g => (
-                                    <div key={g.id}>
-                                        <p style={{ fontSize: '0.8em', fontWeight: 600, color: '#374151' }}>{g.category}</p>
-                                        <p style={{ fontSize: '0.78em', color: '#6b7280' }}>{g.skills.join(' · ')}</p>
-                                    </div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </section>
                     );
                 }
@@ -843,12 +875,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                     return (
                         <div key={section.id} style={{ marginBottom: '16px' }}>
                             <h2 style={headingStyle}>~/{section.id}</h2>
-                            {skills.map(g => (
-                                <div key={g.id} style={{ marginBottom: '6px' }}>
-                                    <strong style={{ fontSize: '0.8em', ...blueText }}>{g.category}: </strong>
-                                    <span style={{ fontSize: '0.75em' }}>{g.skills.join(', ')}</span>
-                                </div>
-                            ))}
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </div>
                     );
                 }
@@ -985,12 +1012,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            {skills.map(g => (
-                                <div key={g.id} style={{ marginBottom: '4px', fontSize: '0.75em' }}>
-                                    <strong style={{ color: '#1E293B' }}>{g.category}: </strong>
-                                    <span style={{ color: '#475569' }}>{g.skills.join(', ')}</span>
-                                </div>
-                            ))}
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </div>
                     );
                 }
@@ -1146,13 +1168,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                             <h2 style={{ fontSize: '1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
-                            <div style={{ fontSize: '0.9em' }}>
-                                {skills.map(g => (
-                                    <div key={g.id} style={{ marginBottom: '4px' }}>
-                                        <strong>{g.category}:</strong> {g.skills.join(', ')}
-                                    </div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </section>
                     );
                 }
@@ -1297,13 +1313,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                             <h2 style={{ fontSize: '0.9em', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
-                            <div style={{ fontSize: '0.9em', color: '#374151', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {skills.map(g => (
-                                    <div key={g.id}>
-                                        <strong style={{ color: '#111827' }}>{g.category}:</strong> {g.skills.join(', ')}
-                                    </div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </section>
                     );
                 }
@@ -1359,11 +1369,8 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
     const { personalInfo = {} as PersonalInfo, summary, experiences = [], education = [], skills = [], appearance = {} as AppearanceSettings, sectionsConfig = [] } = data;
     const style = getStyles(appearance);
 
-    // Force maximum ATS safety with standard fonts
-    const fontToUse = "Arial, Helvetica, sans-serif";
-
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '15mm', boxSizing: 'border-box', fontFamily: fontToUse }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: 'black', padding: '15mm', boxSizing: 'border-box' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.4em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
@@ -1451,13 +1458,7 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                             <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid black', paddingBottom: '2px', marginBottom: '8px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
-                            <div style={{ fontSize: '1em' }}>
-                                {skills.map(g => (
-                                    <div key={g.id} style={{ marginBottom: '4px' }}>
-                                        <strong>{stripEmojis(g.category)}:</strong> {stripEmojis(g.skills.join(', '))}
-                                    </div>
-                                ))}
-                            </div>
+                            <SkillsRenderer skills={skills} language={data?.language || 'pt'} />
                         </div>
                     );
                 }

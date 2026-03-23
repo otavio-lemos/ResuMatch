@@ -298,7 +298,7 @@ export default function ConfigForm() {
     resetToDefaults 
   } = useAISettingsStore();
   
-  const [activeTab, setActiveTab] = useState<'analysis' | 'import' | 'editor'>('import');
+  const [activeTab, setActiveTab] = useState<'analysis' | 'import' | 'editor'>('analysis');
   const [testLoading, setTestLoading] = useState<{ primary?: boolean; import?: boolean; editor?: boolean; comparison?: boolean }>({});
   const [testResult, setTestResult] = useState<{ primary?: { success: boolean; message: string; duration?: number }; import?: { success: boolean; message: string; duration?: number }; editor?: { success: boolean; message: string; duration?: number }; comparison?: { success: boolean; message: string; duration?: number } }>({});
   const [testLogs, setTestLogs] = useState<TestLog[]>([]);

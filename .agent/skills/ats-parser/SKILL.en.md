@@ -25,7 +25,10 @@ When the task is to extract data from an unstructured file (PDF, DOCX, TXT) to t
     { "id": "exp-1", "company": "Tech Company", "position": "Senior Developer", "location": "New York", "startDate": "01/2020", "endDate": "12/2024", "current": false, "description": ["Team leadership", "API development", "Code review"] }
   ],
   "education": [{ "id": "edu-1", "institution": "MIT", "degree": "Bachelor in Computer Science", "location": "Boston", "startDate": "09/2010", "endDate": "06/2014", "current": false, "description": "" }],
-  "skills": [{ "id": "skill-1", "category": "Programming", "skills": ["JavaScript", "Python", "Java"] }],
+  "skills": [
+    { "id": "skill-1", "category": "Hard Skills", "type": "hard", "skills": ["JavaScript", "Python", "Java", "AWS", "Docker"] },
+    { "id": "skill-2", "category": "Soft Skills", "type": "soft", "skills": ["Leadership", "Communication", "Problem Solving"] }
+  ],
   "certifications": [{ "id": "cert-1", "name": "AWS Solutions Architect", "issuer": "Amazon", "date": "01/2023", "expirationDate": "" }],
   "projects": [],
   "languages": [{ "id": "lang-1", "language": "English", "proficiency": "Native" }],
@@ -79,6 +82,21 @@ Example for resume with custom headers:
 - education
 - skills
 
+### SKILLS CLASSIFICATION (CRITICAL)
+
+Separate ALL skills into two fixed categories:
+
+**Hard Skills (type: "hard"):**
+- Technical and specific: programming languages, frameworks, tools, cloud, databases, development tools, technical certifications
+
+**Soft Skills (type: "soft"):**
+- Behavioral and interpersonal: leadership, communication, teamwork, problem solving, critical thinking, time management, empathy, negotiation
+
+EXAMPLE of correct classification:
+- "Python, JavaScript, AWS, Docker, Kubernetes, PostgreSQL" → Hard Skills
+- "Team leadership, Effective communication, Problem solving, Time management" → Soft Skills
+- "English (fluent), Spanish (intermediate)" → Hard Skills (languages are technical)
+
 ### OUTPUT (return ONLY the JSON, no text)
 
 ```json
@@ -87,7 +105,10 @@ Example for resume with custom headers:
   "summary": "",
   "experiences": [ { "id": "exp-1", "company": "", "position": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "current": false, "description": "" } ],
   "education": [ { "id": "edu-1", "institution": "", "degree": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "current": false, "description": "" } ],
-  "skills": [ { "id": "skill-1", "category": "", "skills": [] } ],
+  "skills": [
+    { "id": "skill-1", "category": "Hard Skills", "type": "hard", "skills": [] },
+    { "id": "skill-2", "category": "Soft Skills", "type": "soft", "skills": [] }
+  ],
   "certifications": [ { "id": "cert-1", "name": "", "issuer": "", "date": "MM/YYYY", "expirationDate": "" } ],
   "projects": [],
   "languages": [],

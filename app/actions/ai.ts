@@ -273,11 +273,26 @@ export async function generateSummaryAI(resumeData: ResumeData, authSettings?: A
 export async function generateSkillsAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { skillsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: { category: string; skills: string[] }[] }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.skillsPrompt ? `USER INSTRUCTION: ${authSettings.skillsPrompt}\n\n` : '';
-    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION: EXTRACT SKILLS from this resume data. Analyze the work experience, projects, education, and summary to identify all relevant skills. Organize them into categories like: Programming Languages, Frameworks, Tools, Soft Skills, Languages, etc. Return a JSON array with format: [{"category": "Category Name", "skills": ["Skill1", "Skill2", ...]}]`;
-    // USA A SKILL DE SUMMARY para extração de skills
+    
+    const resumeDataJson = JSON.stringify({
+        summary: resumeData.summary,
+        experiences: resumeData.experiences,
+        education: resumeData.education,
+        projects: resumeData.projects,
+        languages: resumeData.languages
+    }, null, 2);
+    
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}
+RESUME DATA TO ANALYZE:
+${resumeDataJson}
+
+EXECUTE ACTION: EXTRACT SKILLS from the resume data above. IMPORTANT: Separate skills into exactly two categories:
+1. "Hard Skills" (type: "hard") - Technical skills: programming languages, frameworks, tools, cloud, databases, certifications, languages
+2. "Soft Skills" (type: "soft") - Behavioral skills: leadership, communication, teamwork, problem solving, time management, etc.
+Return JSON array with format: [{"category": "Hard Skills", "type": "hard", "skills": ["Skill1", "Skill2", ...]}, {"category": "Soft Skills", "type": "soft", "skills": ["Skill1", "Skill2", ...]}]`;
+    
     const { response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsSummarySkill(language), language);
     const parsed = robustJsonParse(response);
-    // Garante que é um array
     return { prompt: finalPrompt, response: Array.isArray(parsed) ? parsed : [] };
 }
 
