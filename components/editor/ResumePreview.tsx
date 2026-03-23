@@ -135,7 +135,7 @@ function ResumePhoto({ url, size = '80px' }: { url?: string, size?: string }) {
             height: size,
             borderRadius: '0px',
             overflow: 'hidden',
-            border: '2px solid #e2e8f0',
+            border: '2px solid #000000',
             marginBottom: '10px'
         }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,17 +162,17 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#1e293b', padding: '15mm', boxSizing: 'border-box' }}>
-            <header style={{ borderBottom: '2px solid #1e293b', paddingBottom: '5mm', marginBottom: '5mm', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box' }}>
+            <header style={{ borderBottom: '2px solid #000000', paddingBottom: '5mm', marginBottom: '5mm', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="90px" />
                 <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: 'inherit', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a', marginBottom: '4px' }}>
+                    <h2 style={{ fontSize: 'inherit', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#000000', marginBottom: '4px' }}>
                         {stripEmojis(personalInfo.fullName) || 'SEU NOME'}
                     </h2>
-                    <p style={{ fontSize: 'inherit', fontWeight: 500, color: '#475569', textTransform: 'uppercase', marginBottom: '12px' }}>
+                    <p style={{ fontSize: 'inherit', fontWeight: 500, color: '#000000', textTransform: 'uppercase', marginBottom: '12px' }}>
                         {stripEmojis(personalInfo.title) || 'SEU CARGO'}
                     </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: 'inherit', color: '#64748b' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: 'inherit', color: '#000000' }}>
                         {[
                             personalInfo.email,
                             personalInfo.phone ? `• ${personalInfo.phone}` : '',
@@ -191,10 +191,10 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(summary)}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', textAlign: 'justify', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(summary)}</p>
                         </section>
                     );
                 }
@@ -202,21 +202,21 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.id === 'experience' && experiences.length > 0) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '12px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(exp.position)}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748b', fontWeight: 600 }}>
+                                        <strong style={{ color: '#000000' }}>{stripEmojis(exp.position)}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000', fontWeight: 600 }}>
                                             {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', fontStyle: 'italic', marginBottom: '4px' }}>
                                         {stripEmojis(exp.company)}{exp.location && `, ${stripEmojis(exp.location)}`}
                                     </p>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(exp.description)}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(exp.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -226,16 +226,16 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.id === 'education' && education.length > 0) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '12px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '10px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(edu.degree)}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <strong style={{ color: '#000000' }}>{stripEmojis(edu.degree)}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569' }}>{stripEmojis(edu.institution)}{edu.location && `, ${stripEmojis(edu.location)}`}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000' }}>{stripEmojis(edu.institution)}{edu.location && `, ${stripEmojis(edu.location)}`}</p>
                                 </div>
                             ))}
                         </section>
@@ -252,23 +252,23 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
 
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {hardSkills.length > 0 && (
                                 <div style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{hardLabel}</strong>
+                                        <strong style={{ color: '#000000' }}>{hardLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                             {softSkills.length > 0 && (
                                 <div style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{softLabel}</strong>
+                                        <strong style={{ color: '#000000' }}>{softLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                         </section>
@@ -279,10 +279,10 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.type === 'TEXT') {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(section.content)}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(section.content)}</p>
                         </section>
                     );
                 }
@@ -290,10 +290,10 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.type === 'SIMPLE_LIST') {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '10px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
-                            <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#374151', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc' }}>
+                            <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#000000', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc' }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px', fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight }}>
                                         {section.id === 'certifications' && item && typeof item === 'object' ? (
@@ -311,21 +311,21 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                 if (section.type === 'DATED_LIST') {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '12px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid #000000', paddingBottom: '4px', marginBottom: '12px' }}>
                                 {stripEmojis(section.title)}
                             </h2>
                             {(section.items as any[] || []).map(item => (
                                 <div key={item.id} style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <strong style={{ color: '#0f172a' }}>{stripEmojis(item.title)}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748b', fontWeight: 600 }}>
+                                        <strong style={{ color: '#000000' }}>{stripEmojis(item.title)}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000', fontWeight: 600 }}>
                                             {normalizeAtsDate(item.startDate)}{item.endDate && ` — ${normalizeAtsDate(item.endDate)}`}
                                         </span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', fontStyle: 'italic', marginBottom: '4px' }}>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', fontStyle: 'italic', marginBottom: '4px' }}>
                                         {stripEmojis(item.subtitle)}{item.location && `, ${stripEmojis(item.location)}`}
                                     </p>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(item.description)}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{stripEmojis(item.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -414,7 +414,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
-                                <p style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#374151', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
+                                <p style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#000000', textAlign: 'justify', whiteSpace: 'pre-line' }}>{summary}</p>
                             </section>
                         );
                     }
@@ -426,11 +426,11 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                 {experiences.map(exp => (
                                     <div key={exp.id} style={{ marginBottom: '14px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                            <strong style={{ color: '#0f172a', fontSize: 'inherit' }}>{exp.position}</strong>
-                                            <span style={{ fontSize: 'inherit', color: '#64748b' }}>                                            {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}</span>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{exp.position}</strong>
+                                            <span style={{ fontSize: 'inherit', color: '#000000' }}>                                            {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}</span>
                                         </div>
                                         <p style={{ fontSize: 'inherit', color: '#1e40af', marginBottom: '4px' }}>{exp.company}{exp.location && `, ${exp.location}`}</p>
-                                        <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{exp.description}</p>
+                                        <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{exp.description}</p>
                                     </div>
                                 ))}
                             </section>
@@ -443,9 +443,9 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <h2 style={headingStyle}>{section.title}</h2>
                                 {education.map(edu => (
                                     <div key={edu.id} style={{ marginBottom: '10px' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#0f172a' }}>{edu.degree}</strong>
-                                        <p style={{ fontSize: 'inherit', color: '#374151' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
-                                        <p style={{ fontSize: 'inherit', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</p>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{edu.degree}</strong>
+                                        <p style={{ fontSize: 'inherit', color: '#000000' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
+                                        <p style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</p>
                                     </div>
                                 ))}
                             </section>
@@ -466,17 +466,17 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                 {hardSkills.length > 0 && (
                                     <div style={{ marginBottom: '14px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                            <strong style={{ color: '#0f172a', fontSize: 'inherit' }}>{hardLabel}</strong>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{hardLabel}</strong>
                                         </div>
-                                        <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
+                                        <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
                                     </div>
                                 )}
                                 {softSkills.length > 0 && (
                                     <div style={{ marginBottom: '14px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                            <strong style={{ color: '#0f172a', fontSize: 'inherit' }}>{softLabel}</strong>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{softLabel}</strong>
                                         </div>
-                                        <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
+                                        <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
                                     </div>
                                 )}
                             </section>
@@ -487,7 +487,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
-                                <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{section.content}</p>
+                                <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{section.content}</p>
                             </section>
                         );
                     }
@@ -497,7 +497,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                         return (
                             <section key={section.id} style={sectionStyle}>
                                 <h2 style={headingStyle}>{section.title}</h2>
-                                <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#374151', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc' }}>
+                                <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#000000', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc' }}>
                                     {(section.items as any[] || []).map((item, idx) => (
                                         <li key={idx} style={{ marginBottom: '3px', fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight }}>
                                             {isCertSection && item && typeof item === 'object' ? (
@@ -519,11 +519,11 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                 {(section.items as any[] || []).map(item => (
                                     <div key={item.id} style={{ marginBottom: '12px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                            <strong style={{ color: '#0f172a', fontSize: 'inherit' }}>{item.title}</strong>
-                                            <span style={{ fontSize: 'inherit', color: '#64748b' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` — ${normalizeAtsDate(item.endDate)}`}</span>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{item.title}</strong>
+                                            <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` — ${normalizeAtsDate(item.endDate)}`}</span>
                                         </div>
                                         <p style={{ fontSize: 'inherit', color: '#1e40af' }}>{item.subtitle}{item.location && `, ${item.location}`}</p>
-                                        <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{item.description}</p>
+                                        <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{item.description}</p>
                                     </div>
                                 ))}
                             </section>
@@ -544,7 +544,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box' }}>
             <header style={{ display: 'flex', alignItems: 'center', gap: '24px', borderBottom: '2px solid #3b82f6', paddingBottom: '5mm', marginBottom: SECTION_MARGIN_BOTTOM }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="100px" />
                 <div style={{ flex: 1 }}>
@@ -554,7 +554,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     <p style={{ fontSize: 'inherit', color: '#3b82f6', fontWeight: 600, paddingBottom: '8px', marginBottom: '8px' }}>
                         {stripEmojis(personalInfo.title) || 'Seu Cargo Desejado'}
                     </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: '4px', columnGap: '16px', fontSize: 'inherit', color: '#475569' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: '4px', columnGap: '16px', fontSize: 'inherit', color: '#000000' }}>
                         {personalInfo.location && <span>• {stripEmojis(personalInfo.location)}</span>}
                         {personalInfo.email && <span>• {stripEmojis(personalInfo.email)}</span>}
                         {personalInfo.phone && <span>• {stripEmojis(personalInfo.phone)}</span>}
@@ -573,7 +573,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
-                            <p style={{ fontSize: 'inherit', textAlign: 'justify', lineHeight: style.lineHeight, color: '#334155', whiteSpace: 'pre-line' }}>{stripEmojis(summary)}</p>
+                            <p style={{ fontSize: 'inherit', textAlign: 'justify', lineHeight: style.lineHeight, color: '#000000', whiteSpace: 'pre-line' }}>{stripEmojis(summary)}</p>
                         </section>
                     );
                 }
@@ -585,13 +585,13 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '18px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(exp.position)}</h3>
+                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#000000', margin: 0 }}>{stripEmojis(exp.position)}</h3>
                                         <span style={{ fontSize: 'inherit', color: '#3b82f6', fontWeight: 600 }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? 'Present' : exp.endDate}</span>
                                     </div>
-                                    <div style={{ fontSize: 'inherit', fontWeight: 500, color: '#475569', marginBottom: '6px' }}>
+                                    <div style={{ fontSize: 'inherit', fontWeight: 500, color: '#000000', marginBottom: '6px' }}>
                                         {stripEmojis(exp.company)}{exp.location && ` | ${stripEmojis(exp.location)}`}
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#334155', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(exp.description)}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(exp.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -605,10 +605,10 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(edu.degree)}</h3>
-                                        <span style={{ fontSize: 'inherit', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` – ${getCurrentLabel(data?.language || 'pt')}` : ` – ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#000000', margin: 0 }}>{stripEmojis(edu.degree)}</h3>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` – ${getCurrentLabel(data?.language || 'pt')}` : ` – ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
-                                    <div style={{ fontSize: 'inherit', color: '#475569' }}>
+                                    <div style={{ fontSize: 'inherit', color: '#000000' }}>
                                         {stripEmojis(edu.institution)}{edu.location && ` | ${stripEmojis(edu.location)}`}
                                     </div>
                                 </div>
@@ -631,17 +631,17 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                             {hardSkills.length > 0 && (
                                 <div style={{ marginBottom: '18px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#0f172a', margin: 0 }}>{hardLabel}</h3>
+                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#000000', margin: 0 }}>{hardLabel}</h3>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#334155', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{hardSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{hardSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                             {softSkills.length > 0 && (
                                 <div style={{ marginBottom: '18px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#0f172a', margin: 0 }}>{softLabel}</h3>
+                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#000000', margin: 0 }}>{softLabel}</h3>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#334155', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{softSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight, margin: 0 }}>{softSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                         </section>
@@ -652,7 +652,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
-                            <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', color: '#334155', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(section.content)}</p>
+                            <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', color: '#000000', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(section.content)}</p>
                         </section>
                     );
                 }
@@ -662,7 +662,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{stripEmojis(section.title)}</h2>
-                            <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#334155', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc', margin: 0 }}>
+                            <ul style={{ fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight, color: '#000000', paddingLeft: LIST_PADDING_LEFT, listStyleType: 'disc', margin: 0 }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '6px', fontSize: 'inherit', fontFamily: style.fontFamily, lineHeight: style.lineHeight }}>
                                         {isCertSection && item && typeof item === 'object' ? (
@@ -684,11 +684,11 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                             {(section.items as any[] || []).map(item => (
                                 <div key={item.id} style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
-                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(item.title)}</h3>
-                                        <span style={{ fontSize: 'inherit', color: '#64748b' }}>{normalizeAtsDate(item.startDate)} – {normalizeAtsDate(item.endDate)}</span>
+                                        <h3 style={{ fontSize: 'inherit', fontWeight: 700, color: '#000000', margin: 0 }}>{stripEmojis(item.title)}</h3>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(item.startDate)} – {normalizeAtsDate(item.endDate)}</span>
                                     </div>
-                                    {item.subtitle && <div style={{ fontSize: 'inherit', color: '#475569', marginBottom: '4px' }}>{stripEmojis(item.subtitle)}{item.location && ` | ${stripEmojis(item.location)}`}</div>}
-                                    <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', color: '#334155', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(item.description)}</p>
+                                    {item.subtitle && <div style={{ fontSize: 'inherit', color: '#000000', marginBottom: '4px' }}>{stripEmojis(item.subtitle)}{item.location && ` | ${stripEmojis(item.location)}`}</div>}
+                                    <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', color: '#000000', lineHeight: style.lineHeight, margin: 0 }}>{stripEmojis(item.description)}</p>
                                 </div>
                             ))}
                         </section>
@@ -707,17 +707,17 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box' }}>
             {/* Centered header */}
-            <header style={{ textAlign: 'center', marginBottom: SECTION_MARGIN_BOTTOM, paddingBottom: '20px', borderBottom: '1px solid #d1d5db' }}>
+            <header style={{ textAlign: 'center', marginBottom: SECTION_MARGIN_BOTTOM, paddingBottom: '20px', borderBottom: '1px solid #000000' }}>
                 <ResumePhoto url={personalInfo.photoUrl} size="100px" />
-                <h2 style={{ fontSize: 'inherit', fontWeight: 300, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#111827', marginBottom: '4px' }}>
+                <h2 style={{ fontSize: 'inherit', fontWeight: 300, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#000000', marginBottom: '4px' }}>
                     {personalInfo.fullName || 'SEU NOME'}
                 </h2>
                 {personalInfo.title && (
-                    <p style={{ fontSize: 'inherit', color: '#6b7280', letterSpacing: '0.1em', marginBottom: '10px' }}>{personalInfo.title}</p>
+                    <p style={{ fontSize: 'inherit', color: '#000000', letterSpacing: '0.1em', marginBottom: '10px' }}>{personalInfo.title}</p>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px', fontSize: 'inherit', color: '#6b7280' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px', fontSize: 'inherit', color: '#000000' }}>
                     {personalInfo.email && <span>{personalInfo.email}</span>}
                     {personalInfo.phone && <span>|</span>}
                     {personalInfo.phone && <span>{personalInfo.phone}</span>}
@@ -732,13 +732,13 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
 
             {(sectionsConfig || []).filter(s => s.active && s.id !== 'personal').map(section => {
                 const sectionStyle = { marginBottom: SECTION_MARGIN_BOTTOM };
-                const headingStyle = { fontSize: 'inherit', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: '#6b7280', marginBottom: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '12px' };
+                const headingStyle = { fontSize: 'inherit', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: '#000000', marginBottom: '10px', borderTop: '1px solid #000000', paddingTop: '12px' };
 
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={{ ...headingStyle, borderTop: 'none', paddingTop: 0, marginBottom: '6px' }}>{section.title}</h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', lineHeight: style.lineHeight, whiteSpace: 'pre-line' }}>{summary}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', lineHeight: style.lineHeight, whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -751,10 +751,10 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={exp.id} style={{ marginBottom: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: 'inherit' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#9ca3af' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? currentLabel : exp.endDate}</span>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(exp.startDate)} – {exp.current ? currentLabel : exp.endDate}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#6b7280', marginBottom: '3px' }}>{exp.location}</p>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{exp.description}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', marginBottom: '3px' }}>{exp.location}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{exp.description}</p>
                                 </div>
                             ))}
                         </section>
@@ -769,9 +769,9 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: 'inherit' }}>{edu.degree}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#9ca3af' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#6b7280' }}>{edu.institution}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000' }}>{edu.institution}</p>
                                 </div>
                             ))}
                         </section>
@@ -794,7 +794,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: 'inherit' }}>{hardLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                             {softSkills.length > 0 && (
@@ -802,7 +802,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: 'inherit' }}>{softLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                         </section>
@@ -813,7 +813,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', lineHeight: style.lineHeight }}>{section.content}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', lineHeight: style.lineHeight }}>{section.content}</p>
                         </section>
                     );
                 }
@@ -823,7 +823,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     return (
                         <section key={section.id} style={sectionStyle}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <ul style={{ fontSize: 'inherit', color: '#374151', paddingLeft: '14px', listStyleType: 'circle' }}>
+                            <ul style={{ fontSize: 'inherit', color: '#000000', paddingLeft: '14px', listStyleType: 'circle' }}>
                                 {(section.items as any[] || []).map((item, idx) => (
                                     <li key={idx} style={{ marginBottom: '4px' }}>
                                         {isCertSection && item && typeof item === 'object' ? (
@@ -846,10 +846,10 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={item.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: 'inherit' }}>{item.title}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#9ca3af' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` – ${normalizeAtsDate(item.endDate)}`}</span>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(item.startDate)}{item.endDate && ` – ${normalizeAtsDate(item.endDate)}`}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#6b7280' }}>{item.subtitle}</p>
-                                    <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{item.description}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000' }}>{item.subtitle}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{item.description}</p>
                                 </div>
                             ))}
                         </section>
@@ -908,7 +908,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                     <strong style={{ fontSize: 'inherit', fontWeight: 700, ...blueText }}>
                                         {exp.position} - {exp.company}
                                     </strong>
-                                    <p style={{ fontSize: 'inherit', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', marginTop: '2px', marginBottom: '4px' }}>
                                         &gt; {exp.location ? `${exp.location} // ` : ''}{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}
                                     </p>
                                     <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{exp.description}</p>
@@ -927,7 +927,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                     <strong style={{ fontSize: 'inherit', fontWeight: 700, ...blueText }}>
                                         {edu.degree} - {edu.institution}
                                     </strong>
-                                    <p style={{ fontSize: 'inherit', color: '#64748B', marginTop: '2px' }}>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', marginTop: '2px' }}>
                                         &gt; {edu.location ? `${edu.location} // ` : ''}{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : ` - ${normalizeAtsDate(edu.endDate)}`}
                                     </p>
                                 </div>
@@ -992,7 +992,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                     <strong style={{ fontSize: 'inherit', fontWeight: 700, ...blueText }}>
                                         {item.title} {item.subtitle ? `@ ${item.subtitle}` : ''}
                                     </strong>
-                                    <p style={{ fontSize: 'inherit', color: '#64748B', marginTop: '2px', marginBottom: '4px' }}>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', marginTop: '2px', marginBottom: '4px' }}>
                                         &gt; {item.location ? `${item.location} // ` : ''}{normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}
                                     </p>
                                     <p style={{ fontSize: 'inherit', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{item.description}</p>
@@ -1025,16 +1025,16 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
 
     const containerStyle = { ...style, padding: '15mm', backgroundColor: 'white', boxSizing: 'border-box' as const };
     const headerBox = { backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5mm' };
-    const headingStyle = { fontSize: 'inherit', fontWeight: 900, color: '#1E293B', textTransform: 'uppercase' as const, marginBottom: '6px', marginTop: '12px', borderBottom: '1px solid #E2E8F0', paddingBottom: '2px' };
+    const headingStyle = { fontSize: 'inherit', fontWeight: 900, color: '#000000', textTransform: 'uppercase' as const, marginBottom: '6px', marginTop: '12px', borderBottom: '1px solid #000000', paddingBottom: '2px' };
 
     return (
         <div className="resume-container" style={containerStyle}>
             <div style={headerBox}>
                 <div>
-                    <h1 style={{ fontSize: 'inherit', fontWeight: 900, color: '#1E293B', margin: 0 }}>{personalInfo.fullName || 'SEU NOME'}</h1>
-                    {personalInfo.title && <p style={{ fontSize: 'inherit', color: '#475569', margin: '2px 0 0 0', fontWeight: 600 }}>{personalInfo.title}</p>}
+                    <h1 style={{ fontSize: 'inherit', fontWeight: 900, color: '#000000', margin: 0 }}>{personalInfo.fullName || 'SEU NOME'}</h1>
+                    {personalInfo.title && <p style={{ fontSize: 'inherit', color: '#000000', margin: '2px 0 0 0', fontWeight: 600 }}>{personalInfo.title}</p>}
                 </div>
-                <div style={{ textAlign: 'right', fontSize: 'inherit', color: '#64748B' }}>
+                <div style={{ textAlign: 'right', fontSize: 'inherit', color: '#000000' }}>
                     {[
                         personalInfo.email,
                         personalInfo.phone,
@@ -1053,7 +1053,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: 'inherit', color: '#475569', textAlign: 'justify', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{summary}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', textAlign: 'justify', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{summary}</p>
                         </div>
                     );
                 }
@@ -1065,10 +1065,10 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#1E293B' }}>{exp.position} — {exp.company}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748B' }}>{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}</span>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{exp.position} — {exp.company}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(exp.startDate)} - {exp.current ? currentLabel : exp.endDate}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{exp.description}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{exp.description}</p>
                                 </div>
                             ))}
                         </div>
@@ -1082,8 +1082,8 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '6px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#1E293B' }}>{edu.degree} - {edu.institution}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748B' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : ` - ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{edu.degree} - {edu.institution}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : ` - ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                 </div>
                             ))}
@@ -1105,17 +1105,17 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                             {hardSkills.length > 0 && (
                                 <div style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#1E293B' }}>{hardLabel}</strong>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{hardLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{hardSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                             {softSkills.length > 0 && (
                                 <div style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#1E293B' }}>{softLabel}</strong>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{softLabel}</strong>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{softSkills.map(stripEmojis).join(', ')}</p>
                                 </div>
                             )}
                         </div>
@@ -1127,7 +1127,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <ul style={{ margin: 0, paddingLeft: LIST_PADDING_LEFT, fontSize: 'inherit', color: '#475569' }}>
+                            <ul style={{ margin: 0, paddingLeft: LIST_PADDING_LEFT, fontSize: 'inherit', color: '#000000' }}>
                                 {(section.items as any[]).map((item, i) => (
                                     <li key={i} style={{ marginBottom: '2px' }}>
                                         {isCertSection && item && typeof item === 'object' && item !== null ? (
@@ -1149,10 +1149,10 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                             {(section.items as any[]).map(item => (
                                 <div key={item.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong style={{ fontSize: 'inherit', color: '#1E293B' }}>{item.title} {item.subtitle ? `— ${item.subtitle}` : ''}</strong>
-                                        <span style={{ fontSize: 'inherit', color: '#64748B' }}>{normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}</span>
+                                        <strong style={{ fontSize: 'inherit', color: '#000000' }}>{item.title} {item.subtitle ? `— ${item.subtitle}` : ''}</strong>
+                                        <span style={{ fontSize: 'inherit', color: '#000000' }}>{normalizeAtsDate(item.startDate)}{item.endDate ? ` - ${normalizeAtsDate(item.endDate)}` : ''}</span>
                                     </div>
-                                    <p style={{ fontSize: 'inherit', color: '#475569', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{item.description}</p>
+                                    <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', marginTop: '2px', lineHeight: style.lineHeight }}>{item.description}</p>
                                 </div>
                             ))}
                         </div>
@@ -1163,7 +1163,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: 'inherit', color: '#475569', whiteSpace: 'pre-wrap' }}>{section.content}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-wrap' }}>{section.content}</p>
                         </div>
                     );
                 }
@@ -1347,9 +1347,9 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#111827', padding: '15mm', boxSizing: 'border-box' }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box' }}>
             <header style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                <h1 style={{ fontSize: 'inherit', fontWeight: 800, color: '#111827', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                <h1 style={{ fontSize: 'inherit', fontWeight: 800, color: '#000000', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
                     {personalInfo.fullName || 'SEU NOME'}
                 </h1>
                 <p style={{ fontSize: 'inherit', color: '#4b5563', margin: '0 0 12px 0', fontWeight: 500 }}>
@@ -1369,10 +1369,10 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                 if (section.id === 'summary' && summary) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', lineHeight: style.lineHeight, whiteSpace: 'pre-line' }}>{summary}</p>
+                            <p style={{ fontSize: 'inherit', color: '#000000', lineHeight: style.lineHeight, whiteSpace: 'pre-line' }}>{summary}</p>
                         </section>
                     );
                 }
@@ -1380,18 +1380,18 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                 if (section.id === 'experience' && experiences.length > 0) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '12px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '12px' }}>
                                 {section.title}
                             </h2>
                             {experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                                         <div>
-                                            <strong style={{ color: '#111827', fontSize: 'inherit' }}>{exp.position}</strong>
-                                            <span style={{ margin: '0 8px', color: '#9ca3af' }}>|</span>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{exp.position}</strong>
+                                            <span style={{ margin: '0 8px', color: '#000000' }}>|</span>
                                             <span style={{ color: '#4b5563', fontWeight: 500 }}>{exp.company}</span>
                                         </div>
-                                        <span style={{ fontSize: 'inherit', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                        <span style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'nowrap' }}>
                                                                                         {normalizeAtsDate(exp.startDate)} — {exp.current ? getCurrentLabel('pt') : exp.endDate}
                                         </span>
                                     </div>
@@ -1401,7 +1401,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                             if (!trimmed) return null;
                                             return trimmed.startsWith('•') || trimmed.startsWith('-') ? (
                                                 <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
-                                                    <span style={{ color: '#9ca3af' }}>•</span>
+                                                    <span style={{ color: '#000000' }}>•</span>
                                                     <span>{trimmed.substring(1).trim()}</span>
                                                 </div>
                                             ) : (
@@ -1418,17 +1418,17 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                 if (section.id === 'education' && education.length > 0) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '12px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '12px' }}>
                                 {section.title}
                             </h2>
                             {education.map(edu => (
                                 <div key={edu.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
-                                            <strong style={{ color: '#111827', fontSize: 'inherit' }}>{edu.degree}</strong>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{edu.degree}</strong>
                                             <div style={{ color: '#4b5563', fontSize: 'inherit', marginTop: '2px' }}>{edu.institution}{edu.location && `, ${edu.location}`}</div>
                                         </div>
-                                        <span style={{ fontSize: 'inherit', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                        <span style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'nowrap' }}>
                                             {normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}
                                         </span>
                                     </div>
@@ -1448,14 +1448,14 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
 
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '8px' }}>
                                 {section.title}
                             </h2>
                             {hardSkills.length > 0 && (
                                 <div style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                                         <div>
-                                            <strong style={{ color: '#111827', fontSize: 'inherit' }}>{hardLabel}</strong>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{hardLabel}</strong>
                                         </div>
                                     </div>
                                     <div style={{ fontSize: 'inherit', color: '#4b5563', whiteSpace: 'pre-line', marginTop: '6px', lineHeight: style.lineHeight }}>
@@ -1467,7 +1467,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                 <div style={{ marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                                         <div>
-                                            <strong style={{ color: '#111827', fontSize: 'inherit' }}>{softLabel}</strong>
+                                            <strong style={{ color: '#000000', fontSize: 'inherit' }}>{softLabel}</strong>
                                         </div>
                                     </div>
                                     <div style={{ fontSize: 'inherit', color: '#4b5563', whiteSpace: 'pre-line', marginTop: '6px', lineHeight: style.lineHeight }}>
@@ -1483,8 +1483,8 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                 if (section.type === 'TEXT' && section.content) {
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>{section.title}</h2>
-                            <p style={{ fontSize: 'inherit', color: '#374151', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{section.content}</p>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '8px' }}>{section.title}</h2>
+                            <p style={{ fontSize: 'inherit', color: '#000000', whiteSpace: 'pre-line', lineHeight: style.lineHeight }}>{section.content}</p>
                         </section>
                     );
                 }
@@ -1493,8 +1493,8 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                     const isCertSection = section.id === 'certifications';
                     return (
                         <section key={section.id} style={{ marginBottom: SECTION_MARGIN_BOTTOM }}>
-                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>{section.title}</h2>
-                            <ul style={{ fontSize: 'inherit', margin: 0, paddingLeft: LIST_PADDING_LEFT, color: '#374151' }}>
+                            <h2 style={{ fontSize: 'inherit', fontWeight: 800, textTransform: 'uppercase', color: '#000000', marginBottom: '8px' }}>{section.title}</h2>
+                            <ul style={{ fontSize: 'inherit', margin: 0, paddingLeft: LIST_PADDING_LEFT, color: '#000000' }}>
                                 {section.items.map((item: any, i: number) => (
                                     <li key={i} style={{ marginBottom: '4px' }}>
                                         {isCertSection && item && typeof item === 'object' ? (
@@ -1802,8 +1802,8 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
                     right: 0;
                     height: 24px;
                     background-color: #f8fafc;
-                    border-top: 1px solid #e2e8f0;
-                    border-bottom: 1px solid #e2e8f0;
+                    border-top: 1px solid #000000;
+                    border-bottom: 1px solid #000000;
                     box-shadow: inset 0 4px 6px -1px rgb(0 0 0 / 0.05), inset 0 2px 4px -2px rgb(0 0 0 / 0.05);
                     z-index: 50;
                     pointer-events: none;
