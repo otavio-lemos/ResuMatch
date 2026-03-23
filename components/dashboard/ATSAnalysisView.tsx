@@ -58,7 +58,7 @@ function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; 
     if (!Array.isArray(bubbles)) return null;
 
     return (
-        <div className="flex flex-col min-h-[300px] bg-[#0d1117] border border-slate-800 mb-6">
+        <div className="flex flex-col min-h-[500px] bg-[#0d1117] border border-slate-800">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
                 <div className="flex gap-1.5">
                     <span className="size-2.5 rounded-full bg-red-500/70" />
@@ -80,7 +80,7 @@ function ChatView({ bubbles, title, t, isStatic = false }: { bubbles: Bubble[]; 
                     )}
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[400px]">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {bubbles.slice(0, visible).map((b, i) => (
                     <div key={i} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
@@ -274,13 +274,14 @@ function ResumeSectionViewer({ data }: { data: ResumeData }) {
 export default function ATSAnalysisView() {
     const { t, language } = useTranslation();
     const { atsPrompt, primaryAI, importAI } = useAISettingsStore();
-    const { data, resumeId, analyzeResume, isAnalyzing: storeIsAnalyzing, streamProgress, error: storeError, setJobDescription, saveLocalResume } = useResumeStore();
+    const { data, resumeId, analyzeResume, isAnalyzing: storeIsAnalyzing, streamProgress, error: storeError, setJobDescription, saveLocalResume, debugInfo } = useResumeStore();
     const [showBenchmarking, setShowBenchmarking] = useState(false);
     const [activeAnalysisMode, setActiveAnalysisMode] = useState<'general' | 'job'>('general');
     const [suggestions, setSuggestions] = useState<DetailedSuggestion[]>([]);
     const [isApplying, setIsApplying] = useState(false);
     const [showTerminal, setShowTerminal] = useState(false);
     const router = useRouter();
+    const [atsBubbles, setAtsBubbles] = useState<Bubble[]>([]);
 
     const ANALYSING_BUBBLES = useMemo(() => ((t('import.analysingBubbles') as unknown) || []) as Bubble[], [t]);
 
@@ -342,6 +343,46 @@ export default function ATSAnalysisView() {
         setSuggestions(derivedSuggestions);
     }, [derivedSuggestions]);
 
+    useEffect(() => {
+        if (storeIsAnalyzing && atsBubbles.length === 0) {
+            setAtsBubbles([{ from: 'user', text: t('import.wantsAudit') || 'Quero que você analise meu currículo e faça uma avaliação completa de ATS (Applicant Tracking System).', delay: 0 }]);
+        }
+    }, [storeIsAnalyzing, t]);
+
+    useEffect(() => {
+        if (storeIsAnalyzing && debugInfo?.currentSkill) {
+            setAtsBubbles(prev => {
+                if (prev.some(b => b.text?.includes('SKILL (System Instruction)'))) return prev;
+                return [
+                    ...prev,
+                    { from: 'ai', text: '🎯 SKILL (System Instruction):', delay: 50 },
+                    { from: 'ai', text: (debugInfo.currentSkill || '').substring(0, 500) + ((debugInfo.currentSkill?.length || 0) > 500 ? '...[TRUNCATED]' : ''), delay: 100 },
+                    { from: 'ai', text: '📤 USER PROMPT:', delay: 150 },
+                    { from: 'ai', text: (debugInfo.currentPrompt || '').substring(0, 500) + ((debugInfo.currentPrompt?.length || 0) > 500 ? '...[TRUNCATED]' : ''), delay: 200 }
+                ];
+            });
+        }
+    }, [storeIsAnalyzing, debugInfo?.currentSkill, debugInfo?.currentPrompt]);
+
+    useEffect(() => {
+        if (storeIsAnalyzing && debugInfo?.currentProgress && !atsBubbles.some(b => b.text === debugInfo.currentProgress)) {
+            setAtsBubbles(prev => [...prev, { from: 'ai', text: debugInfo.currentProgress || '', delay: 250 }]);
+        }
+    }, [storeIsAnalyzing, debugInfo?.currentProgress]);
+
+    useEffect(() => {
+        if (!storeIsAnalyzing && debugInfo?.lastResponse && atsBubbles.length > 1) {
+            const debug = debugInfo.lastResponse as any;
+            if (debug?.debug?.rawResponse) {
+                setAtsBubbles(prev => [
+                    ...prev,
+                    { from: 'ai', text: '📥 RAW LLM RESPONSE:', delay: 300 },
+                    { from: 'ai', text: (debug.debug.rawResponse || '').substring(0, 1000) + ((debug.debug.rawResponse?.length || 0) > 1000 ? '...[TRUNCATED]' : ''), delay: 350 }
+                ]);
+            }
+        }
+    }, [storeIsAnalyzing, debugInfo?.lastResponse]);
+
     const toggleSuggestion = (index: number) => {
         setSuggestions(prev => prev.map((s, i) => 
             i === index ? { ...s, resolved: !s.resolved } : s
@@ -399,6 +440,15 @@ export default function ATSAnalysisView() {
 
     return (
         <div className="space-y-6">
+            {storeIsAnalyzing && (
+                <ChatView 
+                    bubbles={atsBubbles} 
+                    title="Análise ATS" 
+                    t={t} 
+                    isStatic={false} 
+                />
+            )}
+
             {storeError && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 border-l-4 border-l-red-500">
                     <div className="flex items-center gap-3">

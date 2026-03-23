@@ -97,16 +97,13 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         let textContent = '';
         
-        // PDF/DOCX extraction
         if (file.type === 'application/pdf') {
           const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default;
           const pdfData = await pdfParse(buffer);
           textContent = pdfData.text;
-          // Normalize PDF text
           textContent = textContent.replace(/-\n/g, '');
           textContent = textContent.replace(/\n\n+/g, '\n\n');
         } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          // Convert to HTML first to preserve paragraph structure
           const htmlResult = await mammoth.convertToHtml({ buffer });
           let htmlText = htmlResult.value;
           htmlText = htmlText.replace(/<p[^>]*>/gi, '\n');
@@ -126,10 +123,8 @@ export async function POST(req: NextRequest) {
           return;
         }
         
-        // Extract section headers from the raw text
         const sectionHeaders = extractSectionHeadersFromText(textContent);
         
-        // Get skill and create prompt - same as original route
         const skill = getAtsParserSkill(language);
         const languageInstruction = language === 'pt' 
           ? 'Responda APENAS em português brasileiro.'
@@ -139,17 +134,12 @@ export async function POST(req: NextRequest) {
         const prompt = `CONTENT TO ANALYZE:\n${textContent}`;
         
         console.log('[langchain-parse-resume] Text extracted, length:', textContent.length);
-        console.log('[langchain-parse-resume] Sending info to frontend...');
         
-        // Send skill and prompt info - SAME FORMAT AS ORIGINAL
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
-        
-        console.log('[langchain-parse-resume] Sending progress...');
-        // Send progress message
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Processando currículo com LangChain...' })}\n\n`));
         
         console.log('[langchain-parse-resume] Calling parseResumeChain...');
-        // Call LangChain to parse the resume
+        
         const generator = parseResumeChain({
           resumeContent: textContent,
           language: language as 'pt' | 'en',
@@ -162,7 +152,6 @@ export async function POST(req: NextRequest) {
         for await (const result of generator) {
           hasChunks = true;
           if (result.type === 'chunk') {
-            // Send streaming chunk - SAME FORMAT AS ORIGINAL
             try {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: result.content })}\n\n`));
             } catch (e: any) {
@@ -172,7 +161,6 @@ export async function POST(req: NextRequest) {
           } else if (result.type === 'done') {
             const data = result.data;
             
-            // Add section headers
             if (Object.keys(sectionHeaders).length > 0) {
               data._sectionHeaders = {
                 ...(data._sectionHeaders || {}),
@@ -180,7 +168,6 @@ export async function POST(req: NextRequest) {
               };
             }
             
-            // Send done - SAME FORMAT AS ORIGINAL (with debug info)
             console.log('[langchain-parse-resume] Sending DONE message to frontend, data keys:', Object.keys(data));
             try {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 

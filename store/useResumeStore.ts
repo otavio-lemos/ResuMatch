@@ -224,6 +224,9 @@ type ResumeStore = {
     debugInfo: {
         lastPayload?: any;
         lastResponse?: any;
+        currentSkill?: string;
+        currentPrompt?: string;
+        currentProgress?: string;
     } | null;
 
     setResumeId: (id: string) => void;
@@ -481,7 +484,22 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                             const jsonStr = trimmedLine.slice(6).trim();
                             const data = JSON.parse(jsonStr);
                             
-                            if (data.type === 'chunk') {
+                            if (data.type === 'info') {
+                                set((state) => ({ 
+                                    debugInfo: { 
+                                        ...state.debugInfo, 
+                                        currentSkill: data.skill, 
+                                        currentPrompt: data.prompt 
+                                    }
+                                }));
+                            } else if (data.type === 'progress') {
+                                set((state) => ({ 
+                                    debugInfo: { 
+                                        ...state.debugInfo, 
+                                        currentProgress: data.message 
+                                    }
+                                }));
+                            } else if (data.type === 'chunk') {
                                 fullResponse += data.content;
                                 set((state) => ({ streamProgress: [...state.streamProgress, data.content] }));
                             } else if (data.type === 'done') {

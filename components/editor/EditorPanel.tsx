@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
     BarChart2, Plus, Sparkles, RefreshCw, SpellCheck, Edit2,
     Trash2, Loader2, Info, ChevronDown, ChevronUp, X,
-    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert, Undo2, Brain
+    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert, Undo2
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useResumeStore, ResumeData, SectionConfig, Experience, Education, DatedListItem } from '@/store/useResumeStore';
@@ -57,7 +57,6 @@ export function EditorPanel() {
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
     const [undoHistory, setUndoHistory] = useState<Record<string, string>>({});
-    const [isAnalyzingATS, setIsAnalyzingATS] = useState(false);
     const [isImportingPDF, setIsImportingPDF] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
@@ -65,10 +64,6 @@ export function EditorPanel() {
     const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
     const [photoError, setPhotoError] = useState<string | null>(null);
     const [localTitle, setLocalTitle] = useState<{ id: string, value: string } | null>(null);
-    
-    // ATS Analysis bubbles for transparency
-    const [atsBubbles, setAtsBubbles] = useState<{from: 'user' | 'ai', text: string}[]>([]);
-    const [showAtsChat, setShowAtsChat] = useState(false);
 
     const { t } = useTranslation();
     const language = useLanguageStore((state) => state.language);
@@ -171,48 +166,6 @@ export function EditorPanel() {
         }
     };
 
-    const handleATSVerify = async () => {
-        setIsAnalyzingATS(true);
-        setAiError(null);
-        setAtsBubbles([{ from: 'user', text: '🔄 Iniciando análise ATS...' }]);
-        const authSettings = {
-            ...primaryAI,
-            atsPrompt
-        };
-        try {
-             const jobDesc = typeof data.jobDescription === 'string' ? data.jobDescription : '';
-             const result = await generateATSAnalysis(data, jobDesc, authSettings, language);
-             
-             // Adicionar transparência total - skill, prompt e resposta
-             const debugInfo = (result as any).debug;
-             if (debugInfo) {
-                 setAtsBubbles(prev => [
-                     ...prev,
-                     { from: 'ai', text: '🎯 SKILL (System Instruction):' },
-                     { from: 'ai', text: debugInfo.skill?.substring(0, 500) + (debugInfo.skill?.length > 500 ? '...[TRUNCATED]' : '') || 'N/A' },
-                     { from: 'ai', text: '📤 USER PROMPT:' },
-                     { from: 'ai', text: debugInfo.userPrompt?.substring(0, 500) + (debugInfo.userPrompt?.length > 500 ? '...[TRUNCATED]' : '') || 'N/A' },
-                     { from: 'ai', text: '📥 RAW LLM RESPONSE:' },
-                     { from: 'ai', text: debugInfo.rawResponse?.substring(0, 1000) + (debugInfo.rawResponse?.length > 1000 ? '...[TRUNCATED]' : '') || 'N/A' }
-                 ]);
-             }
-             
-             console.log('[ATS ANALYSIS] === TRANSPARÊNCIA TOTAL ===');
-             console.log('[ATS ANALYSIS] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
-             console.log('[ATS ANALYSIS] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
-             console.log('[ATS ANALYSIS] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
-            setAiAnalysis(result.response);
-            setShowATSDetails(true);
-            await saveLocalResume();
-        } catch (error: any) {
-            console.error(error);
-            setAiError(error.message || 'Erro na análise ATS com IA');
-            setAtsBubbles(prev => [...prev, { from: 'ai', text: `❌ Erro: ${error.message}` }]);
-        } finally {
-            setIsAnalyzingATS(false);
-        }
-    };
-
     const handleImportPDF = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -283,52 +236,11 @@ export function EditorPanel() {
     };
 
     const analysis = data.aiAnalysis;
-    const overallScore = getScore(data);
+    const hasAtsAnalysis = !!data?.aiAnalysis;
+    const overallScore = hasAtsAnalysis ? getScore(data) : 0;
 
     return (
         <section className="flex-1 flex flex-col min-w-[320px] max-w-3xl overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            {/* Chat View - mostra quando está analysando ATS */}
-            {isAnalyzingATS && (
-                <div className="flex flex-col min-h-[500px] bg-[#0d1117] border-b border-slate-800">
-                    <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
-                        <div className="flex gap-1.5">
-                            <span className="size-2.5 rounded-full bg-red-500/70" />
-                            <span className="size-2.5 rounded-full bg-amber-500/70" />
-                            <span className="size-2.5 rounded-full bg-emerald-500/70" />
-                        </div>
-                        <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Análise ATS</span>
-                        <div className="ml-auto flex items-center gap-1.5">
-                            <Brain className="size-3.5 text-blue-500 animate-pulse" />
-                            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">Analisando...</span>
-                        </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {atsBubbles.map((b, i) => (
-                            <div key={i} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
-                                    {b.from === 'user' ? 'EU' : 'IA'}
-                                </div>
-                                <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user'
-                                    ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl'
-                                    : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
-                                    {b.text}
-                                </div>
-                            </div>
-                        ))}
-                        {isAnalyzingATS && (
-                            <div className="flex gap-3">
-                                <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">IA</div>
-                                <div className="bg-[#1c2c3e] border border-blue-900/50 px-4 py-3 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl flex gap-1 items-center">
-                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:0ms]" />
-                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
-                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {/* Sync Status Banner */}
             {syncStatus === 'saving' && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800 p-2 flex items-center justify-center gap-2">
@@ -362,13 +274,7 @@ export function EditorPanel() {
             <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 p-4 pb-3">
                 <div className="flex items-center justify-between mb-2">
                     <button
-                        onClick={() => {
-                            if (!showATSDetails) {
-                                handleATSVerify();
-                            } else {
-                                setShowATSDetails(false);
-                            }
-                        }}
+                        onClick={() => setShowATSDetails(!showATSDetails)}
                         className="flex items-center gap-2 group hover:opacity-80 transition-opacity"
                     >
                         <BarChart2 className="text-blue-600 size-4" />
@@ -391,21 +297,8 @@ export function EditorPanel() {
                             <h4 className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                 <Sparkles className="size-3 text-blue-600" /> {t('analysis.title')}
                             </h4>
-                            <button onClick={() => { setShowATSDetails(false); setAtsBubbles([]); }} className="text-slate-400 hover:text-slate-600"><X className="size-3" /></button>
+                            <button onClick={() => setShowATSDetails(false)} className="text-slate-400 hover:text-slate-600"><X className="size-3" /></button>
                         </div>
-
-                        {/* ATS Transparency Bubbles */}
-                        {(atsBubbles || []).length > 0 && (
-                            <div className="mb-3 p-2 bg-blue-900/20 border border-blue-800/30 rounded text-[9px] max-h-40 overflow-y-auto">
-                                <div className="text-[9px] font-black text-blue-400 uppercase mb-1">🔍 Debug Info:</div>
-                                {atsBubbles.map((b, i) => (
-                                    <div key={i} className={`flex gap-2 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                                        <span className={b.from === 'user' ? 'text-emerald-400' : 'text-amber-400'}>{b.from === 'user' ? '👤' : '🤖'}</span>
-                                        <span className="text-slate-300 whitespace-pre-wrap break-all">{b.text}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
                         <div className="grid grid-cols-3 gap-2 mb-4">
                             {[

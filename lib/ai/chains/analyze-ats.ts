@@ -1,15 +1,37 @@
 import { getChatModel } from '../client';
-import { createAnalyzerPrompt } from '../prompts';
-import { getJsonFormatInstructions } from '../parsers';
-import { ATSAnalysisSchema, ATSAnalysis } from '../types';
+import { ATSAnalysisSchema } from '../types';
 import { AISettings } from '@/store/useAISettingsStore';
-import { z } from 'zod';
 
 export interface AnalyzeATSInput {
   resumeData: any;
   jobDescription?: string;
   language: 'pt' | 'en';
   aiSettings: AISettings;
+}
+
+function tryParseJSON(text: string): any | null {
+  const strategies = [
+    () => text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim(),
+    () => {
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        return text.substring(start, end + 1);
+      }
+      return text;
+    },
+    () => text.replace(/\\"/g, '"').replace(/\\\\/g, '\\'),
+  ];
+
+  for (const strategy of strategies) {
+    try {
+      const cleaned = strategy();
+      return JSON.parse(cleaned);
+    } catch (e) {
+      continue;
+    }
+  }
+  return null;
 }
 
 export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{ type: 'chunk' | 'done' | 'error'; content?: string; data?: any; error?: string }> {
@@ -37,24 +59,31 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
   try {
     const model = getChatModel(safeAiSettings);
     
-    // Get format instructions for JSON output
-    const formatInstructions = getJsonFormatInstructions(ATSAnalysisSchema);
-    const prompt = await createAnalyzerPrompt(language);
+    const analyzerSkill = require('@/lib/get-skill').getAtsAnalyzerSkill(language);
+    const languageInstruction = language === 'pt'
+      ? 'Responda APENAS em português.'
+      : 'Respond ONLY in English.';
     
-    const formatted = await prompt.format({
-      resumeJson: JSON.stringify(resumeData, null, 2),
-      jobDesc: safeJobDescription,
-      formatInstr: formatInstructions
-    });
+    const prompt = `
+${analyzerSkill}
+
+${languageInstruction}
+
+RESUME_DATA:
+${JSON.stringify(resumeData, null, 2)}
+
+${safeJobDescription ? `JOB_DESCRIPTION:\n${safeJobDescription}` : ''}
+
+Respond with valid JSON only. No markdown fences.
+`;
     
-    console.log('[analyzeATSChain] Starting invoke, prompt length:', formatted.length);
+    console.log('[analyzeATSChain] Starting invoke...');
     
-    // Use invoke for reliable response
     const invokeResponse = await model.invoke([
-      { role: 'user', content: formatted }
+      { role: 'user', content: prompt }
     ]);
     
-    const fullContent = typeof invokeResponse.content === 'string' 
+    let fullContent = typeof invokeResponse.content === 'string' 
       ? invokeResponse.content 
       : JSON.stringify(invokeResponse.content);
     
@@ -62,32 +91,30 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
     
     console.log('[analyzeATSChain] Response length:', fullContent.length);
     
-    // Parse with robust JSON handling and Zod validation
-    try {
-      const cleaned = fullContent
-        .replace(/^```(\w+)?\s*\n?/, '')
-        .replace(/```\s*$/, '')
-        .trim();
-      
-      const parsed = JSON.parse(cleaned);
-      const validated = ATSAnalysisSchema.parse(parsed);
-      
-      console.log('[analyzeATSChain] Parsing complete, keys:', Object.keys(validated));
-      yield { type: 'done', data: validated };
-      
-    } catch (parseError) {
-      console.warn('[analyzeATSChain] Parse failed, trying extraction:', parseError);
-      
-      // Fallback: extract JSON from text
-      const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+    let parsed = tryParseJSON(fullContent);
+    
+    if (parsed) {
+      try {
         const validated = ATSAnalysisSchema.parse(parsed);
+        console.log('[analyzeATSChain] Parsing complete, keys:', Object.keys(validated));
         yield { type: 'done', data: validated };
-      } else {
-        throw new Error('No valid JSON found in response');
+        return;
+      } catch (e) {
+        console.warn('[analyzeATSChain] Schema validation failed:', e);
       }
     }
+    
+    const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      parsed = tryParseJSON(jsonMatch[0]);
+      if (parsed) {
+        const validated = ATSAnalysisSchema.parse(parsed);
+        yield { type: 'done', data: validated };
+        return;
+      }
+    }
+    
+    throw new Error('Failed to parse JSON from model response');
     
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

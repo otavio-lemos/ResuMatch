@@ -45,6 +45,12 @@ export async function POST(req: NextRequest) {
         
         console.log('[langchain-analyze] Calling analyzeATSChain...');
         
+        // Send info message with skill and prompt (like import)
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'info', skill: fullSkill, prompt })}\n\n`));
+        
+        // Send progress message
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'progress', message: 'Analisando currículo...' })}\n\n`));
+        
         const safeJobDescription = typeof jobDescription === 'string' ? jobDescription : undefined;
         
         const generator = analyzeATSChain({
