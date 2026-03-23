@@ -877,6 +877,16 @@ export function EditorPanel() {
                                             />
                                         </div>
                                     </div>
+                                    <div className="col-span-2">
+                                        <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-300 text-blue-600"
+                                                checked={edu.current}
+                                                onChange={(e) => updateEducation(edu.id, { current: e.target.checked })}
+                                            /> {t('form.current')}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -1160,12 +1170,22 @@ export function EditorPanel() {
 
                             {section.type === 'SIMPLE_LIST' && (section.items as any[] || []).map((item, idx) => {
                                 const isCertItem = typeof item === 'object' && item !== null && 'name' in item;
+                                const certItem = isCertItem ? item as { name?: string; issuer?: string; date?: string } : null;
+                                const displayValue = isCertItem && certItem
+                                    ? `${certItem.name || ''}${certItem.issuer ? ` — ${certItem.issuer}` : ''}${certItem.date ? ` (${certItem.date})` : ''}`
+                                    : String(item);
                                 return (
                                 <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-2 shadow-sm relative pr-10">
                                     <input
                                         className="flex-1 px-2 py-1 rounded bg-transparent border-none text-xs outline-none focus:ring-1 focus:ring-blue-500"
-                                        value={isCertItem ? (item as any).name || '' : String(item)}
-                                        onChange={(e) => updateSectionListItem(section.id, idx.toString(), e.target.value)}
+                                        value={displayValue}
+                                        onChange={(e) => {
+                                            if (isCertItem && certItem) {
+                                                updateSectionListItem(section.id, idx.toString(), { ...certItem, name: e.target.value });
+                                            } else {
+                                                updateSectionListItem(section.id, idx.toString(), e.target.value);
+                                            }
+                                        }}
                                         placeholder={t('labels.listItem') || "Item da lista..."}
                                     />
                                     <button onClick={() => removeSectionListItem(section.id, idx.toString())} className="absolute right-2 text-slate-300 hover:text-red-500 p-1">

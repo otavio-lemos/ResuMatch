@@ -250,7 +250,7 @@ function TemplateClassic({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={edu.id} style={{ marginBottom: '10px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                         <strong style={{ color: '#0f172a' }}>{stripEmojis(edu.degree)}</strong>
-                                        <span style={{ fontSize: '0.78em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span style={{ fontSize: '0.78em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <p style={{ fontSize: '0.85em', color: '#475569' }}>{stripEmojis(edu.institution)}{edu.location && `, ${stripEmojis(edu.location)}`}</p>
                                 </div>
@@ -446,7 +446,7 @@ function TemplateModern({ data, currentLabel }: { data: ResumeData; currentLabel
                                     <div key={edu.id} style={{ marginBottom: '10px' }}>
                                         <strong style={{ fontSize: '0.9em', color: '#0f172a' }}>{edu.degree}</strong>
                                         <p style={{ fontSize: '0.82em', color: '#374151' }}>{edu.institution}{edu.location && `, ${edu.location}`}</p>
-                                        <p style={{ fontSize: '0.75em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</p>
+                                        <p style={{ fontSize: '0.75em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</p>
                                     </div>
                                 ))}
                             </section>
@@ -585,7 +585,7 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                                 <div key={edu.id} style={{ marginBottom: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
                                         <h3 style={{ fontSize: '1em', fontWeight: 700, color: '#0f172a', margin: 0 }}>{stripEmojis(edu.degree)}</h3>
-                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)} – {normalizeAtsDate(edu.endDate)}</span>
+                                        <span style={{ fontSize: '0.85em', color: '#64748b' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` – ${getCurrentLabel(data?.language || 'pt')}` : ` – ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <div style={{ fontSize: '0.95em', color: '#475569' }}>
                                         {stripEmojis(edu.institution)}{edu.location && ` | ${stripEmojis(edu.location)}`}
@@ -726,7 +726,7 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.88em' }}>{edu.degree}</strong>
-                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span style={{ fontSize: '0.75em', color: '#9ca3af' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <p style={{ fontSize: '0.8em', color: '#6b7280' }}>{edu.institution}</p>
                                 </div>
@@ -863,7 +863,7 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                                         {edu.degree} - {edu.institution}
                                     </strong>
                                     <p style={{ fontSize: '0.7em', color: '#64748B', marginTop: '2px' }}>
-                                        &gt; {edu.location ? `${edu.location} // ` : ''}{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}
+                                        &gt; {edu.location ? `${edu.location} // ` : ''}{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : ` - ${normalizeAtsDate(edu.endDate)}`}
                                     </p>
                                 </div>
                             ))}
@@ -1000,7 +1000,7 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                                 <div key={edu.id} style={{ marginBottom: '6px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <strong style={{ fontSize: '0.8em', color: '#1E293B' }}>{edu.degree} - {edu.institution}</strong>
-                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(edu.startDate)} - {normalizeAtsDate(edu.endDate)}</span>
+                                        <span style={{ fontSize: '0.7em', color: '#64748B' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : ` - ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                 </div>
                             ))}
@@ -1154,7 +1154,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                         <span style={{ fontStyle: 'italic' }}>{edu.degree}</span>
-                                        <span style={{ fontSize: '0.9em' }}>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span style={{ fontSize: '0.9em' }}>{normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                 </div>
                             ))}
@@ -1298,7 +1298,7 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                                             <div style={{ color: '#4b5563', fontSize: '0.9em', marginTop: '2px' }}>{edu.institution}{edu.location && `, ${edu.location}`}</div>
                                         </div>
                                         <span style={{ fontSize: '0.85em', color: '#6b7280', whiteSpace: 'nowrap' }}>
-                                            {normalizeAtsDate(edu.startDate)}{edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}
+                                            {normalizeAtsDate(edu.startDate)}{edu.current ? ` — ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` — ${normalizeAtsDate(edu.endDate)}`}
                                         </span>
                                     </div>
                                 </div>
@@ -1441,7 +1441,7 @@ function TemplateATSOptimal({ data, currentLabel }: { data: ResumeData; currentL
                                 <div key={edu.id} style={{ marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ fontWeight: 'bold' }}>{stripEmojis(edu.degree)}</span>
-                                        <span>{normalizeAtsDate(edu.startDate)}{edu.endDate && ` - ${normalizeAtsDate(edu.endDate)}`}</span>
+                                        <span>{normalizeAtsDate(edu.startDate)}{edu.current ? ` - ${getCurrentLabel(data?.language || 'pt')}` : edu.endDate && ` - ${normalizeAtsDate(edu.endDate)}`}</span>
                                     </div>
                                     <div>
                                         {stripEmojis(edu.institution)}{edu.location ? `, ${stripEmojis(edu.location)}` : ''}
