@@ -27,24 +27,19 @@ Access: [**http://localhost:3000**](http://localhost:3000)
 
 ```mermaid
 flowchart TB
-    subgraph User["User Flow"]
-        A[Open App] --> B[Choose Template]
-        B --> C[Fill Resume Data]
-        C --> D[Preview & Export PDF]
-    end
-
-    subgraph AIParser["AI Parser"]
-        A --> E[Upload Resume]
-        E --> F[AI Extracts Data]
-        F --> C
-    end
-
-    subgraph ATS["ATS Analysis"]
-        D --> G[Upload PDF / Use Current]
-        G --> H[Parse Resume]
-        H --> I[Job Description Match]
-        I --> J[Score & Recommendations]
-    end
+    A[Open App] --> B{has Resume?}
+    B -->|No| C[Choose Template]
+    B -->|Yes| D[Dashboard]
+    C --> E[Fill Resume Data]
+    E --> D
+    D --> F[Preview]
+    F --> G[Export PDF]
+    D --> H[AI Parser]
+    H --> E
+    D --> I[ATS Analysis]
+    I --> J[Score]
+    I -.-> K[Job Description]
+    K --> J
 ```
 
 ## Tech Stack
