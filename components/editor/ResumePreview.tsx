@@ -996,10 +996,21 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                 }
 
                 if (section.type === 'SIMPLE_LIST' && section.items && section.items.length > 0) {
+                    const isCertSection = section.id === 'certifications';
                     return (
                         <div key={section.id}>
                             <h2 style={headingStyle}>{section.title}</h2>
-                            <p style={{ fontSize: '0.75em', color: '#475569' }}>{(section.items as string[]).join(' • ')}</p>
+                            <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.75em', color: '#475569' }}>
+                                {(section.items as any[]).map((item, i) => (
+                                    <li key={i} style={{ marginBottom: '2px' }}>
+                                        {isCertSection && typeof item === 'object' ? (
+                                            <span><strong>{item.name || item.title || 'Certificação'}</strong>{item.issuer && <span> — {item.issuer}</span>}{item.date && <span> ({normalizeAtsDate(item.date)})</span>}</span>
+                                        ) : typeof item === 'object' ? (
+                                            <span><strong>{item.name || item.title || ''}</strong>{item.description && <span> — {item.description}</span>}</span>
+                                        ) : String(item)}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     );
                 }
@@ -1525,6 +1536,10 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
     const size = PAGE_SIZES[(data?.appearance?.pageSize as keyof typeof PAGE_SIZES) || 'A4'] || PAGE_SIZES['A4'];
     const language = data?.language || 'pt';
     const { t } = useTranslation();
+    
+    const printFontFamily = FONT_MAP[data?.appearance?.fontFamily] || FONT_MAP['Inter'];
+    const printFontSize = data?.appearance?.fontSize ? `${data.appearance.fontSize}pt` : '11pt';
+    const printLineHeight = data?.appearance?.lineSpacing || '1.5';
 
     const renderTemplate = () => {
         switch (data.templateId) {
@@ -1558,49 +1573,39 @@ export function ResumePreview({ data: explicitData, showPageBreaks = false }: { 
         }
     };
 
-    return (
-        <div className="relative overflow-hidden resume-preview-wrapper">
-            <style dangerouslySetInnerHTML={{
-                __html: `
+    const printableWidth = `calc(${size.width} - 20mm)`;
+    const printStyles = `
                 @media print {
                     @page {
-                        size: auto;
-                        margin: 0;
+                        margin: 10mm;
+                    }
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }
                     #resume-print-container {
                         transform: none !important;
-                        width: 100% !important;
-                        height: auto !important;
+                        width: ${printableWidth} !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         box-shadow: none !important;
-                        display: block !important;
+                    }
+                    .resume-container {
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-shadow: none !important;
+                        font-family: ${printFontFamily} !important;
+                        font-size: ${printFontSize} !important;
+                        line-height: ${printLineHeight} !important;
                     }
                     .page-break-indicator { display: none !important; }
-                    html, body { 
-                        margin: 0 !important; 
-                        padding: 0 !important; 
-                        background: white !important; 
-                        width: ${size.width} !important;
-                        height: auto !important;
-                    }
-                    .resume-preview-wrapper {
-                        overflow: visible !important;
-                        height: auto !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                    }
-                    .resume-container { 
-                        width: ${size.width} !important;
-                        max-width: ${size.width} !important;
-                        margin: 0 !important;
-                        padding: inherit !important;
-                        box-shadow: none !important;
-                        page-break-inside: avoid;
-                        overflow: visible !important;
-                        display: block !important;
-                    }
                 }
+                `;
+
+    return (
+        <div className="relative overflow-hidden resume-preview-wrapper">
+            <style dangerouslySetInnerHTML={{ __html: printStyles + `
                 .page-break-indicator {                    position: absolute;
                     left: 0;
                     right: 0;

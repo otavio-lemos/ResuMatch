@@ -1,8 +1,9 @@
-import { getChatModel, streamAI } from '../client';
+import { getChatModel } from '../client';
 import { createAnalyzerPrompt } from '../prompts';
-import { parseATSAnalysis, getJsonFormatInstructions } from '../parsers';
-import { ATSAnalysisSchema } from '../types';
+import { getJsonFormatInstructions } from '../parsers';
+import { ATSAnalysisSchema, ATSAnalysis } from '../types';
 import { AISettings } from '@/store/useAISettingsStore';
+import { z } from 'zod';
 
 export interface AnalyzeATSInput {
   resumeData: any;
@@ -35,8 +36,10 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
   
   try {
     const model = getChatModel(safeAiSettings);
-    const prompt = await createAnalyzerPrompt(language);
+    
+    // Get format instructions for JSON output
     const formatInstructions = getJsonFormatInstructions(ATSAnalysisSchema);
+    const prompt = await createAnalyzerPrompt(language);
     
     const formatted = await prompt.format({
       resumeJson: JSON.stringify(resumeData, null, 2),
@@ -44,17 +47,47 @@ export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{
       formatInstr: formatInstructions
     });
     
-    let fullContent = '';
+    console.log('[analyzeATSChain] Starting invoke, prompt length:', formatted.length);
     
-    for await (const chunk of streamAI(model, [
+    // Use invoke for reliable response
+    const invokeResponse = await model.invoke([
       { role: 'user', content: formatted }
-    ])) {
-      fullContent += chunk;
-      yield { type: 'chunk', content: chunk };
-    }
+    ]);
     
-    const parsed = parseATSAnalysis(fullContent);
-    yield { type: 'done', data: parsed };
+    const fullContent = typeof invokeResponse.content === 'string' 
+      ? invokeResponse.content 
+      : JSON.stringify(invokeResponse.content);
+    
+    yield { type: 'chunk', content: fullContent };
+    
+    console.log('[analyzeATSChain] Response length:', fullContent.length);
+    
+    // Parse with robust JSON handling and Zod validation
+    try {
+      const cleaned = fullContent
+        .replace(/^```(\w+)?\s*\n?/, '')
+        .replace(/```\s*$/, '')
+        .trim();
+      
+      const parsed = JSON.parse(cleaned);
+      const validated = ATSAnalysisSchema.parse(parsed);
+      
+      console.log('[analyzeATSChain] Parsing complete, keys:', Object.keys(validated));
+      yield { type: 'done', data: validated };
+      
+    } catch (parseError) {
+      console.warn('[analyzeATSChain] Parse failed, trying extraction:', parseError);
+      
+      // Fallback: extract JSON from text
+      const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const validated = ATSAnalysisSchema.parse(parsed);
+        yield { type: 'done', data: validated };
+      } else {
+        throw new Error('No valid JSON found in response');
+      }
+    }
     
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

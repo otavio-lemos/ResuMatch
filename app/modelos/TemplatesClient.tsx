@@ -42,7 +42,7 @@ export default function TemplatesClient() {
         if (resumeIdParam) {
           setTemplateId(templateId);
           await saveLocalResume();
-          router.push(`/editor/${resumeIdParam}`);
+          window.location.href = `/editor/${resumeIdParam}`;
           return;
         }
 
@@ -56,7 +56,8 @@ export default function TemplatesClient() {
         }
 
         if (result.success && result.id) {
-          router.push(`/editor/${result.id}`);
+          // Força reload completo da página para garantir que o estado seja atualizado
+          window.location.href = `/editor/${result.id}`;
         }
       } catch (error: any) {
         console.error('Network/Client error:', error);

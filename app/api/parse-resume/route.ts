@@ -296,12 +296,71 @@ export async function POST(req: NextRequest) {
         }
         
         // Convert description arrays back to strings if AI returned arrays
+        // Also fix common AI formatting issues
         if (finalData) {
+          // Fix summary: ensure proper paragraph breaks
+          if (finalData.summary && typeof finalData.summary === 'string') {
+            let summary = finalData.summary;
+            
+            // Fix ". , " pattern (AI hallucination)
+            summary = summary.replace(/\.\s*,/g, '.');
+            
+            // Handle all escape variations of \n
+            summary = summary
+              .replace(/\\n\\n/g, '\n\n')
+              .replace(/\\n/g, '\n')
+              .replace(/\\\\n/g, '\n');
+            
+            // If no line breaks at all, try to split by sentences (including accented)
+            if (!summary.includes('\n')) {
+              summary = summary
+                .replace(/\. ([A-ZÀ-Ú])/g, '.\n\n$1')
+                .replace(/;\s*([A-ZÀ-Ú])/g, ';\n\n$1')
+                .replace(/\?\s*([A-ZÀ-Ú])/g, '?\n\n$1')
+                .replace(/!\s*([A-ZÀ-Ú])/g, '!\n\n$1');
+            }
+            
+            // Ensure double line breaks for paragraphs
+            summary = summary.replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
+            
+            finalData.summary = summary;
+          }
+
           ['experiences', 'education', 'projects'].forEach(section => {
             if (Array.isArray(finalData[section])) {
               finalData[section].forEach((item: any) => {
                 if (Array.isArray(item.description)) {
-                  item.description = item.description.map((d: string) => d.startsWith('-') ? d : `- ${d}`).join('\n');
+                  // Fix ". , " pattern in each bullet
+                  const fixedBullets = item.description.map((d: string) => {
+                    let fixed = d.replace(/\.\s*,/g, '.');
+                    // Handle all escape variations
+                    fixed = fixed
+                      .replace(/\\n\\n/g, '\n\n')
+                      .replace(/\\n/g, '\n')
+                      .replace(/\\\\n/g, '\n');
+                    // If no bullet marker, add one
+                    return fixed.startsWith('-') || fixed.startsWith('•') ? fixed : `- ${fixed}`;
+                  });
+                  item.description = fixedBullets.join('\n');
+                } else if (typeof item.description === 'string') {
+                  let desc = item.description;
+                  // Fix ". , " pattern
+                  desc = desc.replace(/\.\s*,/g, '.');
+                  // Handle all escape variations
+                  desc = desc
+                    .replace(/\\n\\n/g, '\n\n')
+                    .replace(/\\n/g, '\n')
+                    .replace(/\\\\n/g, '\n');
+
+                  // If still no line breaks, force split by period-space
+                  if (!desc.includes('\n')) {
+                    desc = desc
+                      .replace(/\. ([a-zA-ZÀ-ú])/g, '.\n- $1')
+                      .replace(/; ([a-zA-ZÀ-ú])/g, ';\n- $1')
+                      .replace(/\.\s*$/, '.');
+                  }
+
+                  item.description = desc;
                 }
               });
             }
@@ -331,8 +390,15 @@ export async function POST(req: NextRequest) {
         controller.close();
 
       } catch (error: any) {
-        console.error("Error in parse-resume:", error);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message || 'Internal server error' })}\n\n`));
+        const rawMessage = error?.message || 'Internal server error';
+        console.error("Error in parse-resume:", rawMessage);
+        
+        const isQuotaError = /429|quota.*exceeded|RESOURCE_EXHAUSTED|rate.?limit/i.test(rawMessage);
+        const message = isQuotaError
+          ? '⚠️ Quota exceeded (Error 429). The AI provider\'s rate limit was reached. Please wait a moment and try again.'
+          : rawMessage;
+        
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
         controller.close();
       }
     }

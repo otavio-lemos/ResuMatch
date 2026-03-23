@@ -4,13 +4,13 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
     BarChart2, Plus, Sparkles, RefreshCw, SpellCheck, Edit2,
     Trash2, Loader2, Info, ChevronDown, ChevronUp, X,
-    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert, Undo2
+    Search, CheckCircle2, ChevronLeft, ChevronRight, Upload, ArrowRight, ShieldAlert, Undo2, Brain
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useResumeStore, ResumeData, SectionConfig, Experience, Education, DatedListItem } from '@/store/useResumeStore';
 import { useAISettingsStore } from '@/store/useAISettingsStore';
 import { getScore } from '@/lib/ats-engine';
-import { rewriteText, correctGrammar, generateSummaryAI, generateATSAnalysis, parseResumeFromPDF } from '@/app/actions/ai';
+import { rewriteText, correctGrammar, generateSummaryAI, generateSkillsAI, generateATSAnalysis, parseResumeFromPDF } from '@/app/actions/ai';
 import NextImage from 'next/image';
 import { TEMPLATES } from '@/lib/templates';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -55,6 +55,7 @@ export function EditorPanel() {
     const [isGeneratingRefine, setIsGeneratingRefine] = useState<string | null>(null);
     const [isGeneratingGrammar, setIsGeneratingGrammar] = useState<string | null>(null);
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+    const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
     const [undoHistory, setUndoHistory] = useState<Record<string, string>>({});
     const [isAnalyzingATS, setIsAnalyzingATS] = useState(false);
     const [isImportingPDF, setIsImportingPDF] = useState(false);
@@ -67,6 +68,7 @@ export function EditorPanel() {
     
     // ATS Analysis bubbles for transparency
     const [atsBubbles, setAtsBubbles] = useState<{from: 'user' | 'ai', text: string}[]>([]);
+    const [showAtsChat, setShowAtsChat] = useState(false);
 
     const { t } = useTranslation();
     const language = useLanguageStore((state) => state.language);
@@ -132,6 +134,40 @@ export function EditorPanel() {
             setUndoHistory(prev => { const newH = {...prev}; delete newH['summary']; return newH; });
         } finally {
             setIsGeneratingSummary(false);
+        }
+    };
+
+    const handleGenerateSkills = async () => {
+        setIsGeneratingSkills(true);
+        setAiError(null);
+        const authSettings = {
+            ...editorAI
+        };
+        try {
+            const result = await generateSkillsAI(data, authSettings, language);
+            console.log('[EDITOR SKILLS] === TRANSPARÊNCIA TOTAL ===');
+            console.log('[EDITOR SKILLS] SKILL:', (result as any).debug?.skill?.substring(0, 500) || 'N/A');
+            console.log('[EDITOR SKILLS] USER PROMPT:', (result as any).debug?.userPrompt || 'N/A');
+            console.log('[EDITOR SKILLS] RAW RESPONSE:', (result as any).debug?.rawResponse || 'N/A');
+            // Convert the response to skill categories format and add to store
+            if (result.response && Array.isArray(result.response) && result.response.length > 0) {
+                const { v4: uuidv4 } = await import('uuid');
+                const newCategories = result.response.map((cat: { category: string; skills: string[] }) => ({
+                    id: uuidv4(),
+                    category: cat.category,
+                    skills: cat.skills || []
+                }));
+                // Get current skills and merge with new ones
+                const currentSkills = data.skills || [];
+                const mergedSkills = [...currentSkills, ...newCategories];
+                // Update all skills at once using setFullData
+                setFullData({ ...data, skills: mergedSkills });
+            }
+        } catch (error: any) {
+            console.error(error);
+            setAiError(error.message || 'Erro ao gerar skills com IA');
+        } finally {
+            setIsGeneratingSkills(false);
         }
     };
 
@@ -251,6 +287,48 @@ export function EditorPanel() {
 
     return (
         <section className="flex-1 flex flex-col min-w-[320px] max-w-3xl overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            {/* Chat View - mostra quando está analysando ATS */}
+            {isAnalyzingATS && (
+                <div className="flex flex-col min-h-[500px] bg-[#0d1117] border-b border-slate-800">
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-[#161b22]">
+                        <div className="flex gap-1.5">
+                            <span className="size-2.5 rounded-full bg-red-500/70" />
+                            <span className="size-2.5 rounded-full bg-amber-500/70" />
+                            <span className="size-2.5 rounded-full bg-emerald-500/70" />
+                        </div>
+                        <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Análise ATS</span>
+                        <div className="ml-auto flex items-center gap-1.5">
+                            <Brain className="size-3.5 text-blue-500 animate-pulse" />
+                            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest animate-pulse">Analisando...</span>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                        {atsBubbles.map((b, i) => (
+                            <div key={i} className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-400 ${b.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                <div className={`size-7 rounded-full flex items-center justify-center text-[9px] font-black uppercase shrink-0 ${b.from === 'user' ? 'bg-slate-700 text-slate-300' : 'bg-blue-600 text-white'}`}>
+                                    {b.from === 'user' ? 'EU' : 'IA'}
+                                </div>
+                                <div className={`max-w-[75%] px-4 py-2.5 text-[11px] leading-relaxed font-medium whitespace-pre-wrap break-all ${b.from === 'user'
+                                    ? 'bg-slate-700 text-slate-200 rounded-tl-xl rounded-bl-xl rounded-tr-sm rounded-br-xl'
+                                    : 'bg-[#1c2c3e] border border-blue-900/50 text-slate-200 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl'}`}>
+                                    {b.text}
+                                </div>
+                            </div>
+                        ))}
+                        {isAnalyzingATS && (
+                            <div className="flex gap-3">
+                                <div className="size-7 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">IA</div>
+                                <div className="bg-[#1c2c3e] border border-blue-900/50 px-4 py-3 rounded-tr-xl rounded-br-xl rounded-tl-sm rounded-bl-xl flex gap-1 items-center">
+                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:0ms]" />
+                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
+                                    <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Sync Status Banner */}
             {syncStatus === 'saving' && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800 p-2 flex items-center justify-center gap-2">
@@ -284,7 +362,13 @@ export function EditorPanel() {
             <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 p-4 pb-3">
                 <div className="flex items-center justify-between mb-2">
                     <button
-                        onClick={() => setShowATSDetails(!showATSDetails)}
+                        onClick={() => {
+                            if (!showATSDetails) {
+                                handleATSVerify();
+                            } else {
+                                setShowATSDetails(false);
+                            }
+                        }}
                         className="flex items-center gap-2 group hover:opacity-80 transition-opacity"
                     >
                         <BarChart2 className="text-blue-600 size-4" />
@@ -912,9 +996,19 @@ export function EditorPanel() {
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase">
                                 {data.sectionsConfig.find(s => s.id === 'skills')?.title}
                             </h3>
-                            <button onClick={addSkillCategory} className="text-blue-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline">
-                                <Plus className="size-3" /> {t('editor.addCategory') || 'Adicionar Categoria'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleGenerateSkills}
+                                    disabled={isGeneratingSkills}
+                                    className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-tighter disabled:opacity-50"
+                                >
+                                    {isGeneratingSkills ? <Loader2 className="size-2.5 animate-spin" /> : <Sparkles className="size-2.5" />}
+                                    {t('editor.generateWithAI')}
+                                </button>
+                                <button onClick={addSkillCategory} className="text-blue-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline">
+                                    <Plus className="size-3" /> {t('editor.addCategory') || 'Adicionar Categoria'}
+                                </button>
+                            </div>
                         </div>
 
                         {skills.map((group) => (
@@ -977,7 +1071,16 @@ export function EditorPanel() {
                                 {TEMPLATES.map(template => (
                                     <button
                                         key={template.id}
-                                        onClick={() => setTemplateId(template.id)}
+                                        onClick={async () => {
+                                            setTemplateId(template.id);
+                                            // Salva no localStorage imediatamente
+                                            const resumeData = { ...data, templateId: template.id };
+                                            localStorage.setItem(`resume_${resumeId}`, JSON.stringify(resumeData));
+                                            // Salva na API
+                                            await saveLocalResume();
+                                            // Redireciona para o currículo criado
+                                            router.push(`/editor/${resumeId}`);
+                                        }}
                                         className={`p-2 rounded-none border-2 text-center transition-all ${data.templateId === template.id
                                             ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                                             : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'

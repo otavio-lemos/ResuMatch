@@ -212,8 +212,15 @@ export async function POST(req: NextRequest) {
         controller.close();
         
       } catch (error: any) {
-        console.error('Error in langchain-parse-resume:', error);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message || 'Internal server error' })}\n\n`));
+        const rawMessage = error?.message || 'Internal server error';
+        console.error('Error in langchain-parse-resume:', rawMessage);
+        
+        const isQuotaError = /429|quota.*exceeded|RESOURCE_EXHAUSTED|rate.?limit/i.test(rawMessage);
+        const message = isQuotaError
+          ? '⚠️ Quota exceeded (Error 429). The AI provider\'s rate limit was reached. Please wait a moment and try again.'
+          : rawMessage;
+        
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
         controller.close();
       }
     }

@@ -8,6 +8,10 @@ import { getAtsAnalyzerSkill, getAtsParserSkill, getAtsSummarySkill, getAtsRewri
 import { robustJsonParse } from '@/lib/ai-utils';
 import { getTranslation } from '@/hooks/useTranslation';
 import { Language } from '@/lib/translations';
+import { JsonOutputParser } from '@langchain/core/output_parsers';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { ChatOpenAI } from '@langchain/openai';
+import { ResumeDataSchema, ATSAnalysisSchema } from '@/lib/ai/types';
 
 
 export type AIAuthSettings = Partial<AISettings>;
@@ -67,6 +71,69 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
     }
 };
 
+async function callAIWithJsonParser(
+    prompt: string, 
+    aiConfig: AIConfig, 
+    schema: any, 
+    skill?: string, 
+    language: string = 'pt'
+): Promise<{ prompt: string; response: any; debug: { skill: string; userPrompt: string; rawResponse: string } }> {
+    const systemInstruction = skill || getAtsAnalyzerSkill(language);
+    
+    try {
+        let model: any;
+        
+        if (aiConfig.type === 'gemini') {
+            model = new ChatGoogleGenerativeAI({
+                model: aiConfig.endpoint.includes('gemini-2.0-flash') ? 'gemini-2.0-flash' : 
+                      aiConfig.endpoint.includes('gemini-1.5') ? 'gemini-1.5-pro' : 'gemini-2.0-flash',
+                apiKey: aiConfig.apiKey,
+                temperature: aiConfig.temperature ?? 0.7,
+                maxOutputTokens: aiConfig.maxTokens ?? 16384,
+            });
+        } else {
+            const baseURL = (aiConfig.client as any).baseURL || 'https://api.openai.com/v1';
+            model = new ChatOpenAI({
+                model: aiConfig.model,
+                temperature: aiConfig.temperature ?? 0.7,
+                maxTokens: aiConfig.maxTokens ?? 16384,
+                apiKey: (aiConfig.client as any).apiKey,
+                configuration: { baseURL },
+            });
+        }
+        
+        const response = await model.invoke([
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: prompt }
+        ]);
+        
+        const rawContent = typeof response.content === 'string' 
+            ? response.content 
+            : JSON.stringify(response.content);
+        
+        // Use robustJsonParse for better error handling
+        const parsed = robustJsonParse(rawContent);
+        
+        // Validate with schema if provided
+        if (schema) {
+            try {
+                schema.parse(parsed);
+            } catch (zodError) {
+                console.warn('[callAIWithJsonParser] Schema validation warning:', zodError);
+            }
+        }
+        
+        return { 
+            prompt, 
+            response: parsed,
+            debug: { skill: systemInstruction, userPrompt: prompt, rawResponse: rawContent }
+        };
+    } catch (error) {
+        console.error('[callAIWithJsonParser] Error:', error);
+        throw error;
+    }
+}
+
 async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json_object', skill?: string, language: string = 'pt'): Promise<{ prompt: string; response: string; debug: { skill: string; userPrompt: string; rawResponse: string } }> {
     // A Skill é OBRIGATÓRIA. Se não for passada, usamos o Analyzer como fallback padrão de segurança.
     const systemInstruction = skill || getAtsAnalyzerSkill(language);
@@ -103,6 +170,17 @@ async function callAI(prompt: string, aiConfig: AIConfig, responseFormat?: 'json
                     errorDetails = errorJson.error?.message || res.statusText;
                 } catch (e) {
                     errorDetails = res.statusText || res.status.toString();
+                }
+
+                // Tratar erros específicos de quota e API
+                if (res.status === 429 || errorDetails.toLowerCase().includes('quota') || errorDetails.toLowerCase().includes('exceeded')) {
+                    throw new Error('Limite de uso da API excedido. Acesse Configurações (ícone de engrenagem) para alterar a chave API ou configurar um provedor alternativo.');
+                }
+                if (res.status === 403 || errorDetails.toLowerCase().includes('permission') || errorDetails.toLowerCase().includes('forbidden')) {
+                    throw new Error('API Key sem permissão. Verifique as configurações da sua chave API no Google AI Studio.');
+                }
+                if (res.status === 400 || errorDetails.toLowerCase().includes('api key')) {
+                    throw new Error('API Key inválida. Verifique a chave nas configurações (ícone de engrenagem).');
                 }
 
                 throw new Error(errorDetails);
@@ -192,15 +270,32 @@ export async function generateSummaryAI(resumeData: ResumeData, authSettings?: A
     return callAI(finalPrompt, aiConfig, undefined, getAtsSummarySkill(language), language);
 }
 
-export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings & { atsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: any }> {
+export async function generateSkillsAI(resumeData: ResumeData, authSettings?: AIAuthSettings & { skillsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: { category: string; skills: string[] }[] }> {
+    const aiConfig = await getAIClient(authSettings);
+    const userPrompt = authSettings?.skillsPrompt ? `USER INSTRUCTION: ${authSettings.skillsPrompt}\n\n` : '';
+    const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION: EXTRACT SKILLS from this resume data. Analyze the work experience, projects, education, and summary to identify all relevant skills. Organize them into categories like: Programming Languages, Frameworks, Tools, Soft Skills, Languages, etc. Return a JSON array with format: [{"category": "Category Name", "skills": ["Skill1", "Skill2", ...]}]`;
+    // USA A SKILL DE SUMMARY para extração de skills
+    const { response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsSummarySkill(language), language);
+    const parsed = robustJsonParse(response);
+    // Garante que é um array
+    return { prompt: finalPrompt, response: Array.isArray(parsed) ? parsed : [] };
+}
+
+export async function generateATSAnalysis(resumeData: ResumeData, jobDescription?: string, authSettings?: AIAuthSettings & { atsPrompt?: string }, language: string = 'pt'): Promise<{ prompt: string; response: any; debug: { skill: string; userPrompt: string; rawResponse: string } }> {
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.atsPrompt ? `USER INSTRUCTION: ${authSettings.atsPrompt}\n\n` : '';
     const jdString = typeof jobDescription === 'string' ? jobDescription : '';
     const jobInfo = jdString ? `JOB DESCRIPTION: ${jdString}\n\n` : '';
     const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}${jobInfo}EXECUTE ACTION 2 (AUDIT) for this data: ${JSON.stringify(resumeData)}`;
     // OBRIGATORIAMENTE USA A SKILL FASE 2 (AUDITORIA)
-    const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsAnalyzerSkill(language), language);
-    return { prompt, response: robustJsonParse(response) };
+    try {
+        const result = await callAIWithJsonParser(finalPrompt, aiConfig, ATSAnalysisSchema, getAtsAnalyzerSkill(language), language);
+        return { prompt: result.prompt, response: result.response, debug: result.debug };
+    } catch (error) {
+        console.error('[generateATSAnalysis] JsonOutputParser failed, using fallback:', error);
+        const { prompt, response, debug } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsAnalyzerSkill(language), language);
+        return { prompt, response: robustJsonParse(response), debug };
+    }
 }
 
 export async function translateResumeData(data: ResumeData, targetLang: 'pt' | 'en', authSettings?: AIAuthSettings): Promise<{ prompt: string; response: ResumeData }> {
@@ -215,9 +310,83 @@ export async function parseResumeFromText(text: string, authSettings?: AIAuthSet
     const aiConfig = await getAIClient(authSettings);
     const userPrompt = authSettings?.importPrompt ? `USER INSTRUCTION: ${authSettings.importPrompt}\n\n` : '';
     const finalPrompt = `${getLanguageInstruction(language)}\n\n${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${text}`;
+    
+    let parsedData: any;
+    
     // OBRIGATORIAMENTE USA A SKILL FASE 1 (IMPORTAÇÃO)
-    const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
-    return { prompt, response: robustJsonParse(response) };
+    try {
+        const result = await callAIWithJsonParser(finalPrompt, aiConfig, ResumeDataSchema, getAtsParserSkill(language), language);
+        parsedData = result.response;
+    } catch (error) {
+        console.error('[parseResumeFromText] JsonOutputParser failed, using fallback:', error);
+        const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
+        parsedData = robustJsonParse(response);
+    }
+    
+    // Normalize line breaks in summary and descriptions
+    if (parsedData) {
+        if (parsedData.summary && typeof parsedData.summary === 'string') {
+            let summary = parsedData.summary;
+            // Fix ". , " pattern
+            summary = summary.replace(/\.\s*,/g, '.');
+            
+            // Handle all escape variations of \n
+            summary = summary
+                .replace(/\\n\\n/g, '\n\n')
+                .replace(/\\n/g, '\n')
+                .replace(/\\\\n/g, '\n');
+            
+            // If still no line breaks, try to split by sentences (including accented)
+            if (!summary.includes('\n')) {
+                summary = summary
+                    .replace(/\. ([A-ZÀ-Ú])/g, '.\n\n$1')
+                    .replace(/;\s*([A-ZÀ-Ú])/g, ';\n\n$1');
+            }
+            
+            // Ensure double line breaks for paragraphs
+            summary = summary.replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
+            
+            parsedData.summary = summary;
+        }
+        
+        ['experiences', 'education', 'projects'].forEach((section: string) => {
+            if (Array.isArray(parsedData[section])) {
+                parsedData[section].forEach((item: any) => {
+                    if (Array.isArray(item.description)) {
+                        const fixedBullets = item.description.map((d: string) => {
+                            let fixed = d.replace(/\.\s*,/g, '.');
+                            // Handle all escape variations
+                            fixed = fixed
+                                .replace(/\\n\\n/g, '\n\n')
+                                .replace(/\\n/g, '\n')
+                                .replace(/\\\\n/g, '\n');
+                            return fixed.startsWith('-') || fixed.startsWith('•') ? fixed : `- ${fixed}`;
+                        });
+                        item.description = fixedBullets.join('\n');
+                    } else if (typeof item.description === 'string') {
+                        let desc = item.description;
+                        desc = desc.replace(/\.\s*,/g, '.');
+                        desc = desc
+                            .replace(/\\n\\n/g, '\n\n')
+                            .replace(/\\n/g, '\n')
+                            .replace(/\\\\n/g, '\n');
+
+                        // If still no line breaks, force split by period-space (any letter)
+                        if (!desc.includes('\n')) {
+                            desc = desc
+                                .replace(/\. ([a-zA-ZÀ-ú])/g, '.\n- $1')
+                                .replace(/; ([a-zA-ZÀ-ú])/g, ';\n- $1')
+                                .replace(/\.\s*$/, '.');
+                        }
+
+                        item.description = desc;
+                    }
+                });
+            }
+        });
+    }
+    
+    return { prompt: finalPrompt, response: parsedData };
 }
 
 export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSettings & { importPrompt?: string }, language: string = 'pt'): Promise<{ data?: Partial<ResumeData>; error?: string; prompt?: string; response?: string }> {
@@ -238,11 +407,83 @@ export async function parseResumeFromPDF(base64: string, authSettings?: AIAuthSe
         const finalPrompt = `${userPrompt}EXECUTE ACTION 1: IMPORT (PARSING) for this content: ${data.text}`;
 
         // OBRIGATORIAMENTE USA A SKILL FASE 1 (IMPORTAÇÃO)
-        const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
+        let parsedData: any;
+        
+        try {
+            const result = await callAIWithJsonParser(finalPrompt, aiConfig, ResumeDataSchema, getAtsParserSkill(language), language);
+            if (!result.response) throw new Error('A IA de extração retornou uma resposta vazia.');
+            parsedData = result.response;
+        } catch (parseError) {
+            console.error('[parseResumeFromPDF] JsonOutputParser failed, using fallback:', parseError);
+            const { prompt, response } = await callAI(finalPrompt, aiConfig, 'json_object', getAtsParserSkill(language), language);
+            if (!response) throw new Error('A IA de extração retornou uma resposta vazia.');
+            parsedData = robustJsonParse(response);
+        }
+        
+        // Normalize line breaks in summary and descriptions
+        if (parsedData) {
+            if (parsedData.summary && typeof parsedData.summary === 'string') {
+                let summary = parsedData.summary;
+                // Fix ". , " pattern
+                summary = summary.replace(/\.\s*,/g, '.');
+                
+                // Handle all escape variations of \n
+                summary = summary
+                    .replace(/\\n\\n/g, '\n\n')
+                    .replace(/\\n/g, '\n')
+                    .replace(/\\\\n/g, '\n');
+                
+                // If still no line breaks, try to split by sentences (including accented)
+                if (!summary.includes('\n')) {
+                    summary = summary
+                        .replace(/\. ([A-ZÀ-Ú])/g, '.\n\n$1')
+                        .replace(/;\s*([A-ZÀ-Ú])/g, ';\n\n$1');
+                }
+                
+                // Ensure double line breaks for paragraphs
+                summary = summary.replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
+                
+                parsedData.summary = summary;
+            }
+            
+            ['experiences', 'education', 'projects'].forEach((section: string) => {
+                if (Array.isArray(parsedData[section])) {
+                    parsedData[section].forEach((item: any) => {
+                        if (Array.isArray(item.description)) {
+                            const fixedBullets = item.description.map((d: string) => {
+                                let fixed = d.replace(/\.\s*,/g, '.');
+                                // Handle all escape variations
+                                fixed = fixed
+                                    .replace(/\\n\\n/g, '\n\n')
+                                    .replace(/\\n/g, '\n')
+                                    .replace(/\\\\n/g, '\n');
+                                return fixed.startsWith('-') || fixed.startsWith('•') ? fixed : `- ${fixed}`;
+                            });
+                            item.description = fixedBullets.join('\n');
+                        } else if (typeof item.description === 'string') {
+                            let desc = item.description;
+                            desc = desc.replace(/\.\s*,/g, '.');
+                            desc = desc
+                                .replace(/\\n\\n/g, '\n\n')
+                                .replace(/\\n/g, '\n')
+                                .replace(/\\\\n/g, '\n');
 
-        if (!response) throw new Error('A IA de extração retornou uma resposta vazia.');
+                            // If still no line breaks, force split by period-space (any letter)
+                            if (!desc.includes('\n')) {
+                                desc = desc
+                                    .replace(/\. ([a-zA-ZÀ-ú])/g, '.\n- $1')
+                                    .replace(/; ([a-zA-ZÀ-ú])/g, ';\n- $1')
+                                    .replace(/\.\s*$/, '.');
+                            }
 
-        return { data: robustJsonParse(response), prompt, response };
+                            item.description = desc;
+                        }
+                    });
+                }
+            });
+        }
+        
+        return { data: parsedData };
     } catch (error: any) {
         logger.error('Error in parseResumeFromPDF', error);
         return { error: error.message || 'Erro interno no servidor' };
