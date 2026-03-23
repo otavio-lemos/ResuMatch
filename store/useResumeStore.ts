@@ -39,6 +39,41 @@ function normalizeApiResponse(data: any): any {
   return normalized;
 }
 
+function migrateCertificationItem(item: any): any {
+  if (typeof item === 'string') {
+    return { id: uuidv4(), name: item, issuer: '', date: '' };
+  }
+  if (typeof item === 'object' && item !== null && !item.name && item.title) {
+    return { ...item, name: item.title, id: item.id || uuidv4() };
+  }
+  if (typeof item === 'object' && item !== null) {
+    return { ...item, id: item.id || uuidv4() };
+  }
+  return { id: uuidv4(), name: String(item), issuer: '', date: '' };
+}
+
+function migrateCertificationsInSection(section: any): any {
+  if (!section || section.type !== 'SIMPLE_LIST' || section.id !== 'certifications') {
+    return section;
+  }
+  return {
+    ...section,
+    items: (section.items || []).map(migrateCertificationItem)
+  };
+}
+
+function migrateResumeData(data: any): any {
+  if (!data) return data;
+  
+  const migrated = { ...data };
+  
+  if (migrated.sectionsConfig && Array.isArray(migrated.sectionsConfig)) {
+    migrated.sectionsConfig = migrated.sectionsConfig.map(migrateCertificationsInSection);
+  }
+  
+  return migrated;
+}
+
 export type Experience = {
     id: string;
     position: string;
@@ -350,7 +385,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         try {
             const res = await fetch(`/api/resumes/${id}`);
             if (!res.ok) throw new Error('Resume not found');
-            const data = await res.json();
+            const rawData = await res.json();
+            const data = migrateResumeData(rawData);
 
             const dataSections = data.sectionsConfig || data.sections_config || [];
             
