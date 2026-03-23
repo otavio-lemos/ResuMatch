@@ -17,12 +17,12 @@ export function getChatModel(settings: AISettings): ChatOpenAI | ChatGoogleGener
   console.log('[getChatModel] =============================================');
   
   if (provider === 'gemini') {
-    console.log('[getChatModel] Creating ChatGoogleGenerativeAI with maxOutputTokens:', maxTokens ?? 2048);
+    console.log('[getChatModel] Creating ChatGoogleGenerativeAI with maxOutputTokens:', maxTokens ?? 32768);
     return new ChatGoogleGenerativeAI({
       model: model || 'gemini-2.0-flash',
       apiKey: apiKey || process.env.GEMINI_API_KEY || '',
       temperature: temperature ?? 0.7,
-      maxOutputTokens: maxTokens ?? 2048,
+      maxOutputTokens: maxTokens ?? 32768,
       topP: topP ?? 0.9,
       topK: topK ?? 40,
     });
