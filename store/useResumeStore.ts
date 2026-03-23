@@ -302,7 +302,7 @@ const EMPTY_RESUME_DATA: ResumeData = {
     projects: [],
     templateId: 'ats-optimal',
     appearance: {
-        fontFamily: 'Inter',
+        fontFamily: 'Arial',
         fontSize: '11',
         lineSpacing: '1.5',
         pageSize: 'A4',

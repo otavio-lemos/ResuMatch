@@ -39,7 +39,7 @@ export async function createNewResume(formData?: FormData, templateId?: string, 
             ...baseData,
             templateId: resolvedTemplateId,
             appearance: {
-                fontFamily: 'Inter',
+                fontFamily: 'Arial',
                 fontSize: '11',
                 lineSpacing: '1.5',
                 pageSize: 'A4',
@@ -82,7 +82,7 @@ export async function saveImportedResume(parsedData: any, templateId?: string, l
             ...parsedData,
             templateId: resolvedTemplateId,
             appearance: {
-                fontFamily: 'Inter',
+                fontFamily: 'Arial',
                 fontSize: '11',
                 lineSpacing: '1.5',
                 pageSize: 'A4',

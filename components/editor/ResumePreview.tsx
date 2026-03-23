@@ -100,7 +100,7 @@ const PAGE_SIZES = {
 function getStyles(appearance: AppearanceSettings): React.CSSProperties {
     const size = PAGE_SIZES[appearance.pageSize] || PAGE_SIZES['A4'];
     return {
-        fontFamily: FONT_MAP[appearance.fontFamily] || FONT_MAP['Inter'],
+        fontFamily: FONT_MAP[appearance.fontFamily] || FONT_MAP['Arial'],
         fontSize: `${appearance.fontSize}pt`,
         lineHeight: appearance.lineSpacing,
         width: size.width,
@@ -1053,7 +1053,7 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
     const style = getStyles(appearance);
 
     return (
-        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box', fontFamily: appearance.fontFamily === 'Inter' ? 'Georgia, serif' : style.fontFamily }}>
+        <div className="resume-container" style={{ ...style, background: 'white', color: '#000000', padding: '15mm', boxSizing: 'border-box', fontFamily: style.fontFamily }}>
             <header style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <h1 style={{ fontSize: '1.8em', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>
                     {personalInfo.fullName || 'SEU NOME'}

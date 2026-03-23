@@ -1000,8 +1000,8 @@ export function EditorPanel() {
                                         onChange={(e) => updateAppearance({ fontFamily: e.target.value })}
                                         className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
                                     >
-                                        <option value="Inter">Inter ({t('editor.fontDefault')})</option>
-                                        <option value="Arial">Arial ({t('editor.fontSafe')})</option>
+                                        <option value="Arial">Arial ({t('editor.fontDefault')})</option>
+                                        <option value="Inter">Inter</option>
                                         <option value="Calibri">Calibri</option>
                                         <option value="Georgia">Georgia</option>
                                         <option value="Times New Roman">Times New Roman</option>
