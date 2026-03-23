@@ -1081,9 +1081,9 @@ export function EditorPanel() {
                             <div className="space-y-2">
                                 {data.sectionsConfig.map((section, idx) => (
                                     <div key={section.id} className="flex items-center justify-between p-2 rounded-none bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1">
                                             <button
-                                                className="cursor-pointer text-slate-300 hover:text-slate-500"
+                                                className="cursor-pointer text-slate-300 hover:text-slate-500 p-0.5"
                                                 title={t('editor.moveUp') || "Mover para cima"}
                                                 onClick={() => {
                                                     if (idx === 0) return;
@@ -1093,10 +1093,26 @@ export function EditorPanel() {
                                                     newOrder[idx - 1] = temp;
                                                     reorderSections(newOrder);
                                                 }}
+                                                disabled={idx === 0}
                                             >
                                                 <ChevronUp className="size-3" />
                                             </button>
-                                            <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter">{section.title}</span>
+                                            <button
+                                                className="cursor-pointer text-slate-300 hover:text-slate-500 p-0.5"
+                                                title={t('editor.moveDown') || "Mover para baixo"}
+                                                onClick={() => {
+                                                    if (idx === data.sectionsConfig.length - 1) return;
+                                                    const newOrder = [...data.sectionsConfig];
+                                                    const temp = newOrder[idx];
+                                                    newOrder[idx] = newOrder[idx + 1];
+                                                    newOrder[idx + 1] = temp;
+                                                    reorderSections(newOrder);
+                                                }}
+                                                disabled={idx === data.sectionsConfig.length - 1}
+                                            >
+                                                <ChevronDown className="size-3" />
+                                            </button>
+                                            <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter ml-1">{section.title}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
