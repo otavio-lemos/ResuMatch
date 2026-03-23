@@ -34,19 +34,17 @@ flowchart TB
     end
 
     subgraph AIParser["AI Parser"]
-        E[Upload Resume] --> F[AI Extracts Data]
-        F --> G[Auto-fill Editor]
+        A --> E[Upload Resume]
+        E --> F[AI Extracts Data]
+        F --> C
     end
 
     subgraph ATS["ATS Analysis"]
-        H[Upload PDF] --> I[Parse Resume]
-        I --> J[Job Description Match]
-        J --> K[Score & Recommendations]
+        D --> G[Upload PDF / Use Current]
+        G --> H[Parse Resume]
+        H --> I[Job Description Match]
+        I --> J[Score & Recommendations]
     end
-
-    C --> E
-    D --> H
-    C --> G
 ```
 
 ## Tech Stack
