@@ -7,6 +7,7 @@ export interface AnalyzeATSInput {
   jobDescription?: string;
   language: 'pt' | 'en';
   aiSettings: AISettings;
+  appWordCount?: number;
 }
 
 function tryParseJSON(text: string): any | null {
@@ -35,7 +36,7 @@ function tryParseJSON(text: string): any | null {
 }
 
 export async function* analyzeATSChain(input: AnalyzeATSInput): AsyncGenerator<{ type: 'chunk' | 'done' | 'error'; content?: string; data?: any; error?: string }> {
-  const { resumeData, jobDescription, language, aiSettings } = input;
+  const { resumeData, jobDescription, language, aiSettings, appWordCount } = input;
   
   const safeJobDescription = typeof jobDescription === 'string' ? jobDescription : '';
   
@@ -104,6 +105,14 @@ Respond with valid JSON only. No markdown fences.
     console.log('[analyzeATSChain] Response length:', fullContent.length);
     
     let parsed = tryParseJSON(fullContent);
+    
+    if (appWordCount !== undefined && parsed) {
+      const metrics = parsed.contentMetrics || parsed.conteudoMetrics;
+      if (metrics?.wordCount) {
+        console.log('[analyzeATSChain] Overriding wordCount:', metrics.wordCount.value, '→', appWordCount);
+        metrics.wordCount.value = appWordCount;
+      }
+    }
     
     if (parsed) {
       try {

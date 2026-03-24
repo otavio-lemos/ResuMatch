@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         const body = await req.json();
-        const { resumeData, jobDescription, language = 'pt', aiSettings } = body;
+        const { resumeData, jobDescription, language = 'pt', aiSettings, appWordCount } = body;
         
         if (!aiSettings?.apiKey && aiSettings?.provider === 'gemini') {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'API Key Missing' })}\n\n`));
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
           resumeData,
           jobDescription: safeJobDescription,
           language,
-          aiSettings: settings
+          aiSettings: settings,
+          appWordCount
         });
         
         let fullContent = '';

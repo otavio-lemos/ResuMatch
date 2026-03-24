@@ -220,6 +220,9 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
     - "Habilidades" ou "Competências" (não "Skills" em currículo PT)
     - "Resumo Profissional" ou "Professional Summary" (não "Sobre")
 
+## CÁLCULOS OBRIGATÓRIOS DAS MÉTRICAS:
+- **wordCount**: O valor será sobrescrito pelo APP com a contagem exata de palavras
+
 ## Regras de Pontuação (Auditória)
 
 ## VISÃO GERAL (O QUE É O ATS AUDITOR)

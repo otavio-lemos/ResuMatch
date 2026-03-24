@@ -225,7 +225,7 @@ MANDATORY ATS STANDARDS (Reference: Workday, Greenhouse, iCIMS, Taleo, Lever, Sm
     - "Summary" or "Professional Summary" (not "Sobre")
 
 ### MANDATORY METRIC CALCULATIONS:
-- **wordCount**: Count ALL words in resume. Example: 450 words = GOOD for 1 page
+- **wordCount**: The value will be overwritten by the APP with the exact word count
 - **paragraphsPerSection**: Average paragraphs per main section (target: 3-5)
 - **charsPerParagraph**: Average characters per paragraph (target: 67-94)
 - **starBullets**: PERCENTAGE of bullets using STAR (ex: value: 75 = 75%). **NEVER return absolute count, always percentage**

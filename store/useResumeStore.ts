@@ -2,6 +2,55 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { robustJsonParse } from '@/lib/ai-utils';
 
+function countAllWords(data: any): number {
+    let words = 0;
+    if (data.personalInfo) {
+        const pi = data.personalInfo;
+        words += (pi.fullName || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (pi.title || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (pi.email || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (pi.location || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    }
+    words += (data.summary || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    (data.experiences || []).forEach((exp: any) => {
+        words += (exp.position || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (exp.company || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (exp.location || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (exp.description || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    (data.education || []).forEach((edu: any) => {
+        words += (edu.degree || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (edu.institution || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (edu.location || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (edu.description || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    (data.skills || []).forEach((cat: any) => {
+        words += (cat.category || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        (cat.skills || []).forEach((skill: string) => {
+            words += skill.split(/\s+/).filter((w: string) => w.length > 0).length;
+        });
+    });
+    (data.projects || []).forEach((proj: any) => {
+        words += (proj.title || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (proj.subtitle || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (proj.description || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    (data.certifications || []).forEach((cert: any) => {
+        words += (cert.name || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (cert.issuer || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    (data.languages || []).forEach((lang: any) => {
+        words += (lang.name || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (lang.proficiency || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    (data.volunteer || []).forEach((vol: any) => {
+        words += (vol.role || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (vol.organization || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        words += (vol.description || '').split(/\s+/).filter((w: string) => w.length > 0).length;
+    });
+    return words;
+}
+
 function normalizeApiResponse(data: any): any {
   if (!data) return data;
   
@@ -478,13 +527,16 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         delete (cleanData as any)._sectionHeaders;
         delete cleanData.aiAnalysis;
         delete cleanData.jdAnalysis;
+
+        const wordCount = countAllWords(cleanData);
         
         const payload = {
             resumeData: cleanData,
             atsPrompt,
             jobDescription,
             aiSettings,
-            language
+            language,
+            appWordCount: wordCount
         };
         
         const controller = new AbortController();
