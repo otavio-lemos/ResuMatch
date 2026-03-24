@@ -50,13 +50,13 @@ function CircularProgress({ percent, colorClass, size = "md" }: { percent: numbe
 }
 
 function getScoreColorClass(score: number): string {
-    if (score >= 92) return 'text-emerald-500';
+    if (score >= 85) return 'text-emerald-500';
     if (score >= 60) return 'text-amber-500';
     return 'text-red-500';
 }
 
 function getScoreColorClassBg(score: number): string {
-    if (score >= 92) return 'bg-emerald-100 dark:bg-emerald-900/30';
+    if (score >= 85) return 'bg-emerald-100 dark:bg-emerald-900/30';
     if (score >= 60) return 'bg-amber-100 dark:bg-amber-900/30';
     return 'bg-red-100 dark:bg-red-900/30';
 }
@@ -515,7 +515,7 @@ export default function ATSAnalysisView() {
                     </button>
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                    <CircularProgress percent={displayScore} colorClass={displayScore >= 92 ? "text-emerald-500" : displayScore >= 60 ? "text-amber-500" : "text-red-500"} size="lg" />
+                    <CircularProgress percent={displayScore} colorClass={displayScore >= 85 ? "text-emerald-500" : displayScore >= 60 ? "text-amber-500" : "text-red-500"} size="lg" />
                     
                     <button
                         onClick={() => { setActiveAnalysisMode('general'); handleAnalyze(undefined); }}
@@ -590,7 +590,7 @@ export default function ATSAnalysisView() {
                             <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 dark:text-white">{t('dashboard.designScore')}</h3>
                             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{t('analysis.designSubtitle')}</p>
                         </div>
-                        <CircularProgress percent={analysis?.scores?.design ?? 0} colorClass={(analysis?.scores?.design ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.design ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} />
+                        <CircularProgress percent={analysis?.scores?.design ?? 0} colorClass={(analysis?.scores?.design ?? 0) >= 85 ? 'text-emerald-500' : (analysis?.scores?.design ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} />
                     </div>
                     <ul className="space-y-2">
                         {analysis?.designChecks?.map((c: AICheck, i: number) => (
@@ -616,7 +616,7 @@ export default function ATSAnalysisView() {
                         </div>
                         <CircularProgress 
                             percent={analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0} 
-                            colorClass={(analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
+                            colorClass={(analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 85 ? 'text-emerald-500' : (analysis?.scores?.structure ?? analysis?.scores?.estrutura ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
                         />
                     </div>
                     <ul className="space-y-2">
@@ -646,7 +646,7 @@ export default function ATSAnalysisView() {
                         </div>
                         <CircularProgress 
                             percent={analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0} 
-                            colorClass={(analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 92 ? 'text-emerald-500' : (analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
+                            colorClass={(analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 85 ? 'text-emerald-500' : (analysis?.scores?.content ?? analysis?.scores?.conteudo ?? 0) >= 60 ? 'text-amber-500' : 'text-red-500'} 
                         />
                     </div>
                     <div className="space-y-3">
