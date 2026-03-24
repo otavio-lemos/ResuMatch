@@ -396,13 +396,15 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 for (const dataSection of dataSections) {
                     const index = mergedSections.findIndex(s => s.id === dataSection.id);
                     if (index >= 0) {
-                        // Mesclar: usar título PADRÃO e dados do arquivo para conteúdo
+                        const defaultTitle = mergedSections[index].title;
+                        const fileTitle = dataSection.title;
+                        // Preservar título customizado do arquivo, só usar padrão se forem iguais
+                        const preserveTitle = fileTitle && fileTitle !== defaultTitle ? fileTitle : defaultTitle;
+                        
                         mergedSections[index] = { 
                             ...mergedSections[index], 
                             ...dataSection,
-                            // PADRÃO prevalece para title - corrige headers antigos
-                            title: mergedSections[index].title,
-                            // Garantir que type não seja alterado
+                            title: preserveTitle,
                             type: mergedSections[index].type 
                         };
                     }
@@ -704,7 +706,23 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         return { data: newData };
     }),
     setJobDescription: (jd) => set((state) => ({ data: { ...state.data, jobDescription: jd } })),
-    setLanguage: (language) => set((state) => ({ data: { ...state.data, language } })),
+    setLanguage: (language) => set((state) => {
+        const currentLang = state.data.language;
+        if (currentLang === language) return { data: { ...state.data, language } };
+        
+        const newSections = state.data.sectionsConfig.map((s) => {
+            const defaults = DEFAULT_TITLES[s.id];
+            if (defaults) {
+                const newTitle = defaults[language];
+                if (newTitle) {
+                    return { ...s, title: newTitle };
+                }
+            }
+            return s;
+        });
+        
+        return { data: { ...state.data, language, sectionsConfig: newSections } };
+    }),
     translateResume: async (targetLang, authSettings) => {
         const { data, setFullData, setSyncStatus } = get();
         if (data.language === targetLang) return;

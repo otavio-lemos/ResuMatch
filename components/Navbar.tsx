@@ -7,6 +7,7 @@ import { Edit3, Download, Upload, LayoutDashboard, Sparkles, Settings, PlusSquar
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useResumeStore } from '@/store/useResumeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { duplicateResume, translateResumeAction, deleteResume } from '@/app/dashboard/actions';
 
@@ -22,19 +23,25 @@ function getLastResumeId(): string | null {
 
 function LanguageToggle() {
   const { language, setLanguage } = useLanguageStore();
+  const { setLanguage: setResumeLanguage } = useResumeStore();
+
+  const handleLanguageChange = (lang: 'pt' | 'en') => {
+    setLanguage(lang);
+    setResumeLanguage(lang);
+  };
 
   return (
     <div className="flex items-center gap-2">
       <button
         aria-label="Português (Brasil)"
-        onClick={() => setLanguage('pt')}
+        onClick={() => handleLanguageChange('pt')}
         className={`relative w-5 h-[14px] overflow-hidden rounded-[2px] transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${language === 'pt' ? 'opacity-100 ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-[#101922]' : 'opacity-40 grayscale hover:grayscale-0 hover:opacity-100'}`}
       >
         <Image src="/flags/br.svg" alt="BR" fill className="object-cover" />
       </button>
       <button
         aria-label="English (US)"
-        onClick={() => setLanguage('en')}
+        onClick={() => handleLanguageChange('en')}
         className={`relative w-5 h-[14px] overflow-hidden rounded-[2px] transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${language === 'en' ? 'opacity-100 ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-[#101922]' : 'opacity-40 grayscale hover:grayscale-0 hover:opacity-100'}`}
       >
         <Image src="/flags/us.svg" alt="US" fill className="object-cover" />
