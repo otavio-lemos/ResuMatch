@@ -1233,7 +1233,7 @@ export function EditorPanel() {
                                                 className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-bold"
                                                 value={safeCertField(certItem.name)}
                                                 onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, name: e.target.value })}
-                                                placeholder="Oracle Cloud Infrastructure 2025..."
+                                                placeholder={t('form.name') || 'Certification Name'}
                                             />
                                         </div>
                                         <div>
@@ -1243,11 +1243,11 @@ export function EditorPanel() {
                                                     className="flex-1 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
                                                     value={safeCertField(certItem.issuer)}
                                                     onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, issuer: e.target.value })}
-                                                    placeholder="Oracle"
+                                                    placeholder="Issuer"
                                                 />
                                                 <input
                                                     className="w-24 px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs"
-                                                    value={safeCertField(certItem.date)}
+                                                    value={safeCertField(certItem.date) || '03/2026'}
                                                     onChange={(e) => updateSectionListItem(section.id, idx.toString(), { ...certItem, date: e.target.value })}
                                                     placeholder="02/2025"
                                                 />

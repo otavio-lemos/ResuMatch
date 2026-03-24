@@ -658,7 +658,8 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         if (s.type === 'SIMPLE_LIST') { 
             const isCertSection = sectionId === 'certifications';
             const newItem = isCertSection ? { id: `cert-${Date.now()}`, name: '', issuer: '', date: '', expirationDate: '' } : '';
-            return { ...s, items: [...(s.items as any[] || []), newItem] }; 
+            const currentItems = s.items as any[] || [];
+            return { ...s, items: isCertSection ? [newItem, ...currentItems] : [...currentItems, newItem] }; 
         }
         if (s.type === 'DATED_LIST') return { ...s, items: [...(s.items as DatedListItem[] || []), { id: uuidv4(), title: '', subtitle: '', location: '', startDate: '', endDate: '', current: false, description: '' }] };
         return s;
