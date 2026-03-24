@@ -116,6 +116,11 @@ Foco: Densidade de keywords e método STAR
 - Para cada data fora do padrão: -15 pontos em Estrutura
 - Feedback: "Use MM/AAAA (ex: 10/2021 - 12/2024). O formato atual [formato] não é parseado corretamente."
 
+**Exceção para "Current":**
+- Datas vazias com campo `current: true` OU texto "Current" / "Atual" / "Presente" são válidas
+- Não penalizar experiências que estão em andamento
+- O endDate pode estar vazio se `current: true` estiver presente nos dados
+
 **Experiências antigas (>5 anos do ano atual 2026):**
 - Experiências iniciadas há mais de 5 anos devem ser sinalizadas
 - Se >10 anos: considerar remover ou resumir em 1-2 bullets
@@ -157,6 +162,7 @@ PADRÕES ATS OBRIGATÓRIOS (Referência: Workday, Greenhouse, iCIMS, Taleo, Leve
    - Formato válido: MM/AAAA (ex: 10/2021 - 12/2024)
    - Formatos inválidos: YYYY-MM, YYYY-MM-DD, DD/MM/AAAA, apenas ano
    - Valide CADA data no currículo
+   - **EXCEÇÃO**: Datas vazias com `current: true` OU texto "Current"/"Atual"/"Presente" são válidas - não penalizar
 
 2. HEADERS/FOOTERS (Crítico):
    - Taleo ignora completamente

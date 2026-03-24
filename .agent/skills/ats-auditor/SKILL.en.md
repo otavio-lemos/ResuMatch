@@ -116,6 +116,11 @@ Focus: Keyword density and STAR method
 - For each non-standard date: -15 points in Structure
 - Feedback: "Use MM/YYYY (e.g., 10/2021 - 12/2024). Current format [format] is not parsed correctly."
 
+**Exception for "Current":**
+- Empty dates with field `current: true` OR text "Current" / "Present" are valid
+- Do not penalize ongoing experiences
+- endDate can be empty if `current: true` is present in the data
+
 **Old experiences (>5 years from current year 2026):**
 - Experiences starting more than 5 years ago should be flagged
 - If >10 years: consider removing or summarizing in 1-2 bullets
@@ -161,6 +166,7 @@ MANDATORY ATS STANDARDS (Reference: Workday, Greenhouse, iCIMS, Taleo, Lever, Sm
    - Valid format: MM/YYYY (e.g., 10/2021 - 12/2024)
    - Invalid formats: YYYY-MM, YYYY-MM-DD, DD/MM/YYYY, year only
    - Validate EACH date in the resume
+   - **EXCEPTION**: Empty dates with `current: true` OR text "Current"/"Present" are valid - do not penalize
 
 2. HEADERS/FOOTERS (Critical):
    - Taleo ignores completely

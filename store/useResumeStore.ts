@@ -396,10 +396,12 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
                 for (const dataSection of dataSections) {
                     const index = mergedSections.findIndex(s => s.id === dataSection.id);
                     if (index >= 0) {
-                        // Mesclar preservando a ordem e estrutura padrão
+                        // Mesclar: usar título PADRÃO e dados do arquivo para conteúdo
                         mergedSections[index] = { 
                             ...mergedSections[index], 
                             ...dataSection,
+                            // PADRÃO prevalece para title - corrige headers antigos
+                            title: mergedSections[index].title,
                             // Garantir que type não seja alterado
                             type: mergedSections[index].type 
                         };
