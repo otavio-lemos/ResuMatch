@@ -471,8 +471,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
 
     analyzeResume: async (atsPrompt, jobDescription, aiSettings, language = 'pt') => {
         set({ isAnalyzing: true, error: null, streamProgress: [] });
+        const currentData = get().data;
+        console.log('[ANALYZE] Sending data to ATS:', JSON.stringify(currentData, null, 2).substring(0, 2000));
         const payload = {
-            resumeData: get().data,
+            resumeData: currentData,
             atsPrompt,
             jobDescription,
             aiSettings,
