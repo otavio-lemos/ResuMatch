@@ -473,8 +473,14 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         set({ isAnalyzing: true, error: null, streamProgress: [] });
         const currentData = get().data;
         console.log('[ANALYZE] Sending data to ATS:', JSON.stringify(currentData, null, 2).substring(0, 2000));
+        
+        const cleanData = { ...currentData };
+        delete (cleanData as any)._sectionHeaders;
+        delete cleanData.aiAnalysis;
+        delete cleanData.jdAnalysis;
+        
         const payload = {
-            resumeData: currentData,
+            resumeData: cleanData,
             atsPrompt,
             jobDescription,
             aiSettings,
