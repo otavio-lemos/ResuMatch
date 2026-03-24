@@ -307,6 +307,17 @@ export default function ATSAnalysisView() {
     const router = useRouter();
     const [atsBubbles, setAtsBubbles] = useState<Bubble[]>([]);
     const [streamResponse, setStreamResponse] = useState('');
+    const [lastAnalysisKey, setLastAnalysisKey] = useState<string>('');
+    
+    // Force refresh when new analysis completes
+    useEffect(() => {
+        if (!storeIsAnalyzing && data?.aiAnalysis) {
+            const currentKey = JSON.stringify(data.aiAnalysis);
+            if (currentKey !== lastAnalysisKey) {
+                setLastAnalysisKey(currentKey);
+            }
+        }
+    }, [storeIsAnalyzing, data?.aiAnalysis, lastAnalysisKey]);
 
     const ANALYSING_BUBBLES = useMemo(() => ((t('import.analysingBubbles') as unknown) || []) as Bubble[], [t]);
 
