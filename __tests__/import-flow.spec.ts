@@ -6,7 +6,7 @@ test('import resume flow', async ({ page }) => {
   
   // Set API Key and model
   await page.getByRole('textbox', { name: 'API Key...' }).click();
-  await page.getByRole('textbox', { name: 'API Key...' }).fill('AIzaSyCiv0qgKf-E7L32HoOsRr_QJGC_1XmOnVw');
+  await page.getByRole('textbox', { name: 'API Key...' }).fill('test-api-key-placeholder');
   
   await page.getByRole('combobox').nth(1).selectOption('gemini-2.5-flash');
   await page.getByRole('button', { name: 'Salvar Configurações' }).click();
