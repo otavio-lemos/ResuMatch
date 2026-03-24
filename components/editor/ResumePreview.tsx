@@ -555,9 +555,9 @@ function TemplateVienna({ data, currentLabel }: { data: ResumeData; currentLabel
                         {stripEmojis(personalInfo.title) || 'Seu Cargo Desejado'}
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: '4px', columnGap: '16px', fontSize: 'inherit', color: '#000000' }}>
-                        {personalInfo.location && <span>• {stripEmojis(personalInfo.location)}</span>}
                         {personalInfo.email && <span>• {stripEmojis(personalInfo.email)}</span>}
                         {personalInfo.phone && <span>• {stripEmojis(personalInfo.phone)}</span>}
+                        {personalInfo.location && <span>• {stripEmojis(personalInfo.location)}</span>}
                         {personalInfo.linkedin && <span>• {stripEmojis(personalInfo.linkedin)}</span>}
                         {personalInfo.github && <span>• {stripEmojis(personalInfo.github)}</span>}
                         {personalInfo.portfolio && <span>• {stripEmojis(personalInfo.portfolio)}</span>}
@@ -727,6 +727,8 @@ function TemplateMinimalist({ data, currentLabel }: { data: ResumeData; currentL
                     {personalInfo.linkedin && <span>{personalInfo.linkedin}</span>}
                     {personalInfo.github && <span>|</span>}
                     {personalInfo.github && <span>{personalInfo.github}</span>}
+                    {personalInfo.portfolio && <span>|</span>}
+                    {personalInfo.portfolio && <span>{personalInfo.portfolio}</span>}
                 </div>
             </header>
 
@@ -881,9 +883,10 @@ function TemplateTech({ data, currentLabel }: { data: ResumeData; currentLabel?:
                 <p style={{ fontSize: 'inherit', color: '#94A3B8' }}>
                     {[
                         personalInfo.email,
+                        personalInfo.phone,
+                        personalInfo.location,
                         personalInfo.linkedin && typeof personalInfo.linkedin === 'string' && `in/${personalInfo.linkedin.replace('https://linkedin.com/in/', '')}`,
                         personalInfo.github && typeof personalInfo.github === 'string' && `gh/${personalInfo.github.replace('https://github.com/', '')}`,
-                        personalInfo.phone,
                         personalInfo.portfolio
                     ].filter(Boolean).join(' // ')}
                 </p>
@@ -1038,10 +1041,10 @@ function TemplateCompact({ data, currentLabel }: { data: ResumeData; currentLabe
                     {[
                         personalInfo.email,
                         personalInfo.phone,
+                        personalInfo.location,
                         personalInfo.linkedin,
                         personalInfo.github,
-                        personalInfo.portfolio,
-                        personalInfo.location
+                        personalInfo.portfolio
                     ].filter(Boolean).map((text, i) => (
                         <div key={i}>{text}</div>
                     ))}
@@ -1186,9 +1189,9 @@ function TemplateHarvard({ data, currentLabel }: { data: ResumeData; currentLabe
                     {personalInfo.fullName || 'SEU NOME'}
                 </h1>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: 'inherit', color: '#000000' }}>
-                    {personalInfo.location && <span>{personalInfo.location}</span>}
+                    {personalInfo.email && <span>{personalInfo.email}</span>}
                     {personalInfo.phone && <span>• {personalInfo.phone}</span>}
-                    {personalInfo.email && <span>• {personalInfo.email}</span>}
+                    {personalInfo.location && <span>• {personalInfo.location}</span>}
                     {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
                     {personalInfo.github && <span>• {personalInfo.github}</span>}
                     {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
@@ -1356,9 +1359,9 @@ function TemplateCorporate({ data, currentLabel }: { data: ResumeData; currentLa
                     {personalInfo.title || 'SEU CARGO'}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: 'inherit', color: '#4b5563' }}>
-                    {personalInfo.location && <span>{personalInfo.location}</span>}
-                    {personalInfo.email && <span>• {personalInfo.email}</span>}
+                    {personalInfo.email && <span>{personalInfo.email}</span>}
                     {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+                    {personalInfo.location && <span>• {personalInfo.location}</span>}
                     {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
                     {personalInfo.github && <span>• {personalInfo.github}</span>}
                     {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
