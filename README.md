@@ -76,6 +76,17 @@ flowchart TB
 | **Validação** | Zod |
 | **Gráficos** | Recharts |
 
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/home.png" alt="Home" width="45%"/>
+  <img src="screenshots/dashboard.png" alt="Dashboard" width="45%"/>
+  <img src="screenshots/templates.png" alt="Templates" width="45%"/>
+  <img src="screenshots/editor.png" alt="Editor" width="45%"/>
+  <img src="screenshots/analyze.png" alt="Analyze" width="45%"/>
+  <img src="screenshots/config.png" alt="Config" width="45%"/>
+</div>
+
 ## Configuração
 
 Acesse **Configurações** (`/config`) para configurar:
