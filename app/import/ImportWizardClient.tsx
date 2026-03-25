@@ -203,7 +203,15 @@ export default function ImportWizardClient() {
     };
 
     const resetToUpload = () => {
-        reset();
+        // Limpa apenas os dados do processo, mas mantém o erro visível
+        setStep('UPLOAD');
+        setParsedData(null);
+        setMappingRows([]);
+        setCurriculumChips([]);
+        setParsingBubbles([]);
+        setAnalysingBubbles([]);
+        setIsProcessing(false);
+        // NÃO chamar reset() aqui para manter o erro visível
     };
 
     const processFile = async (selectedFile: File) => {
@@ -728,9 +736,28 @@ export default function ImportWizardClient() {
             <div className={`flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col overflow-hidden ${step !== 'REVIEW' ? 'justify-center' : ''}`}>
 
                 {error && (
-                    <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-5 py-3 border border-red-100 dark:border-red-900/50 flex items-center justify-between text-xs font-bold uppercase tracking-widest">
-                        <span className="flex items-center gap-2"><ShieldAlert className="size-4 shrink-0" />{error}</span>
-                        <button onClick={() => setError(null)}><X className="size-4 hover:text-red-800" /></button>
+                    <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-6 py-4 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-lg flex items-start gap-3 text-sm font-semibold">
+                        <ShieldAlert className="size-6 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+                        <div className="flex-1">
+                            <p className="mb-2 leading-relaxed">{error}</p>
+                            <div className="bg-white dark:bg-slate-800 border border-red-200 dark:border-red-600 rounded p-3 text-xs font-mono">
+                                <p className="font-bold text-red-800 dark:text-red-300 mb-1">AÇÃO NECESSÁRIA:</p>
+                                <ol className="list-decimal list-inside space-y-1 text-red-700 dark:text-red-300">
+                                    <li>Clique no ícone de <strong>engrenagem (Configurações)</strong> no canto superior direito</li>
+                                    <li>Verifique sua <strong>API Key</strong> na aba "Configurações de IA"</li>
+                                    <li>Se a chave estiver expirada ou inválida, obtenha uma nova no Google AI Studio</li>
+                                    <li>Cole a nova chave e clique em "Salvar Configurações"</li>
+                                    <li>Clique em "Testar" para validar a conexão</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setError(null)} 
+                            className="shrink-0 p-1 hover:bg-red-100 dark:hover:bg-red-800 rounded-full transition-colors"
+                            aria-label="Fechar erro"
+                        >
+                            <X className="size-5 text-red-600 dark:text-red-400 hover:text-red-800" />
+                        </button>
                     </div>
                 )}
 

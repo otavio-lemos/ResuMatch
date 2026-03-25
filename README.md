@@ -14,6 +14,16 @@
 
 ## Início Rápido
 
+### 🚀 Para os apressados
+
+```bash
+docker run -d -p 3000:3000 otaviera/images:resumatch-0.1.0
+```
+
+Acesse: [**http://localhost:3000**](http://localhost:3000)
+
+### Opção 1: Docker Compose (desenvolvimento)
+
 ```bash
 git clone https://github.com/otavio-lemos/ResuMatch.git
 cd ResuMatch
@@ -22,8 +32,6 @@ docker-compose up -d --build
 # Acompanhar logs:
 docker-compose logs -f
 ```
-
-Acesse: [**http://localhost:3000**](http://localhost:3000)
 
 > [!TIP]
 > **Recomendação**: Use **Firefox** para imprimir e salvar como PDF para melhor compatibilidade com ATS.
