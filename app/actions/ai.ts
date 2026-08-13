@@ -44,7 +44,7 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
     // 2. Tratamento OpenAI/Ollama (OpenAI Compatível)
     else {
         // Permite chave vazia para Ollama
-        const apiKey = authSettings?.apiKey || (provider === 'ollama' ? 'ollama' : '');
+        const apiKey = authSettings?.apiKey || (provider === 'ollama' ? 'ollama' : provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : '');
         
         // URL padrão baseada no provedor
         // Detecta automaticamente: se baseUrl não for fornecida, usa localhost (local) ou host.docker.internal (Docker)
@@ -55,14 +55,16 @@ export const getAIClient = async (authSettings?: AIAuthSettings): Promise<AIConf
             
         const defaultUrl = provider === 'ollama' 
             ? defaultOllamaUrl
-            : 'https://api.openai.com/v1';
+            : provider === 'openrouter'
+                ? 'https://openrouter.ai/api/v1'
+                : 'https://api.openai.com/v1';
             
         const baseURL = authSettings?.baseUrl || defaultUrl;
 
         return {
             type: 'openai' as const,
             client: new OpenAI({ baseURL, apiKey }),
-            model: authSettings?.model || (provider === 'ollama' ? 'qwen3:8b' : 'gpt-3.5-turbo'),
+            model: authSettings?.model || (provider === 'ollama' ? 'qwen3:8b' : provider === 'openrouter' ? 'poolside/laguna-xs-2.1:free' : 'gpt-3.5-turbo'),
             temperature: authSettings?.temperature,
             topP: authSettings?.topP,
             maxTokens: authSettings?.maxTokens,

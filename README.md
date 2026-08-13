@@ -10,7 +10,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 
 > [!IMPORTANT]
-> **Privacidade Primeiro** - Este app é 100% privado. Nenhuma telemetria, analytics ou rastreamento é enviado para qualquer lugar. Os únicos dados transmitidos são quando você usa explicitamente um provedor de IA (Gemini, OpenAI ou Ollama) - e esses dados vão APENAS para o serviço de IA que você configurou.
+> **Privacidade Primeiro** - Este app é 100% privado. Nenhuma telemetria, analytics ou rastreamento é enviado para qualquer parte. Os únicos dados transmitidos são quando você usa explicitamente um provedor de IA (OpenRouter, Google Gemini, OpenAI ou Ollama) - e esses dados vão APENAS para o serviço de IA que você configurar. O provedor padrão é o **OpenRouter** (modelo gratuito `poolside/laguna-xs-2.1:free`).
 
 ## Início Rápido
 
@@ -67,7 +67,7 @@ flowchart TB
 | **Core** | Next.js 15 (App Router), TypeScript |
 | **Design** | Tailwind CSS 4 |
 | **Estado** | Zustand |
-| **IA** | Google Gemini, OpenAI, Ollama |
+| **IA** | OpenRouter (padrão), Google Gemini, OpenAI, Ollama |
 | **Parsing** | Mammoth, PDF-Parse |
 | **i18n** | next-intl |
 | **Ícones** | Lucide React |
@@ -79,6 +79,6 @@ flowchart TB
 ## Configuração
 
 Acesse **Configurações** (`/config`) para configurar:
-- Provedor de IA (Gemini, OpenAI, Ollama)
+- Provedor de IA (OpenRouter [padrão], Google Gemini, OpenAI, Ollama)
 - Chaves de API (armazenadas no localStorage)
 - Modelo preferido

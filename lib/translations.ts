@@ -147,6 +147,7 @@ export const translations = {
       tipsList: {
         gemini: "Gemini: API key do Google AI.",
         ollama: "Ollama: Use http://host.docker.internal:11434/v1.",
+        openrouter: "OpenRouter: API key em https://openrouter.ai/keys",
         tokens: "Tokens: Recomendado 16384 para importação."
       },
       history: "Histórico",
@@ -179,6 +180,7 @@ export const translations = {
       recommendedPro: "(recomendado gemini-2.5-pro)",
       recommendedFlash: "(recomendado gemini-2.5-flash)",
       recommendedOllama: "(recomendado qwen3:8b)",
+      recommendedOpenRouter: "(recomendado poolside/laguna-xs-2.1:free)",
       darkMode: "Escuro",
       lightMode: "Claro",
       toggleDarkMode: "Ativar modo escuro",
@@ -188,10 +190,12 @@ export const translations = {
       gemini: "Google Gemini",
       ollama: "Ollama (Local)",
       openai: "OpenAI",
+      openrouter: "OpenRouter",
       custom: "Personalizado",
-      geminiDesc: "IA na nuvem do Google",
+       geminiDesc: "IA na nuvem do Google",
       ollamaDesc: "LLM local rodando na sua máquina",
       openaiDesc: "Modelos OpenAI GPT",
+      openrouterDesc: "API agregadora compatível com OpenAI (modelos gratuitos incluídos)",
       customDesc: "Qualquer API compatível com OpenAI"
     },
     editor: {
@@ -660,6 +664,7 @@ export const translations = {
       tipsList: {
         gemini: "Gemini: Google AI API key.",
         ollama: "Ollama: Use http://host.docker.internal:11434/v1.",
+        openrouter: "OpenRouter: API key at https://openrouter.ai/keys",
         tokens: "Tokens: 16384 recommended for import."
       },
       history: "History",
@@ -692,6 +697,7 @@ export const translations = {
       recommendedPro: "(recommended gemini-2.5-pro)",
       recommendedFlash: "(recommended gemini-2.5-flash)",
       recommendedOllama: "(recommended qwen3:8b)",
+      recommendedOpenRouter: "(recommended poolside/laguna-xs-2.1:free)",
       darkMode: "Dark",
       lightMode: "Light",
       toggleDarkMode: "Enable dark mode",
@@ -701,10 +707,12 @@ export const translations = {
       gemini: "Google Gemini",
       ollama: "Ollama (Local)",
       openai: "OpenAI",
+      openrouter: "OpenRouter",
       custom: "Custom",
       geminiDesc: "Cloud AI from Google",
       ollamaDesc: "Local LLM running on your machine",
       openaiDesc: "OpenAI GPT models",
+      openrouterDesc: "OpenAI-compatible aggregator API (includes free models)",
       customDesc: "Any OpenAI-compatible API"
     },
     editor: {

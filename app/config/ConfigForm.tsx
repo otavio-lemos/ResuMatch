@@ -48,6 +48,7 @@ function AIConfigForm({
 
   const providerOptions = useMemo(() => [
     { value: 'gemini' as AIProvider, label: t('providers.gemini'), description: t('providers.geminiDesc') },
+    { value: 'openrouter' as AIProvider, label: t('providers.openrouter'), description: t('providers.openrouterDesc') },
     { value: 'ollama' as AIProvider, label: t('providers.ollama'), description: t('providers.ollamaDesc') },
     { value: 'openai' as AIProvider, label: t('providers.openai'), description: t('providers.openaiDesc') },
     { value: 'custom' as AIProvider, label: t('providers.custom'), description: t('providers.customDesc') },
@@ -74,6 +75,10 @@ function AIConfigForm({
       gemini: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
         model: 'gemini-2.5-flash',
+      },
+      openrouter: {
+        baseUrl: 'https://openrouter.ai/api/v1',
+        model: 'poolside/laguna-xs-2.1:free',
       },
       ollama: {
         baseUrl: getOllamaBaseUrl(),
@@ -539,7 +544,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.primary}
               testResult={testResult.primary || null}
-              modelHint={primaryAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedPro')}
+              modelHint={primaryAI.provider === 'ollama' ? t('labels.recommendedOllama') : primaryAI.provider === 'openrouter' ? t('labels.recommendedOpenRouter') : t('labels.recommendedPro')}
             />
 
             <div className="bg-white dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 p-4">
@@ -569,7 +574,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.import}
               testResult={testResult.import || null}
-              modelHint={importAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedFlash')}
+              modelHint={importAI.provider === 'ollama' ? t('labels.recommendedOllama') : importAI.provider === 'openrouter' ? t('labels.recommendedOpenRouter') : t('labels.recommendedFlash')}
               isSynced={syncAllModels}
             />
 
@@ -600,7 +605,7 @@ export default function ConfigForm() {
               }}
               testLoading={!!testLoading.editor}
               testResult={testResult.editor || null}
-              modelHint={editorAI.provider === 'ollama' ? t('labels.recommendedOllama') : t('labels.recommendedFlash')}
+              modelHint={editorAI.provider === 'ollama' ? t('labels.recommendedOllama') : editorAI.provider === 'openrouter' ? t('labels.recommendedOpenRouter') : t('labels.recommendedFlash')}
               isSynced={syncAllModels}
             />
 

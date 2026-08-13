@@ -8,7 +8,7 @@ Este documento define as diretrizes obrigatórias e a estrutura de funcionamento
 
 Toda e qualquer interação com modelos de linguagem (LLMs) no sistema **DEVE** obrigatoriamente ser guiada por um fragmento do arquivo `.agent/skills/ats-analyzer/SKILL.md`.
 
-O sistema não possui instruções "soltas" ou inventadas no código. A inteligência é injetada via `systemInstruction` (no Gemini) ou `system role` (no OpenAI) a partir de blocos demarcados no arquivo de Skill.
+O sistema não possui instruções "soltas" ou inventadas no código. A inteligência é injetada via `systemInstruction` (provisto pelo Google Gemini) ou `system role` (provisto por OpenRouter/OpenAI e provedores compatíveis com a API OpenAI) a partir de blocos demarcados no arquivo de Skill.
 
 ---
 
@@ -47,7 +47,7 @@ Para garantir que a experiência seja realista e não inventada:
 2.  **Fim do "Chat Falso":** Foram removidos todos os atrasos manuais (`setTimeout`) e mensagens pré-programadas que simulavam pensamento. Se há movimento na tela, há processamento real.
 
 ### Segurança de Credenciais
-*   **Headers sobre URL:** A chave de API (`apiKey`) **NUNCA** é enviada via query string (`?key=...`). Ela trafega exclusivamente pelo cabeçalho seguro `x-goog-api-key`, protegendo os logs contra vazamentos.
+*   **Headers sobre URL:** A chave de API (`apiKey`) **NUNCA** é enviada via query string (`?key=...`). Ela trafega exclusivamente pelo cabeçalho de autenticação do provedor — `Authorization: Bearer <API_KEY>` para OpenRouter/OpenAI (provedor padrão) ou `x-goog-api-key` para Google Gemini — protegendo os logs contra vazamentos.
 
 ---
 

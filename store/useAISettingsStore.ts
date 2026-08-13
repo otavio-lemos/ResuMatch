@@ -13,7 +13,7 @@ import { persist } from 'zustand/middleware';
  * UI Reference: Ver getAtsUISkill() em lib/get-skill.ts
  */
 
-export type AIProvider = 'gemini' | 'ollama' | 'openai' | 'custom';
+export type AIProvider = 'gemini' | 'ollama' | 'openai' | 'openrouter' | 'custom';
 
 export interface AISettings {
   provider: AIProvider;
@@ -53,18 +53,18 @@ export interface AIConfigState {
 }
 
 const defaultAISettings: AISettings = {
-  provider: 'gemini', apiKey: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-  model: 'gemini-2.5-flash', temperature: 0.7, topP: 0.9, topK: 40, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
+  provider: 'openrouter', apiKey: '', baseUrl: 'https://openrouter.ai/api/v1',
+  model: 'poolside/laguna-xs-2.1:free', temperature: 0.7, topP: 0.9, topK: 40, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
 };
 
 const defaultImportAISettings: AISettings = {
-  provider: 'gemini', apiKey: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-  model: 'gemini-2.5-flash', temperature: 0.1, topP: 0.8, topK: 20, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
+  provider: 'openrouter', apiKey: '', baseUrl: 'https://openrouter.ai/api/v1',
+  model: 'poolside/laguna-xs-2.1:free', temperature: 0.1, topP: 0.8, topK: 20, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 120000,
 };
 
 const defaultEditorAISettings: AISettings = {
-  provider: 'gemini', apiKey: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
-  model: 'gemini-2.5-flash', temperature: 0.3, topP: 0.9, topK: 40, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 600000,
+  provider: 'openrouter', apiKey: '', baseUrl: 'https://openrouter.ai/api/v1',
+  model: 'poolside/laguna-xs-2.1:free', temperature: 0.3, topP: 0.9, topK: 40, maxTokens: 32768, frequencyPenalty: 0, presencePenalty: 0, timeout: 600000,
 };
 
 const defaultImportPrompt = "Analise o currículo e extraia as informações rigorosamente no formato JSON exigido. REMOVA, IGNORANDO TOTALMENTE, qualquer emoji, ícone ou símbolo decorativo presente no texto original. Limpe a formatação para 100% texto puro focado em parsing ATS. ATENÇÃO: É vital que você preencha a chave `_sectionHeaders` com os NOMES EXATOS E ORIGINAIS das seções agrupadas (ex: 'Trajetória', 'Sobre').";

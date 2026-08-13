@@ -234,16 +234,16 @@ const editorCall = async (
         context: sanitizeContext(resumeContext)
       });
 
-   return await gemini.generateContent({
-    systemInstruction: skillPrompts[action],
-    contents: [{ role: 'user', parts: [{ text: payload }] }],
-    generationConfig: {
-      temperature: action === 'audit' ? 0.1 : 0.4, // Auditoria precisa ser quase determinística
-      responseMimeType: action === 'audit' ? "application/json" : "text/plain", // Garante JSON puro na auditoria
-      topP: 0.9,
-      topK: 40,
-    }
-  });
+   // Provedor padrão: OpenRouter (API compatível com OpenAI)
+   return await openaiClient.chat.completions.create({
+     messages: [
+       { role: 'system', content: skillPrompts[action] },
+       { role: 'user', content: payload },
+     ],
+     temperature: action === 'audit' ? 0.1 : 0.4, // Auditoria precisa ser quase determinística
+     ...(action === 'audit' ? { response_format: { type: 'json_object' } } : {}), // Garante JSON puro na auditoria
+     top_p: 0.9,
+   });
 };
 ```
 

@@ -35,6 +35,7 @@ export function EditorPanel() {
         addExperience,
         updateExperience,
         removeExperience,
+        reorderExperiences,
         addEducation,
         updateEducation,
         removeEducation,
@@ -245,6 +246,22 @@ export function EditorPanel() {
     const analysis = data.aiAnalysis;
     const hasAtsAnalysis = !!data?.aiAnalysis;
     const overallScore = hasAtsAnalysis ? getScore(data) : 0;
+
+    const moveExperienceUp = (idx: number) => {
+        const list = [...experiences];
+        const tmp = list[idx - 1];
+        list[idx - 1] = list[idx];
+        list[idx] = tmp;
+        reorderExperiences(list);
+    };
+
+    const moveExperienceDown = (idx: number) => {
+        const list = [...experiences];
+        const tmp = list[idx + 1];
+        list[idx + 1] = list[idx];
+        list[idx] = tmp;
+        reorderExperiences(list);
+    };
 
     return (
         <section className="flex-1 flex flex-col min-w-[320px] max-w-3xl overflow-y-auto border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -680,11 +697,23 @@ export function EditorPanel() {
                             </button>
                         </div>
 
-                        {experiences.map((exp) => (
+                        {experiences.map((exp, idx) => (
                             <div key={exp.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none p-4 relative shadow-sm">
-                                <button onClick={() => removeExperience(exp.id)} className="absolute top-3 right-3 text-slate-300 hover:text-red-500">
-                                    <Trash2 className="size-3.5" />
-                                </button>
+                                <div className="absolute top-3 right-3 flex items-center gap-1">
+                                    {idx > 0 && (
+                                        <button onClick={() => moveExperienceUp(idx)} className="text-slate-400 hover:text-blue-600" title={t('editor.moveUp') || 'Mover para cima'}>
+                                            <ChevronUp className="size-3.5" />
+                                        </button>
+                                    )}
+                                    {idx < experiences.length - 1 && (
+                                        <button onClick={() => moveExperienceDown(idx)} className="text-slate-400 hover:text-blue-600" title={t('editor.moveDown') || 'Mover para baixo'}>
+                                            <ChevronDown className="size-3.5" />
+                                        </button>
+                                    )}
+                                    <button onClick={() => removeExperience(exp.id)} className="text-slate-300 hover:text-red-500">
+                                        <Trash2 className="size-3.5" />
+                                    </button>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 mt-1">
                                     <div>
                                         <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{t('form.position')}</label>

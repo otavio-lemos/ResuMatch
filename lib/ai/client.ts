@@ -32,9 +32,11 @@ export function getChatModel(settings: AISettings): ChatOpenAI | ChatGoogleGener
     ? (process.env.DOCKER_CONTAINER === 'true' 
         ? 'http://host.docker.internal:11434/v1' 
         : 'http://localhost:11434/v1')
-    : 'https://api.openai.com/v1');
+    : provider === 'openrouter' 
+        ? 'https://openrouter.ai/api/v1'
+        : 'https://api.openai.com/v1');
   
-  const resolvedApiKey = apiKey || (provider === 'ollama' ? 'ollama' : undefined);
+  const resolvedApiKey = apiKey || (provider === 'ollama' ? 'ollama' : provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : undefined);
   
   const isOllama = provider === 'ollama';
   

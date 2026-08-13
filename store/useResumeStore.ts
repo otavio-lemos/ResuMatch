@@ -328,6 +328,7 @@ type ResumeStore = {
     addExperience: () => void;
     updateExperience: (id: string, exp: Partial<Experience>) => void;
     removeExperience: (id: string) => void;
+    reorderExperiences: (newOrder: Experience[]) => void;
 
     addEducation: () => void;
     updateEducation: (id: string, edu: Partial<Education>) => void;
@@ -695,9 +696,10 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
         get().saveLocalResume();
     },
 
-    addExperience: () => set((state) => ({ data: { ...state.data, experiences: [...state.data.experiences, { id: uuidv4(), position: '', company: '', location: '', startDate: '', endDate: '', current: false, description: '' }] } })),
+    addExperience: () => set((state) => ({ data: { ...state.data, experiences: [{ id: uuidv4(), position: '', company: '', location: '', startDate: '', endDate: '', current: false, description: '' }, ...state.data.experiences] } })),
     updateExperience: (id, exp) => set((state) => ({ data: { ...state.data, experiences: state.data.experiences.map((e) => e.id === id ? { ...e, ...exp } : e) } })),
     removeExperience: (id) => set((state) => ({ data: { ...state.data, experiences: state.data.experiences.filter((e) => e.id !== id) } })),
+    reorderExperiences: (newOrder) => set((state) => ({ data: { ...state.data, experiences: newOrder } })),
     addEducation: () => set((state) => ({ data: { ...state.data, education: [...state.data.education, { id: uuidv4(), degree: '', institution: '', location: '', startDate: '', endDate: '', current: false, description: '' }] } })),
     updateEducation: (id, edu) => set((state) => ({ data: { ...state.data, education: state.data.education.map((e) => e.id === id ? { ...e, ...edu } : e) } })),
     removeEducation: (id) => set((state) => ({ data: { ...state.data, education: state.data.education.filter((e) => e.id !== id) } })),

@@ -8,9 +8,13 @@ services:
       - "3000:3000"
     environment:
       # ── IA ────────────────────────────────────────────────────────────────
-      # Chave obrigatória para o provedor Gemini (padrão da app)
+      # Chave do provedor padrão OpenRouter (obrigatória para uso de IA)
       # Copie .env.example → .env.local e preencha antes de rodar
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+      # ── Chaves alternativas (opcional) ────────────────────────────────
+      # - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
 
       # ── Runtime ──────────────────────────────────────────────────────────
       - NODE_ENV=production
